@@ -1,0 +1,50 @@
+.mobile-header-container {
+    background: rgba(15, 15, 26, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 1030;
+    height: 70px;
+    left: 0;
+    right: 0;
+}
+
+.mobile-header-brand {
+    background: linear-gradient(135deg, #7c3aed, #06b6d4, #ec4899);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.brand-dot {
+    font-size: 0.8rem;
+    margin-left: 2px;
+    font-weight: 900;
+    opacity: 0.8;
+}
+
+.mobile-action-btn {
+    width: 42px;
+    height: 42px;
+    color: var(--text-secondary);
+}
+
+.mobile-profile-node {
+    background: linear-gradient(135deg, #7c3aed, #06b6d4);
+    width: 38px;
+    height: 38px;
+    text-decoration: none;
+}
+
+.verification-banner-mobile {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+    color: #fff;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    z-index: 1020;
+    font-size: 0.65rem;
+}

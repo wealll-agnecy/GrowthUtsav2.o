@@ -1,0 +1,38 @@
+.img-aspect-ratio-default {
+    aspect-ratio: 16/10;
+}
+
+.gradient-overlay-bottom {
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+    z-index: 1;
+}
+
+.badge-container-stack {
+    z-index: 3;
+}
+
+.date-tag-badge {
+    z-index: 3;
+}
+
+.date-tag-text {
+    font-size: 0.7rem;
+}
+
+.card-title-main {
+    font-size: 1.2rem;
+}
+
+.access-label-small {
+    font-size: 0.6rem;
+    opacity: 0.6;
+}
+
+.price-text-primary {
+    font-size: 1.25rem;
+}
+
+.ticket-btn-pill {
+    height: 40px;
+    width: auto;
+}

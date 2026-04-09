@@ -1,0 +1,100 @@
+.loader-screen-center {
+    min-height: 80vh;
+    padding-top: var(--navbar-height);
+}
+
+.loader-icon-indigo {
+    color: #818cf8;
+    margin-bottom: 1rem;
+}
+
+.error-screen-badge {
+    opacity: 0.7;
+}
+
+.cinematic-header-section {
+    min-height: 500px;
+}
+
+.header-gradient-overlay {
+    background: linear-gradient(to bottom, var(--bg-gradient-1) 0%, var(--navbar-bg-scrolled) 85%, var(--deep-space) 100%);
+    z-index: 1;
+}
+
+.header-content-container {
+    padding-top: calc(var(--navbar-height) + 2rem);
+    min-height: fit-content;
+    z-index: 1;
+}
+
+.category-badge-exclusive {
+    background: linear-gradient(135deg, #6366f1, #7c3aed);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    padding: 0.45rem 0.9rem;
+}
+
+.status-badge-outline {
+    background: var(--mid-space);
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    padding: 0.45rem 0.9rem;
+}
+
+.main-title-cinematic {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+    color: var(--text-primary);
+    text-shadow: 0 10px 40px rgba(var(--glass-rgb), 0.3);
+}
+
+.protocol-description-text {
+    font-size: 1.1rem;
+    white-space: pre-wrap;
+}
+
+.organizer-label-small {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+}
+
+.booking-sidebar-sticky {
+    position: sticky;
+    top: calc(var(--navbar-height) + 1.5rem);
+}
+
+.booking-header-gradient-mask {
+    background: linear-gradient(135deg, white, transparent);
+}
+
+.amount-summary-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.amount-summary-label {
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.total-price-gradient-text {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #818cf8, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+
+.guarantee-badge-box {
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.2);
+}

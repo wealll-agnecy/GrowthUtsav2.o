@@ -1,0 +1,30 @@
+.net-profit-val {
+    font-size: 3rem;
+}
+
+.ledger-table-container {
+    max-height: 250px;
+}
+
+.expense-btn-circle {
+    height: 38px;
+    width: 38px;
+}
+
+.audit-feed-scroll {
+    max-height: 420px;
+}
+
+.audit-feed-timestamp {
+    font-size: 0.6rem;
+}
+
+.moderation-avatar-circle {
+    width: 42px;
+    height: 42px;
+    font-size: 0.85rem;
+}
+
+.moderation-email-label {
+    font-size: 0.65rem;
+}

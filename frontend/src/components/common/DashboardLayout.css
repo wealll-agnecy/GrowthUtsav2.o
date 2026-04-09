@@ -1,0 +1,45 @@
+.nav-icon-box {
+    font-size: 1.2rem;
+}
+
+.link-text-label {
+    font-size: 0.7rem;
+}
+
+.user-drawer-info {
+    background: rgba(255,255,255,0.03);
+}
+
+.user-avatar-badge {
+    width: 36px;
+    height: 36px;
+    font-size: 0.8rem;
+    min-width: 36px;
+}
+
+.user-name-label {
+    font-size: 0.75rem;
+}
+
+.user-role-label {
+    font-size: 0.6rem;
+}
+
+.logout-label-text {
+    font-size: 0.7rem;
+}
+
+.dashboard-main-container {
+    min-height: calc(100vh - var(--navbar-height));
+    background: var(--deep-space);
+}
+
+.desktop-sidebar-box {
+    height: calc(100vh - var(--navbar-height));
+    z-index: 1000;
+    top: 0;
+}
+
+.offcanvas-sidebar-box {
+    width: 280px;
+}

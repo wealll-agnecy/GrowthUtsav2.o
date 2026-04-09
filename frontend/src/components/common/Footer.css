@@ -1,0 +1,49 @@
+.footer-brand-title {
+    background: linear-gradient(135deg, #7c3aed, #06b6d4, #ec4899);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.04em;
+}
+
+.footer-description-box {
+    max-width: 350px;
+    line-height: 1.8;
+}
+
+.footer-subscribe-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.8rem;
+}
+
+.footer-subscribe-btn {
+    width: auto;
+    padding: 0 15px;
+}
+
+@media (max-width: 768px) {
+    .footer-brand-title {
+        text-align: center;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .footer-description-box {
+        max-width: 100%;
+        text-align: center;
+        margin: 0 auto 1.5rem !important;
+    }
+
+    .site-footer .d-flex.gap-3 {
+        justify-content: center !important;
+        margin-bottom: 2rem;
+    }
+
+    .site-footer h6 {
+        text-align: center;
+    }
+
+    .site-footer .list-unstyled {
+        align-items: center !important;
+    }
+}

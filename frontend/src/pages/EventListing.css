@@ -1,0 +1,42 @@
+.listing-headline {
+    color: var(--text-primary);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 0.9;
+}
+
+.event-count-text {
+    color: var(--primary-light);
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.filter-badge-item {
+    background: rgba(219, 39, 119, 0.2);
+    color: #db2777;
+    border: 1px solid rgba(219, 39, 119, 0.3);
+    font-weight: 600;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.loading-spinner-icon {
+    animation: spin-slow 2s linear infinite;
+    display: inline-block;
+    color: var(--primary-light);
+    margin-bottom: 1rem;
+}
+
+.loading-text-static {
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.empty-state-icon-large {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
