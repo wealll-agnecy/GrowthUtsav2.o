@@ -2,8 +2,10 @@ import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
 // Set base URL for all axios requests - Automatically adapt to mobile/production environments
-const isProduction = window.location.hostname !== 'localhost';
-axios.defaults.baseURL = isProduction ? `${window.location.protocol}//${window.location.host}` : 'http://localhost:5000';
+// Set base URL for all axios requests - Automatically adapt to mobile/production environments
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(window.location.hostname);
+axios.defaults.baseURL = (isLocalhost || isIP) ? `http://${window.location.hostname}:5000` : `${window.location.protocol}//${window.location.host}`;
 axios.defaults.withCredentials = true;
 
 const AuthContext = createContext();

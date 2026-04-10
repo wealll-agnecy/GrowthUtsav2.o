@@ -25,9 +25,15 @@ exports.getTicket = async (req, res, next) => {
             return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
+        const QRCode = require('qrcode');
+        const baseUrl = process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
+        const verificationUrl = `${baseUrl}/ticket/${ticket.uuid}`;
+        const qrCodeUrl = await QRCode.toDataURL(verificationUrl);
+
         res.status(200).json({
             success: true,
-            data: ticket
+            data: ticket,
+            qrCodeUrl: qrCodeUrl
         });
     } catch (err) {
         console.error("Error in getTicket:", err.message);
@@ -181,7 +187,8 @@ exports.verifyTicketForStaff = async (req, res) => {
             eventName: ticket.eventName || ticket.event?.title || 'Unknown Event',
             ticketCode: ticket.ticketCode,
             ticketType: ticket.ticketType,
-            isScanned: ticket.isScanned
+            isScanned: ticket.isScanned,
+            status: ticket.status
         };
 
         // ACCESS CONTROL LOGIC

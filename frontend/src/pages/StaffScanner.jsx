@@ -16,20 +16,29 @@ const StaffScanner = () => {
     const errorAudio = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'));
 
     useEffect(() => {
-        const scanner = new Html5QrcodeScanner('reader', {
-            qrbox: { width: 300, height: 300 },
-            fps: 10,
-        });
+        let scanner = null;
+        
+        if (isScanning) {
+            scanner = new Html5QrcodeScanner('reader', {
+                qrbox: { width: 280, height: 280 },
+                fps: 20,
+                rememberLastUsedCamera: true,
+                aspectRatio: 1.0
+            });
 
-        scanner.render(onScanSuccess, onScanError);
+            scanner.render(onScanSuccess, onScanError);
+        }
 
-        function onScanSuccess(result) {
-            // Check if scanning is paused for a result
-            if (!isScanning) return;
-            
+        async function onScanSuccess(result) {
             console.log("Captured Sequence:", result);
+            if (scanner) {
+                try {
+                    await scanner.clear();
+                } catch (e) {
+                    console.warn("Scanner clear failed", e);
+                }
+            }
             handleVerification(result);
-            scanner.clear(); // Clear scanner to show results
         }
 
         function onScanError(err) {
@@ -37,7 +46,9 @@ const StaffScanner = () => {
         }
 
         return () => {
-             scanner.clear().catch(error => console.error("Scanner cleanup failure", error));
+            if (scanner) {
+                scanner.clear().catch(error => console.error("Scanner cleanup failure", error));
+            }
         };
     }, [isScanning]);
 
@@ -45,28 +56,42 @@ const StaffScanner = () => {
         setLoading(true);
         setIsScanning(false);
         try {
-            // Extract UUID/ID from URL
-            // Format: https://yourdomain.com/ticket/:id
-            const ticketId = qrUrl.split('/').pop();
+            // Robust extraction: get the last segment of the URL
+            // Works for: https://domain/ticket/ID or just ID
+            const segments = qrUrl.split('/');
+            const ticketId = segments[segments.length - 1] || segments[segments.length - 2];
             
+            console.log("Verifying ID:", ticketId);
             const res = await axios.get(`/api/v1/tickets/verify/${ticketId}`);
             const data = res.data;
 
             if (data.status === 'VALID') {
-                successAudio.current.play();
+                successAudio.current.play().catch(() => {});
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
             } else {
-                errorAudio.current.play();
-                if (navigator.vibrate) navigator.vibrate(200);
+                errorAudio.current.play().catch(() => {});
+                if (navigator.vibrate) navigator.vibrate(300);
             }
 
             setScanResult(data);
+
+            // AUTO RESET PROTOCOL
+            setTimeout(() => {
+                resetScanner();
+            }, 4000);
+
         } catch (err) {
-            errorAudio.current.play();
+            console.error("Verification Error:", err);
+            errorAudio.current.play().catch(() => {});
             setScanResult({ 
                 status: 'INVALID', 
                 message: err.response?.data?.message || 'Biometric identifier breach detected.' 
             });
+            
+            // Auto-reset even on error
+            setTimeout(() => {
+                resetScanner();
+            }, 5000);
         } finally {
             setLoading(false);
         }
@@ -80,82 +105,108 @@ const StaffScanner = () => {
     return (
         <div className="bg-black vh-100 vw-100 overflow-hidden d-flex flex-column">
             {/* Header Hub */}
-            <div className="p-4 d-flex justify-content-between align-items-center bg-dark/50 backdrop-blur">
-                <Link to="/staff/dashboard" className="btn btn-outline-light rounded-pill px-4 py-2 small fw-black tracking-widest text-uppercase">
+            <div className="p-3 d-flex justify-content-between align-items-center bg-dark/50 backdrop-blur z-3">
+                <Link to="/staff/dashboard" className="btn btn-outline-light rounded-pill px-4 py-2 small fw-bold tracking-widest text-uppercase border-white/20">
                     <FaBackward className="me-2" /> Exit Terminal
                 </Link>
-                <Badge bg="primary" className="rounded-pill px-3 py-2 fw-black uppercase tracking-widest shadow-glow">
-                    ACCESS_CONTROL_v5.3
-                </Badge>
+                <div className="d-flex align-items-center gap-3">
+                    <div className={`status-indicator ${isScanning ? 'pulse-green' : 'pulse-amber'}`}></div>
+                    <Badge bg="primary" className="rounded-pill px-3 py-2 fw-black uppercase tracking-widest shadow-glow">
+                        SCANNER_ACTIVE_v5.4
+                    </Badge>
+                </div>
             </div>
 
             {/* Main Scanner Node */}
-            <div className="flex-grow-1 d-flex align-items-center justify-content-center p-3 relative">
+            <div className="flex-grow-1 d-flex align-items-center justify-content-center p-3 relative bg-deep-space">
                 {isScanning ? (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-100 max-w-500">
-                        <div className="text-center mb-4">
-                            <div className="h4 text-white fw-black tracking-widest uppercase">Target Recognition Active</div>
-                            <div className="text-white-50 x-small fw-bold opacity-40">POSITION QR SIGNATURE WITHIN FRAME</div>
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-100 max-w-500">
+                        <div className="text-center mb-5">
+                            <div className="h4 text-white fw-black tracking-widest uppercase mb-2">Target Recognition Active</div>
+                            <div className="text-white-50 x-small fw-bold opacity-60 tracking-tighter">ALIGN QR CODE WITHIN THE ILLUMINATED BOUNDS</div>
                         </div>
-                        <div id="reader" className="scanner-frame glass-card border-white/10 overflow-hidden shadow-2xl rounded-5"></div>
+                        <div className="scanner-container position-relative">
+                            <div id="reader" className="scanner-frame glass-card border-white/10 overflow-hidden shadow-2xl rounded-5 bg-black/40"></div>
+                            {/* Scanning Animation Overlays */}
+                            <div className="scanner-laser"></div>
+                        </div>
                     </motion.div>
                 ) : (
-                    <AnimatePresence>
+                    <AnimatePresence mode="wait">
                         {scanResult && (
                             <motion.div 
-                                initial={{ scale: 0.8, opacity: 0 }} 
-                                animate={{ scale: 1, opacity: 1 }}
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
                                 className={`vh-100 vw-100 fixed-top z-index-1050 d-flex align-items-center justify-content-center p-4 ${
                                     scanResult.status === 'VALID' ? 'bg-success' : 'bg-danger'
                                 }`}
+                                style={{ transition: 'background-color 0.5s ease' }}
                             >
                                 <div className="max-w-500 w-100 text-center text-white">
                                     <motion.div
-                                        initial={{ y: 20 }}
-                                        animate={{ y: 0 }}
+                                        initial={{ y: 50, scale: 0.9, opacity: 0 }}
+                                        animate={{ y: 0, scale: 1, opacity: 1 }}
+                                        transition={{ type: 'spring', damping: 15 }}
                                     >
-                                        {scanResult.status === 'VALID' ? (
-                                            <FaCheckCircle size={100} className="mb-4 shadow-glow" />
-                                        ) : scanResult.status === 'USED' ? (
-                                            <FaExclamationTriangle size={100} className="mb-4 shadow-glow" />
-                                        ) : (
-                                            <FaTimesCircle size={100} className="mb-4 shadow-glow" />
-                                        )}
+                                        <div className="mb-5">
+                                            {scanResult.status === 'VALID' ? (
+                                                <div className="result-icon-wrapper success">
+                                                    <FaCheckCircle size={120} className="shadow-glow" />
+                                                </div>
+                                            ) : (
+                                                <div className="result-icon-wrapper danger">
+                                                    {scanResult.status === 'USED' ? <FaExclamationTriangle size={120} className="shadow-glow" /> : <FaTimesCircle size={120} className="shadow-glow" />}
+                                                </div>
+                                            )}
+                                        </div>
 
-                                        <h1 className="display-3 fw-black tracking-tightest mb-2 uppercase">
+                                        <h1 className="display-2 fw-black tracking-tightest mb-2 uppercase">
                                             {scanResult.status === 'VALID' ? 'ACCESS GRANTED' : 'ACCESS DENIED'}
                                         </h1>
-                                        <div className="h4 fw-bold opacity-80 mb-5 tracking-widest uppercase">
-                                            {scanResult.message}
+                                        <div className="h3 fw-bold opacity-90 mb-5 tracking-widest uppercase">
+                                            {scanResult.status === 'VALID' ? 'Clear for Entry ✅' : (scanResult.status === 'USED' ? 'ALREADY SCANNED ❌' : 'INVALID TICKET ❌')}
                                         </div>
 
                                         {scanResult.ticket && (
-                                            <div className="glass-panel text-start p-4 rounded-5 mb-5 border-white/20 shadow-2xl backdrop-blur-3xl">
-                                                <div className="mb-3 border-bottom border-white/10 pb-3">
-                                                    <div className="x-small fw-black uppercase tracking-widest opacity-60">Credential Holder</div>
-                                                    <div className="h2 m-0 fw-black tracking-tight">{scanResult.ticket.name}</div>
+                                            <div className="glass-panel text-start p-5 rounded-5 mb-5 border-white/20 shadow-2xl backdrop-blur-3xl bg-white/10">
+                                                <div className="mb-4 border-bottom border-white/10 pb-4">
+                                                    <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Credential Holder</div>
+                                                    <div className="h1 m-0 fw-black tracking-tight">{scanResult.ticket.name}</div>
+                                                    <div className="text-white-50 small font-monospace">{scanResult.ticket.email}</div>
                                                 </div>
-                                                <div className="d-flex gap-4">
-                                                    <div className="flex-grow-1">
-                                                        <div className="x-small fw-black uppercase tracking-widest opacity-60">Deployment</div>
-                                                        <div className="fw-bold fs-5">{scanResult.ticket.eventName}</div>
-                                                    </div>
+                                                <div className="d-flex flex-column gap-4">
                                                     <div>
-                                                        <div className="x-small fw-black uppercase tracking-widest opacity-60">Sector</div>
-                                                        <div className="fw-bold fs-5">{scanResult.ticket.ticketType}</div>
+                                                        <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Deployment Location</div>
+                                                        <div className="fw-bold fs-4">{scanResult.ticket.eventName}</div>
+                                                    </div>
+                                                    <div className="d-flex justify-content-between">
+                                                        <div>
+                                                            <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Access Tier</div>
+                                                            <div className="fw-black fs-5 text-primary-light">{scanResult.ticket.ticketType}</div>
+                                                        </div>
+                                                        <div className="text-end">
+                                                            <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Status</div>
+                                                            <Badge bg={scanResult.status === 'VALID' ? 'primary' : 'warning'} className="px-3 py-2 rounded-pill uppercase tracking-widest">
+                                                                {scanResult.status}
+                                                            </Badge>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
 
-                                        <Button 
-                                            variant="light" 
-                                            size="lg" 
-                                            onClick={resetScanner}
-                                            className="rounded-pill px-5 py-3 fw-black uppercase tracking-widest shadow-2xl"
-                                        >
-                                            IDENTIFY NEXT TARGET
-                                        </Button>
+                                        <div className="mt-5 pt-4">
+                                            <div className="text-white-50 small fw-bold tracking-widest uppercase mb-3 opacity-60">System will auto-reset in 5 seconds</div>
+                                            <Button 
+                                                variant="light" 
+                                                size="lg" 
+                                                onClick={resetScanner}
+                                                className="rounded-pill px-5 py-3 fw-black uppercase tracking-widest shadow-2xl border-0"
+                                            >
+                                                Manual Reset
+                                            </Button>
+                                        </div>
                                     </motion.div>
                                 </div>
                             </motion.div>

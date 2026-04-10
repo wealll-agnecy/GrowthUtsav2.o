@@ -28,6 +28,9 @@ const initScheduler = require('./utils/scheduler');
 
 const app = express();
 
+// Trust reverse proxy (needed for req.protocol accuracy on Heroku/Vercel/DigitalOcean)
+app.set('trust proxy', true);
+
 // DEBUG LOGGER
 app.use((req, res, next) => {
     console.log(`📡 [REQUEST]: ${req.method} ${req.path}`);
