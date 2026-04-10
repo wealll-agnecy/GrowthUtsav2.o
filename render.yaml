@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: growth-utsav-backend
+    env: node
+    plan: free
+    region: singapore # Adjust if needed
+    buildCommand: npm install --prefix backend
+    startCommand: node backend/server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        fromContext: parameter
+      - key: JWT_SECRET
+        fromContext: parameter
+      - key: FRONTEND_URL
+        fromContext: parameter
+      - key: JWT_EXPIRE
+        value: 30d
+      - key: COOKIE_EXPIRE
+        value: 30
