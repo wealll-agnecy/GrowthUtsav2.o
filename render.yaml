@@ -3,7 +3,7 @@ services:
     name: growth-utsav-backend
     env: node
     plan: free
-    region: singapore # Adjust if needed
+    region: singapore
     buildCommand: npm install --prefix backend
     startCommand: node backend/server.js
     envVars:
@@ -15,9 +15,25 @@ services:
         fromContext: parameter
       - key: JWT_SECRET
         fromContext: parameter
-      - key: FRONTEND_URL
-        fromContext: parameter
       - key: JWT_EXPIRE
         value: 30d
       - key: COOKIE_EXPIRE
         value: 30
+      - key: FRONTEND_URL
+        fromContext: parameter
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_USER
+        fromContext: parameter
+      - key: EMAIL_PASS
+        fromContext: parameter
+      - key: FROM_NAME
+        value: Growth Utsav
+      - key: FROM_EMAIL
+        fromContext: parameter
+      - key: ADMIN_EMAIL
+        value: admin@growthu.com
+      - key: ADMIN_PASSWORD
+        fromContext: parameter
