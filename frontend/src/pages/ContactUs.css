@@ -1,0 +1,192 @@
+/* Global reset for box-sizing within this page scope */
+.contact-us-container * {
+    box-sizing: border-box !important;
+}
+
+.contact-us-container {
+    padding: 120px 20px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.contact-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 40px;
+}
+
+.contact-info-card {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.contact-form-card {
+    padding: 40px;
+}
+
+.contact-method {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.contact-method-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.contact-method-content h4 {
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.contact-method-content p {
+    margin-bottom: 0;
+    color: var(--text-soft);
+}
+
+/* === STRICT UI FIX FOR INPUTS === */
+
+.contact-form-group {
+    margin-bottom: 16px !important;
+}
+
+.contact-label {
+    display: block !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: var(--text-soft) !important;
+    margin-bottom: 8px !important;
+}
+
+.input-wrapper {
+    position: relative !important;
+    width: 100% !important;
+    display: block !important;
+    /* NO FLEX ON WRAPPER */
+}
+
+.input-icon-fixed {
+    position: absolute !important;
+    left: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
+    color: var(--primary) !important;
+    font-size: 1.1rem !important;
+}
+
+.contact-input-field {
+    position: relative !important;
+    z-index: 1 !important;
+    display: block !important;
+    width: 100% !important;
+    min-height: 48px !important;
+    padding-left: 45px !important;
+    /* CRITICAL PADDING */
+    padding-right: 15px !important;
+    font-size: 15px !important;
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 8px !important;
+    color: var(--text-bright) !important;
+    transition: all 0.3s ease !important;
+    line-height: normal !important;
+}
+
+.contact-input-field::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8 !important;
+    /* Clear visibility */
+}
+
+.contact-input-field:focus {
+    outline: none !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px var(--primary-shadow) !important;
+    background-color: var(--bg-card) !important;
+}
+
+/* === TEXTAREA SPECIFIC FIXES === */
+
+.contact-textarea-field {
+    display: block !important;
+    width: 100% !important;
+    min-height: 120px !important;
+    padding: 12px 14px !important;
+    /* NO ICON PADDING */
+    font-size: 15px !important;
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 8px !important;
+    color: var(--text-bright) !important;
+    transition: all 0.3s ease !important;
+    resize: vertical !important;
+}
+
+.contact-textarea-field::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8 !important;
+}
+
+.contact-textarea-field:focus {
+    outline: none !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px var(--primary-shadow) !important;
+}
+
+/* === LIGHT MODE THEME PROTECTION === */
+
+body.light-mode .contact-input-field,
+body.light-mode .contact-textarea-field {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+body.light-mode .contact-input-field:focus,
+body.light-mode .contact-textarea-field:focus {
+    background-color: #ffffff !important;
+}
+
+.word-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.word-count.limit-reached {
+    color: var(--accent);
+}
+
+@media (max-width: 991px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-us-container {
+        padding-top: 100px;
+    }
+}

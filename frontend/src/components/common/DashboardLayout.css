@@ -35,9 +35,23 @@
 }
 
 .desktop-sidebar-box {
-    height: calc(100vh - var(--navbar-height));
-    z-index: 1000;
-    top: 0;
+    position: fixed;
+    top: var(--navbar-height, 70px);
+    left: 0;
+    height: calc(100vh - var(--navbar-height, 70px));
+    z-index: 1060;
+    overflow-y: auto;
+}
+
+@media (min-width: 992px) {
+    .dashboard-content-area {
+        margin-left: 280px;
+        transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .dashboard-content-area.collapsed {
+        margin-left: 80px;
+    }
 }
 
 .offcanvas-sidebar-box {

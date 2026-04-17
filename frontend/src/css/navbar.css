@@ -1,0 +1,210 @@
+/* Elite Premium Navbar Design System - Beauty Edition */
+
+.navbar-premium {
+  height: 72px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--premium-shadow);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1080;
+}
+
+/* GRADIENT BORDER GLOW */
+.navbar-premium::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--accent), var(--accent-gold, #d4af37), transparent);
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.navbar-scrolled {
+  height: 64px;
+  background: var(--bg-card);
+}
+
+/* PREMIUM BRAND LOGO */
+.navbar-brand {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--text-primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* ELITE NAV LINKS */
+.nav-link-premium {
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-primary) !important;
+  padding: 0.5rem 1rem !important;
+  margin: 0 4px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-link-premium:hover {
+  transform: translateY(-3px);
+  color: var(--accent) !important;
+}
+
+.nav-link-premium::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 0%;
+  height: 2.5px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-gold, #d4af37));
+  border-radius: 99px;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+.nav-link-premium:hover::after {
+  width: 60%;
+  opacity: 1;
+}
+
+.nav-link-premium.active {
+  color: var(--accent) !important;
+}
+
+.nav-link-premium.active::after {
+  width: 40%;
+  opacity: 1;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+}
+
+/* ICON ACTIONS */
+.icon-wrapper {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(236, 72, 153, 0.04);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-wrapper:hover {
+  transform: scale(1.1) rotate(5deg);
+  background: rgba(236, 72, 153, 0.08);
+  color: var(--accent);
+}
+
+/* PREMIUM PING BADGE */
+.badge-ping {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+}
+
+/* PREMIUM BUTTONS */
+.btn-premium-outline {
+  border-radius: 12px;
+  padding: 8px 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.btn-premium-outline:hover {
+  background: var(--accent);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(236, 72, 153, 0.2);
+}
+
+.btn-premium-gradient {
+  border-radius: 12px;
+  padding: 8px 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), #db2777);
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+}
+
+/* DROPDOWN & NOTIFICATION PANEL */
+.dropdown-menu, .notification-dropdown {
+  border-radius: 18px !important;
+  border: 1px solid var(--glass-border) !important;
+  background: var(--bg-card) !important;
+  padding: 12px !important;
+  box-shadow: var(--premium-shadow) !important;
+  margin-top: 15px !important;
+}
+
+.dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover {
+  background: rgba(236, 72, 153, 0.05) !important;
+  color: var(--accent) !important;
+}
+
+/* BRAND */
+.brand-accent {
+  color: var(--accent);
+}
+
+.tiny-timestamp {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
+/* SEARCH BAR */
+.search-bar-container {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  background: rgba(236, 72, 153, 0.05);
+  border-radius: 99px;
+  padding: 0 15px;
+  border: 1px solid var(--glass-border);
+}
+
+.search-input-navbar {
+  background: transparent !important;
+  border: none !important;
+  padding: 8px 0 !important;
+  font-size: 0.85rem !important;
+  color: var(--text-primary) !important;
+  width: 100% !important;
+  box-shadow: none !important;
+}
+
+.search-input-navbar:focus {
+  outline: none !important;
+}

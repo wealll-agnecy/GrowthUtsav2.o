@@ -86,7 +86,7 @@ const OrganizerCard = ({ org, onApprove, onReject, view }) => {
                     </div>
 
                     {/* View Details Button */}
-                    <Button size="sm" variant="outline-secondary" className="w-100 fw-bold mb-2 py-2"
+                    <Button size="sm" variant="outline-secondary" className="w-100 mb-2 py-2 btn rounded-pill fw-medium px-4"
                         style={{ borderRadius: 10, borderColor: 'rgba(255,255,255,0.15)', color: '#94a3b8', fontSize: '0.8rem' }}
                         onClick={() => setShowDetails(true)}>
                         👁 View Full Details
@@ -97,12 +97,12 @@ const OrganizerCard = ({ org, onApprove, onReject, view }) => {
                         <>
                             {!rejecting ? (
                                 <div className="d-flex gap-2">
-                                    <Button size="sm" className="flex-grow-1 fw-black border-0 py-2"
+                                    <Button size="sm" className="flex-grow-1 py-2 btn rounded-pill fw-medium px-4"
                                         style={{ background: 'linear-gradient(135deg,#10b981,#059669)', borderRadius: 10 }}
                                         onClick={() => onApprove(org._id)}>
                                         <FaCheckCircle className="me-2" /> Approve
                                     </Button>
-                                    <Button size="sm" variant="outline-danger" className="flex-grow-1 fw-black py-2"
+                                    <Button size="sm" variant="outline-danger" className="flex-grow-1 py-2 btn rounded-pill fw-medium px-4"
                                         style={{ borderRadius: 10 }}
                                         onClick={() => setRejecting(true)}>
                                         <FaTimesCircle className="me-2" /> Reject
@@ -119,12 +119,12 @@ const OrganizerCard = ({ org, onApprove, onReject, view }) => {
                                         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(239,68,68,0.3)', color: '#fff', borderRadius: 10, fontSize: '0.83rem' }}
                                     />
                                     <div className="d-flex gap-2">
-                                        <Button size="sm" variant="danger" className="flex-grow-1 fw-black border-0 py-2"
+                                        <Button size="sm" variant="danger" className="flex-grow-1 py-2 btn rounded-pill fw-medium px-4"
                                             style={{ borderRadius: 10 }}
                                             onClick={() => { onReject(org._id, reason); setRejecting(false); }}>
                                             Confirm Reject
                                         </Button>
-                                        <Button size="sm" variant="secondary" className="fw-black border-0 py-2 px-3"
+                                        <Button size="sm" variant="secondary" className="py-2 btn rounded-pill fw-medium px-4"
                                             style={{ borderRadius: 10 }}
                                             onClick={() => setRejecting(false)}>
                                             Cancel
@@ -136,7 +136,7 @@ const OrganizerCard = ({ org, onApprove, onReject, view }) => {
                     )}
 
                     {view === 'approved' && (
-                        <Button size="sm" variant="outline-danger" className="w-100 fw-black py-2"
+                        <Button size="sm" variant="outline-danger" className="w-100 py-2 btn rounded-pill fw-medium px-4"
                             style={{ borderRadius: 10 }}
                             onClick={() => onReject(org._id, 'Revoked by admin')}>
                             <FaTimesCircle className="me-2" /> Revoke Approval
@@ -144,7 +144,7 @@ const OrganizerCard = ({ org, onApprove, onReject, view }) => {
                     )}
 
                     {view === 'rejected' && (
-                        <Button size="sm" className="w-100 fw-black border-0 py-2"
+                        <Button size="sm" className="w-100 py-2 btn rounded-pill fw-medium px-4"
                             style={{ background: 'linear-gradient(135deg,#10b981,#059669)', borderRadius: 10 }}
                             onClick={() => onApprove(org._id)}>
                             <FaCheckCircle className="me-2" /> Approve Now
@@ -284,12 +284,12 @@ const OrganizerCard = ({ org, onApprove, onReject, view }) => {
                 {/* Action buttons inside modal */}
                 {view === 'pending' && (
                     <div className="d-flex gap-3 mt-4">
-                        <Button className="flex-grow-1 fw-black border-0 py-2"
+                        <Button className="flex-grow-1 py-2 btn rounded-pill fw-medium px-4"
                             style={{ background: 'linear-gradient(135deg,#10b981,#059669)', borderRadius: 10 }}
                             onClick={() => { onApprove(org._id); setShowDetails(false); }}>
                             <FaCheckCircle className="me-2" /> Approve
                         </Button>
-                        <Button variant="outline-danger" className="flex-grow-1 fw-black py-2"
+                        <Button variant="outline-danger" className="flex-grow-1 py-2 btn rounded-pill fw-medium px-4"
                             style={{ borderRadius: 10 }}
                             onClick={() => { setShowDetails(false); setRejecting(true); }}>
                             <FaTimesCircle className="me-2" /> Reject
@@ -427,7 +427,7 @@ const AdminOrganizerRequests = () => {
                     {tabs.map(t => (
                         <button key={t.key}
                             onClick={() => setActiveTab(t.key)}
-                            className="border-0 fw-black px-4 py-2"
+                            className="px-4 py-2 btn rounded-pill fw-medium btn-primary"
                             style={{
                                 borderRadius: 100,
                                 fontSize: '0.8rem',

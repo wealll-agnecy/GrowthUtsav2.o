@@ -9,6 +9,7 @@ import Footer from './components/common/Footer';
 import MobileHeader from './components/common/MobileHeader';
 import MobileBottomNav from './components/common/MobileBottomNav';
 import DashboardLayout from './components/common/DashboardLayout';
+import './layout.css';
 
 
 // Performance: Lazy Loading across all deployment nodes
@@ -20,6 +21,9 @@ const Home = lazy(() => import('./pages/Home'));
 const EventListing = lazy(() => import('./pages/EventListing'));
 const EventDetails = lazy(() => import('./pages/EventDetails'));
 const MyBookings = lazy(() => import('./pages/MyBookings'));
+const ContactUs = lazy(() => import('./pages/ContactUs'));
+const AdminEnquiries = lazy(() => import('./pages/AdminEnquiries'));
+const AdminEnquiryDetails = lazy(() => import('./pages/AdminEnquiryDetails'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const TicketView = lazy(() => import('./pages/TicketView'));
 const CheckoutFlow = lazy(() => import('./pages/CheckoutFlow'));
@@ -35,7 +39,6 @@ const AdminEventApproval = lazy(() => import('./pages/AdminEventApproval'));
 const AdminSecretLogin = lazy(() => import('./pages/AdminSecretLogin'));
 const AdminOrganizerRequests = lazy(() => import('./pages/AdminOrganizerRequests'));
 const AdminStaffManagement = lazy(() => import('./pages/AdminStaffManagement'));
-const AttendeeDashboard = lazy(() => import('./pages/AttendeeDashboard'));
 const StaffDashboard = lazy(() => import('./pages/StaffDashboard'));
 const StaffScanner = lazy(() => import('./pages/StaffScanner'));
 const PendingVerification = lazy(() => import('./pages/PendingVerification'));
@@ -83,10 +86,9 @@ const AppContent = () => {
     return (
         <div className="min-vh-100 d-flex flex-column mobile-nav-padding overflow-x-hidden">
             <Navbar />
-            <MobileHeader />
             
             <main className="flex-grow-1">
-                <div style={{ paddingTop: 'var(--navbar-height)' }}>
+                <div className={(location.pathname === '/' || location.pathname === '/contact-us') ? 'content-wrapper-home' : 'content-wrapper-page'}>
                     <Suspense fallback={<SectorLoader />}>
                         <Routes>
                             <Route path="/" element={<Home />} />
@@ -96,6 +98,7 @@ const AppContent = () => {
                             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
                             <Route path="/tickets/:id" element={<ProtectedRoute><TicketView /></ProtectedRoute>} />
                             <Route path="/checkout" element={<ProtectedRoute><CheckoutFlow /></ProtectedRoute>} />
+                            <Route path="/contact-us" element={<ContactUs />} />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
                             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -106,7 +109,8 @@ const AppContent = () => {
                             <Route path="/admin" element={<AdminSecretLogin />} />
                             <Route path="/admin-login" element={<AdminSecretLogin />} />
 
-                            <Route path="/attendee/dashboard" element={<ProtectedRoute><DashboardWrapper role="attendee"><AttendeeDashboard /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/attendee/dashboard" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+                            <Route path="/profile" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
 
                             {/* Organizer Dashboard Routes */}
                             <Route path="/organizer/dashboard" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerEvents /></DashboardWrapper></ProtectedRoute>} />
@@ -123,6 +127,8 @@ const AppContent = () => {
                             <Route path="/admin/event-approvals" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminEventApproval /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/admin/organizer-requests" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminOrganizerRequests /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/admin/staff" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminStaffManagement /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/admin/enquiries" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminEnquiries /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/admin/enquiries/:id" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminEnquiryDetails /></DashboardWrapper></ProtectedRoute>} />
 
                             <Route path="/staff/dashboard" element={<ProtectedRoute roles={['staff', 'admin']}><DashboardWrapper role="staff"><StaffDashboard /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/staff/scanner" element={<ProtectedRoute roles={['staff', 'admin']}><DashboardWrapper role="staff"><StaffScanner /></DashboardWrapper></ProtectedRoute>} />
@@ -131,8 +137,17 @@ const AppContent = () => {
                 </div>
             </main>
 
-            <MobileBottomNav />
-            <Footer />
+            {/* Hide footer and bottom nav on dashboard pages to prevent sidebar overlap */}
+            {!location.pathname.includes('/admin') && 
+             !location.pathname.includes('/organizer') && 
+             !location.pathname.includes('/staff') && 
+             !location.pathname.includes('/attendee') && 
+             location.pathname !== '/profile' && (
+                <>
+                    <MobileBottomNav />
+                    <Footer />
+                </>
+            )}
 
 
             <Suspense fallback={null}>

@@ -69,7 +69,7 @@ const PendingVerification = () => {
                                 <div className="mt-3">
                                     <Button 
                                         variant="outline-warning" 
-                                        className="rounded-pill px-4 py-2 border-2 fw-black small uppercase tracking-widest d-flex align-items-center gap-2 mx-auto"
+                                        className="rounded-pill px-4 py-2 d-flex align-items-center gap-2 mx-auto btn fw-medium"
                                         onClick={checkVerificationStatus}
                                         disabled={checking}
                                     >
@@ -83,14 +83,14 @@ const PendingVerification = () => {
                                 <Button 
                                     as={Link} 
                                     to="/" 
-                                    className="btn-primary-gradient fw-black py-3 rounded-pill transition-all uppercase tracking-widest shadow-glow"
+                                    className="btn-primary-gradient rounded-pill transition-all btn fw-medium px-4 py-2"
                                 >
                                     <FaRocket className="me-2" /> Explore the Platform
                                 </Button>
                                 <Button 
                                     variant="link"
                                     onClick={logout}
-                                    className="text-white-50 small fw-black uppercase tracking-widest text-decoration-none hover-text-white"
+                                    className="text-white-50 text-decoration-none hover-text-white btn rounded-pill fw-medium px-4 py-2"
                                 >
                                     Login with different identity
                                 </Button>

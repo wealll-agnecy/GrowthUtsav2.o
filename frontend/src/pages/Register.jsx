@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Card, Form, Button, Alert, Container, Row, Col, Spinner } from 'react-bootstrap';
 import { FaShieldAlt, FaEye, FaEyeSlash, FaCloudUploadAlt, FaTimes, FaCheck, FaArrowLeft, FaRocket, FaUserCircle, FaBriefcase } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import './Login.css';
 
 const Register = () => {
     const [searchParams] = useSearchParams();
@@ -97,163 +98,152 @@ const Register = () => {
     };
 
     return (
-        <div className="auth-bg-gradient min-vh-100 d-flex align-items-center py-5">
-            <Container>
-                <div className="text-center mb-4">
-                    <Link to="/" className="btn-back">
-                        <FaArrowLeft /> SECTOR TERMINAL
-                    </Link>
-                </div>
+        <div className="auth-luxury-wrapper">
+            {/* Form Side */}
+            <div className="auth-form-side">
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={`auth-premium-card ${step === 2 ? 'auth-premium-card-wide' : ''}`}
+                >
+                    <div className="auth-header">
+                        <h3>{step === 1 ? 'Join the Journey' : 'Business Details'}</h3>
+                        <p>{step === 1 ? 'Create your professional account' : 'Tell us about your organization'}</p>
+                    </div>
 
-                <Row className="justify-content-center">
-
-                    <Col lg={isOrganizer && step === 2 ? 6 : 4} md={8} sm={10}>
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                            <Card className="saas-card border-0 shadow-2xl p-4 p-md-5 overflow-hidden position-relative">
-                                <div className="text-center mb-5 position-relative">
-                                    <h2 className="fw-black text-white tracking-tighter mb-2">
-                                        {step === 1 ? 'Join the Network' : 'Org Configuration'}
-                                    </h2>
-                                    <p className="text-white-50 small uppercase tracking-widest opacity-60">
-                                        {step === 1 ? 'Select your role and initialize' : 'Configure host node credentials'}
-                                    </p>
-                                </div>
-
-                                {error && (
-                                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-                                        <Alert variant="danger" className="bg-danger/10 border-danger/20 text-danger small fw-black uppercase tracking-tighter mb-4 rounded-4 py-3">
-                                            <FaShieldAlt className="me-2" /> {error}
-                                        </Alert>
-                                    </motion.div>
-                                )}
-
-                                {step === 1 && (
-                                    <div className="d-flex gap-2 mb-5 p-1 rounded-4 bg-white/2 border border-white/5">
-                                        <button 
-                                            className={`flex-grow-1 py-3 px-2 rounded-4 border-0 transition-premium fw-black uppercase tracking-widest small d-flex align-items-center justify-content-center gap-2 ${formData.role === 'attendee' ? 'bg-primary text-white shadow-glow' : 'bg-transparent text-white-50'}`}
-                                            onClick={() => setFormData({ ...formData, role: 'attendee' })}
-                                        >
-                                            <FaUserCircle size={14} /> Attendee
-                                        </button>
-                                        <button 
-                                            className={`flex-grow-1 py-3 px-2 rounded-4 border-0 transition-premium fw-black uppercase tracking-widest small d-flex align-items-center justify-content-center gap-2 ${formData.role === 'organizer' ? 'bg-primary text-white shadow-glow' : 'bg-transparent text-white-50'}`}
-                                            onClick={() => setFormData({ ...formData, role: 'organizer' })}
-                                        >
-                                            <FaBriefcase size={14} /> Organizer
-                                        </button>
-                                    </div>
-                                )}
-
-                                <Form onSubmit={handleSubmit} className="position-relative">
-                                    <AnimatePresence mode="wait">
-                                        {step === 1 ? (
-                                            <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                                                <Form.Group className="mb-4">
-                                                    <label className="form-label-premium">Human Alias</label>
-                                                    <Form.Control id="name" className="glass-input-premium rounded-4 py-3" placeholder="Deepak Kumar" value={formData.name} onChange={handleChange} required />
-                                                </Form.Group>
-                                                <Form.Group className="mb-4">
-                                                    <label className="form-label-premium">Communication Link (Email)</label>
-                                                    <Form.Control id="email" type="email" className="glass-input-premium rounded-4 py-3" placeholder="deepak@growthutsav.com" value={formData.email} onChange={handleChange} required />
-                                                </Form.Group>
-                                                <Form.Group className="mb-4">
-                                                    <label className="form-label-premium">Contact Identity (Phone)</label>
-                                                    <Form.Control id="phone" type="text" className="glass-input-premium rounded-4 py-3" placeholder="+91 9876543210" value={formData.phone} onChange={handleChange} required />
-                                                </Form.Group>
-
-                                                <Form.Group className="mb-4">
-                                                    <label className="form-label-premium">Encryption Key</label>
-                                                    <div className="position-relative">
-                                                        <Form.Control id="password" type={showPassword ? "text" : "password"} className="glass-input-premium rounded-4 py-3" placeholder="••••••••" value={formData.password} onChange={handleChange} required minLength="6" />
-                                                        <button type="button" className="btn position-absolute end-0 top-50 translate-middle-y text-white-50 border-0 shadow-none me-2" onClick={() => setShowPassword(!showPassword)}>
-                                                            {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                                        </button>
-                                                    </div>
-                                                </Form.Group>
-                                            </motion.div>
-                                        ) : (
-                                            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                                                <Row className="g-4">
-                                                    <Col md={6}>
-                                                        <Form.Group className="mb-4">
-                                                            <label className="form-label-premium">Organization / Artist Name</label>
-                                                            <Form.Control id="companyName" className="glass-input-premium rounded-4 py-3" placeholder="GrowthUtsav Events" value={orgDetails.companyName} onChange={handleOrgChange} required />
-                                                        </Form.Group>
-                                                        <Form.Group className="mb-4 position-relative">
-                                                            <label className="form-label-premium">Target Segments</label>
-                                                            <div className="glass-input-premium rounded-4 py-3 d-flex flex-wrap gap-2 cursor-pointer" onClick={() => setShowEventDropdown(!showEventDropdown)}>
-                                                                {orgDetails.selectedEventTypes.length === 0 ? <span className="opacity-40">Select Sectors...</span> : orgDetails.selectedEventTypes.map(t => (
-                                                                    <span key={t} className="badge bg-primary/20 text-primary border border-primary/30 p-2 rounded-3 small fw-black uppercase">{t}</span>
-                                                                ))}
-                                                            </div>
-                                                            <AnimatePresence>
-                                                                {showEventDropdown && (
-                                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="multi-select-dropdown shadow-2xl p-2 rounded-4 mt-2">
-                                                                        {eventOptions.map(opt => (
-                                                                            <div key={opt} className="p-3 rounded-3 hover-bg-white/5 cursor-pointer d-flex align-items-center gap-3 fw-bold text-white-50 hover-text-white" onClick={() => handleEventTypeToggle(opt)}>
-                                                                                <div className={`checkbox-box rounded-2 ${orgDetails.selectedEventTypes.includes(opt) ? 'bg-primary border-primary' : 'border-white/10'}`}>
-                                                                                    {orgDetails.selectedEventTypes.includes(opt) && <FaCheck size={10} className="text-white" />}
-                                                                                </div>
-                                                                                {opt}
-                                                                            </div>
-                                                                        ))}
-                                                                    </motion.div>
-                                                                )}
-                                                            </AnimatePresence>
-                                                        </Form.Group>
-                                                    </Col>
-                                                    <Col md={6}>
-                                                        <Form.Group className="h-100">
-                                                            <label className="form-label-premium">Brand Identity (Logo)</label>
-                                                            <div className="logo-upload-box rounded-4 border-dashed h-75 d-flex flex-column align-items-center justify-content-center p-4">
-                                                                {orgDetails.logoPreview ? (
-                                                                    <>
-                                                                    <div className="logo_upload_img position-relative h-100 w-100 d-flex justify-content-center">
-                                                                        <img src={orgDetails.logoPreview} className="h-100 object-fit-contain rounded-3" alt="Brand" />
-                                                                    </div>
-                                                                    <button type="button" className="btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle" onClick={removeLogo}><FaTimes /></button>
-                                                                    </>
-                                                                    
-                                                                ) : (
-                                                                    <>
-                                                                        <input type="file" id="logo-in" hidden onChange={handleLogoUpload} />
-                                                                        <label htmlFor="logo-in" className="text-center cursor-pointer">
-                                                                            <FaCloudUploadAlt size={40} className="text-primary mb-3 opacity-50" />
-                                                                            <p className="text-white-50 small fw-black uppercase tracking-widest mb-0">Synchronize Asset</p>
-                                                                        </label>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </Form.Group>
-                                                    </Col>
-                                                </Row>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-
-                                    <div className="d-flex gap-3 mt-5">
-                                        {step === 2 && (
-                                            <Button variant="outline-primary" className="btn-outline-primary px-4" onClick={() => setStep(1)}>
-                                                <FaArrowLeft />
-                                            </Button>
-                                        )}
-                                        <Button variant="primary" type="submit" className="btn-primary flex-grow-1" disabled={loading}>
-                                            {loading ? <Spinner size="sm" /> : step === 1 && isOrganizer ? 'Initialize Matrix' : <><FaRocket className="me-2" /> Activate Account</>}
-                                        </Button>
-                                    </div>
-
-                                </Form>
-
-                                <div className="text-center mt-5">
-                                    <p className="text-white-50 small mb-0 fw-medium">
-                                        Existing identity? <Link to={`/login?role=${formData.role}`} className="text-primary-light fw-black text-decoration-none hover-text-white transition-all ms-2">Re-Authorize</Link>
-                                    </p>
-                                </div>
-                            </Card>
+                    {error && (
+                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+                            <Alert variant="danger" className="text-center p-2 mb-4 rounded-3 small">
+                                {error}
+                            </Alert>
                         </motion.div>
-                    </Col>
-                </Row>
-            </Container>
+                    )}
+
+                    {step === 1 && (
+                        <div className="role-selector-beauty">
+                            <button 
+                                className={`role-btn-beauty ${formData.role === 'attendee' ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, role: 'attendee' })}
+                            >
+                                <FaUserCircle /> Attendee
+                            </button>
+                            <button 
+                                className={`role-btn-beauty ${formData.role === 'organizer' ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, role: 'organizer' })}
+                            >
+                                <FaBriefcase /> Organizer
+                            </button>
+                        </div>
+                    )}
+
+                    <Form onSubmit={handleSubmit}>
+                        <AnimatePresence mode="wait">
+                            {step === 1 ? (
+                                <motion.div key="step1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <div className="premium-input-group">
+                                        <label>Full Name</label>
+                                        <Form.Control id="name" className="premium-auth-input" placeholder="Enter your legal full name" value={formData.name} onChange={handleChange} required />
+                                    </div>
+                                    <div className="premium-input-group">
+                                        <label>Email Address</label>
+                                        <Form.Control id="email" type="email" className="premium-auth-input" placeholder="work@example.com" value={formData.email} onChange={handleChange} required />
+                                    </div>
+                                    <div className="premium-input-group">
+                                        <label>Phone Number</label>
+                                        <Form.Control id="phone" type="text" className="premium-auth-input" placeholder="+91 00000 00000" value={formData.phone} onChange={handleChange} required />
+                                    </div>
+                                    <div className="premium-input-group">
+                                        <label>Security Key</label>
+                                        <div className="position-relative">
+                                            <Form.Control id="password" type={showPassword ? "text" : "password"} className="premium-auth-input password-input" placeholder="Create a strong password" value={formData.password} onChange={handleChange} required minLength="6" />
+                                            <button type="button" className="btn position-absolute end-0 top-50 translate-middle-y border-0 shadow-none password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
+                                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div key="step2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <Row className="g-4">
+                                        <Col md={6}>
+                                            <div className="premium-input-group">
+                                                <label>Company / Artist Name</label>
+                                                <Form.Control id="companyName" className="premium-auth-input" placeholder="Registered Organization Name" value={orgDetails.companyName} onChange={handleOrgChange} required />
+                                            </div>
+                                            <div className="premium-input-group position-relative">
+                                                <label>Event Segments</label>
+                                                <div className="premium-auth-input min-vh-10 d-flex flex-wrap gap-2 cursor-pointer" onClick={() => setShowEventDropdown(!showEventDropdown)}>
+                                                    {orgDetails.selectedEventTypes.length === 0 ? <span className="text-muted">Select Segments...</span> : orgDetails.selectedEventTypes.map(t => (
+                                                        <span key={t} className="badge bg-pink text-white rounded-pill px-2 py-1 small">{t}</span>
+                                                    ))}
+                                                </div>
+                                                <AnimatePresence>
+                                                    {showEventDropdown && (
+                                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="event-type-dropdown-premium">
+                                                            {eventOptions.map(opt => (
+                                                                <div key={opt} className="event-option-beauty" onClick={() => handleEventTypeToggle(opt)}>
+                                                                    <div className={`checkbox-beauty ${orgDetails.selectedEventTypes.includes(opt) ? 'checked' : ''}`}>
+                                                                        {orgDetails.selectedEventTypes.includes(opt) && <FaCheck size={10} className="text-white" />}
+                                                                    </div>
+                                                                    {opt}
+                                                                </div>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        </Col>
+                                        <Col md={6}>
+                                            <div className="h-100">
+                                                <label className="small fw-bold text-muted text-uppercase mb-2 d-block">Brand Identity (Logo)</label>
+                                                <div className="logo-upload-beauty" onClick={() => document.getElementById('logo-in').click()}>
+                                                    {orgDetails.logoPreview ? (
+                                                        <div className="position-relative w-100 h-100 d-flex align-items-center justify-content-center">
+                                                            <img src={orgDetails.logoPreview} className="img-fluid rounded-3" style={{ maxHeight: '140px' }} alt="Brand" />
+                                                            <button type="button" className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle" onClick={(e) => { e.stopPropagation(); removeLogo(); }}><FaTimes /></button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-center">
+                                                            <FaCloudUploadAlt size={32} className="text-pink opacity-50 mb-2" />
+                                                            <p className="small text-muted mb-0">Upload Logo</p>
+                                                        </div>
+                                                    )}
+                                                    <input type="file" id="logo-in" hidden onChange={handleLogoUpload} />
+                                                </div>
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <div className="d-flex gap-2 mt-4">
+                            {step === 2 && (
+                                <button type="button" className="btn btn-outline-secondary rounded-3 px-4" onClick={() => setStep(1)}>
+                                    <FaArrowLeft />
+                                </button>
+                            )}
+                            <button
+                                type="submit"
+                                className="btn-beauty-primary"
+                                disabled={loading}
+                            >
+                                {loading ? <Spinner size="sm" /> : step === 1 && isOrganizer ? 'Next: Business Setup' : 'Activate Account'}
+                            </button>
+                        </div>
+                    </Form>
+
+                    <div className="auth-footer">
+                        <p>Already have an account? <Link to={`/login?role=${formData.role}`}>Sign In</Link></p>
+                    </div>
+
+                    <div className="text-center mt-3">
+                        <Link to="/" className="text-muted small text-decoration-none">
+                            <FaArrowLeft className="me-1" /> Return Home
+                        </Link>
+                    </div>
+                </motion.div>
+            </div>
         </div>
     );
 };

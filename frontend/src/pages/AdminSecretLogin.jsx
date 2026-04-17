@@ -64,7 +64,7 @@ const AdminSecretLogin = () => {
                             <Button
                                 variant="outline-warning"
                                 size="sm"
-                                className="fw-bold px-3 py-1 rounded-pill"
+                                className="rounded-pill btn fw-medium px-4 py-2"
                                 onClick={handleSessionLogout}
                             >
                                 Logout current user
@@ -99,7 +99,7 @@ const AdminSecretLogin = () => {
 
                                 <Button
                                     variant="link"
-                                    className="position-absolute end-0 top-50 translate-middle-y text-secondary text-decoration-none shadow-none"
+                                    className="position-absolute end-0 top-50 translate-middle-y text-secondary text-decoration-none shadow-none btn rounded-pill fw-medium px-4 py-2"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -110,7 +110,7 @@ const AdminSecretLogin = () => {
                         <Button
                             type="submit"
                             variant="danger"
-                            className="w-100 py-3 rounded-pill fw-black text-uppercase tracking-widest glow-hover border-0 shadow-2xl d-flex justify-content-center align-items-center gap-3 mt-5"
+                            className="w-100 rounded-pill d-flex justify-content-center align-items-center gap-3 mt-5 btn fw-medium px-4 py-2"
                             disabled={loading || (user && user.role !== 'admin')}
                         >
                             {loading ? <Spinner size="sm" /> : <><FaLock size={14} /> Engange Override</>}

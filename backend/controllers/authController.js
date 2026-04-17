@@ -169,11 +169,24 @@ exports.logout = async (req, res, next) => {
 // @desc    Get current logged in user
 exports.getMe = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id).populate('assignedEvents');
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
+        const user = await User.findById(req.user.id);
         res.status(200).json({ success: true, data: user });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Update FCM Token
+// @route   PATCH /api/v1/auth/fcm-token
+// @access  Private
+exports.updateFcmToken = async (req, res, next) => {
+    try {
+        const { fcmToken } = req.body;
+        if (!fcmToken) return res.status(400).json({ success: false, message: 'FCM Token is required' });
+
+        await User.findByIdAndUpdate(req.user.id, { fcmToken });
+
+        res.status(200).json({ success: true, message: 'FCM Token updated successfully' });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

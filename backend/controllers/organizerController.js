@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { notificationQueue } = require('../queue/notificationQueue');
 
 // @desc    Get all pending organizer requests
 // @route   GET /api/v1/admin/organizers/pending
@@ -70,6 +71,14 @@ exports.approveOrganizer = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Organizer not found' });
         }
 
+        // Send Notification
+        await notificationQueue.add('alert', {
+            userId: user._id,
+            title: 'Account Verified! 🎊',
+            message: 'Your organizer account has been approved. You can now create and manage events.',
+            type: 'system'
+        });
+
         res.status(200).json({ success: true, message: 'Organizer approved successfully', data: user });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
@@ -98,6 +107,14 @@ exports.rejectOrganizer = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: 'Organizer not found' });
         }
+
+        // Send Notification
+        await notificationQueue.add('alert', {
+            userId: user._id,
+            title: 'Account Update ⚠️',
+            message: `Your organizer application was not approved. Reason: ${reason || 'Incomplete profile'}`,
+            type: 'system'
+        });
 
         res.status(200).json({ success: true, message: 'Organizer rejected', data: user });
     } catch (err) {

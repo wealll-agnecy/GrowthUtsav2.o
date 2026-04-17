@@ -92,7 +92,7 @@ const MyBookings = () => {
                                 as={Link}
                                 to="/events"
                                 variant="primary"
-                                className="fw-bold px-5"
+                                className="btn rounded-pill fw-medium px-4 py-2"
                             >
                                 <FaRocket className="me-2" /> Explore Events
                             </Button>
@@ -219,7 +219,7 @@ const MyBookings = () => {
                                                                     as={Link}
                                                                     to={`/tickets/${booking.ticketId}`}
                                                                     size="sm"
-                                                                    className="d-flex align-items-center gap-1 fw-bold"
+                                                                    className="d-flex align-items-center gap-1 btn rounded-pill fw-medium px-4 py-2"
                                                                     style={{ fontSize: '0.78rem', padding: '0.4rem 0.9rem', borderRadius: 8 }}
                                                                 >
                                                                     <FaTicketAlt size={11} /> View Pass

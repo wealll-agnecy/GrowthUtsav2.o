@@ -1,0 +1,19 @@
+/* Zero-Gap Layout Styles */
+.content-wrapper-home, .contact-luxury-wrapper-container {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+.content-wrapper-page {
+    padding-top: var(--navbar-height, 70px);
+}
+
+.layout-system-container {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+.hero-section-main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}

@@ -202,7 +202,7 @@ const StaffScanner = () => {
                                                 variant="light" 
                                                 size="lg" 
                                                 onClick={resetScanner}
-                                                className="rounded-pill px-5 py-3 fw-black uppercase tracking-widest shadow-2xl border-0"
+                                                className="rounded-pill btn fw-medium px-4 py-2"
                                             >
                                                 Manual Reset
                                             </Button>

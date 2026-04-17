@@ -23,9 +23,9 @@ exports.createEvent = async (req, res, next) => {
 
         const event = await Event.create(req.body);
 
-        // Notify ALL users about the new event
+        // Notify ALL users about the new event via BullMQ
         const { notifyAllUsers } = require('./notificationController');
-        notifyAllUsers(`New Event Alert: "${event.title}" is now open for booking!`, 'event_created', event._id);
+        await notifyAllUsers('New Event Launched 🚀', `"${event.title}" is now open for booking! Check it out before tickets sell out.`, event._id);
 
         res.status(201).json({
             success: true,

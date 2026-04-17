@@ -4,7 +4,12 @@ const NotificationSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
+        index: true
+    },
+    title: {
+        type: String,
+        default: 'Notification'
     },
     message: {
         type: String,
@@ -12,15 +17,16 @@ const NotificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['event_created', 'event_reminder', 'booking_confirmed', 'system'],
+        enum: ['event_reminder', 'new_event', 'booking_confirmed', 'system'],
         default: 'system'
+    },
+    eventId: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Event'
     },
     isRead: {
         type: Boolean,
         default: false
-    },
-    relatedId: {
-        type: String // Optional ID of related event or booking
     },
     createdAt: {
         type: Date,

@@ -6,11 +6,11 @@ export const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
     useEffect(() => {
-        const body = window.document.body;
-        if (theme === 'light') {
-            body.classList.add('light-mode');
+        const body = document.body;
+        if (theme === 'dark') {
+            body.classList.add('dark-mode');
         } else {
-            body.classList.remove('light-mode');
+            body.classList.remove('dark-mode');
         }
         localStorage.setItem('theme', theme);
     }, [theme]);

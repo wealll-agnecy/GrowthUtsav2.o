@@ -31,3 +31,4 @@ export const getTotalUsers = () => axios.get(`${BASE}/total-users`);
 export const getTotalEvents = () => axios.get(`${BASE}/total-events`);
 export const getTicketsSold = () => axios.get(`${BASE}/tickets-sold`);
 export const getPendingRequests = () => axios.get(`${BASE}/pending-requests`);
+export const getAdminStats = () => axios.get(`${BASE}/stats`);

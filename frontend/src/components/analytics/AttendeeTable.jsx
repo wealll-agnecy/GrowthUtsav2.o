@@ -30,7 +30,7 @@ const AttendeeTable = ({ attendees, exportToCSV }) => {
                 </div>
                 <Button
                     variant="success"
-                    className="rounded-pill px-5 py-3 fw-black shadow-2xl border-0 glow-hover text-uppercase tracking-widest d-flex align-items-center gap-3"
+                    className="rounded-pill d-flex align-items-center gap-3 btn fw-medium px-4 py-2"
                     onClick={exportToCSV}
                     disabled={attendees.length === 0}
                 >

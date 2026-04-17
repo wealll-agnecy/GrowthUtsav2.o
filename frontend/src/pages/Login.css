@@ -1,3 +1,233 @@
-.password-input-with-toggle {
-    padding-right: 3rem;
+/* ═══════════ LUXURY BEAUTY AUTH SYSTEM ═══════════ */
+
+/* AUTH BACKGROUND */
+.auth-luxury-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-main);
+  overflow-x: hidden;
+  padding: 20px;
 }
+
+
+/* FORM SIDE */
+.auth-form-side {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.auth-premium-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  padding: 50px 40px;
+  box-shadow: var(--premium-shadow);
+  transition: all 0.4s ease;
+}
+
+.auth-premium-card-wide {
+  max-width: 800px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.auth-header h3 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.auth-header p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* INPUTS */
+.premium-input-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  padding-left: 5px;
+}
+
+.premium-auth-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  font-size: 0.95rem;
+  color: var(--text-primary) !important;
+  transition: all 0.3s ease;
+}
+
+.premium-auth-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.08) !important;
+  outline: none;
+}
+
+.password-input {
+  padding-right: 50px !important;
+}
+
+.password-toggle-btn {
+  z-index: 10;
+  margin-right: 8px;
+  color: var(--text-secondary) !important;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.password-toggle-btn:hover {
+  opacity: 1;
+}
+
+/* BUTTONS */
+.btn-beauty-primary {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  border: none;
+  border-radius: 14px;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.3);
+  margin-top: 10px;
+}
+
+.auth-footer p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.auth-footer a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ROLE SELECTOR */
+.role-selector-beauty {
+  display: flex;
+  background: var(--bg-main);
+  padding: 6px;
+  border-radius: 999px;
+  margin-bottom: 30px;
+  border: 1px solid var(--border);
+}
+
+.role-btn-beauty {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.role-btn-beauty.active {
+  background: var(--bg-card);
+  color: var(--accent);
+  box-shadow: var(--premium-shadow);
+}
+
+/* EVENT TYPE DROPDOWN */
+.event-type-dropdown-premium {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border-radius: 18px;
+  box-shadow: var(--premium-shadow);
+  z-index: 100;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+}
+
+.event-option-beauty {
+  padding: 12px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.event-option-beauty:hover {
+  background: rgba(236, 72, 153, 0.04);
+  color: var(--accent);
+}
+
+.checkbox-beauty {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox-beauty.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* LOGO UPLOAD */
+.logo-upload-beauty {
+  border: 2px dashed var(--border);
+  border-radius: 20px;
+  height: 100%;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 20px;
+  background: var(--bg-card);
+  opacity: 0.8;
+}
+
+.logo-upload-beauty:hover {
+  border-color: var(--accent);
+  background: var(--bg-main);
+  opacity: 1;
+}
+
+/* RESPONSIVE */

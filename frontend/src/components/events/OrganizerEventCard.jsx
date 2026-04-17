@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Badge, Row, Col } from 'react-bootstrap';
-import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaArrowRight, FaClock, FaTag } from 'react-icons/fa';
+import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaArrowRight, FaClock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -28,7 +28,7 @@ const OrganizerEventCard = ({ event }) => {
             onClick={() => navigate(`/organizer/event/${event._id}`)}
             style={{ cursor: 'pointer' }}
         >
-            <Card className="h-100 border-0 shadow-2xl rounded-5 overflow-hidden glass-panel border-white/10 tilt-3d">
+            <Card className="h-100 border-0 shadow-2xl rounded-5 overflow-hidden glass-panel border-white/10 tilt-3d organizer-card-hover">
                 <div className="position-relative" style={{ height: '220px' }}>
                     <Card.Img
                         variant="top"

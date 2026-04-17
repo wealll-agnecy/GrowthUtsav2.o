@@ -82,7 +82,7 @@ const ResetPassword = () => {
                                                 <FaCheckCircle size={60} className="text-success mb-4" />
                                                 <h4 className="fw-bold text-white mb-2">Protocol Successful</h4>
                                                 <p className="text-soft mb-4">Your password has been securely updated. Redirecting to login...</p>
-                                                <Button as={Link} to="/login" variant="primary" className="rounded-pill px-5 py-3 fw-black w-100 shadow-lg">
+                                                <Button as={Link} to="/login" variant="primary" className="rounded-pill w-100 btn fw-medium px-4 py-2">
                                                     LOGIN NOW
                                                 </Button>
                                             </motion.div>
@@ -111,7 +111,7 @@ const ResetPassword = () => {
                                                         />
                                                         <Button 
                                                             variant="link" 
-                                                            className="text-white-50 p-0 pe-3 shadow-none"
+                                                            className="text-white-50 p-0 pe-3 shadow-none btn rounded-pill fw-medium px-4 py-2"
                                                             onClick={() => setShowPass(!showPass)}
                                                         >
                                                             {showPass ? <FaEyeSlash /> : <FaEye />}
@@ -139,7 +139,7 @@ const ResetPassword = () => {
                                                 <Button
                                                     type="submit"
                                                     disabled={loading}
-                                                    className="w-100 neon-btn btn-primary rounded-pill py-3 fw-black uppercase tracking-widest shadow-2xl d-flex align-items-center justify-content-center gap-3 border-0"
+                                                    className="w-100 rounded-pill d-flex align-items-center justify-content-center gap-3 btn fw-medium px-4 py-2"
                                                 >
                                                     {loading ? 'SYNCHRONIZING...' : <>UPDATE CREDENTIALS <FaArrowRight /></>}
                                                 </Button>

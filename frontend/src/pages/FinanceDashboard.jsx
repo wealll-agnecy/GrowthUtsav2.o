@@ -103,13 +103,13 @@ const FinanceDashboard = () => {
                 <div className="d-flex gap-3">
                     <Button
                         variant="outline-light"
-                        className="rounded-4 px-4 py-3 fw-black border-2 text-uppercase tracking-widest small shadow-lg d-flex align-items-center gap-3"
+                        className="px-4 d-flex align-items-center gap-3 btn rounded-pill fw-medium py-2"
                         onClick={() => window.print()}
                     >
                         <FaDownload /> EXPORT AUDIT
                     </Button>
                     <Button
-                        className="neon-btn btn-primary rounded-4 px-5 py-3 fw-black uppercase tracking-widest small shadow-2xl d-flex align-items-center gap-3 transition-all border-0"
+                        className="d-flex align-items-center gap-3 transition-all btn rounded-pill fw-medium px-4 py-2"
                         onClick={() => setShowAddModal(true)}
                     >
                         <FaPlus /> INDEX EXPENSE
@@ -232,7 +232,7 @@ const FinanceDashboard = () => {
                                         <td className="py-4 text-end px-5">
                                             <Button 
                                                 variant="outline-danger" 
-                                                className="rounded-circle p-2 border-0 shadow-none hover-bg-danger/10"
+                                                className="p-2 shadow-none hover-bg-danger/10 btn rounded-pill fw-medium px-4 py-2"
                                                 onClick={() => handleDeleteExpense(exp._id)}
                                             >
                                                 <FaTrash size={14} />
@@ -321,14 +321,14 @@ const FinanceDashboard = () => {
                         <div className="d-flex gap-3">
                             <Button 
                                 variant="outline-light" 
-                                className="rounded-pill flex-grow-1 py-3 fw-black border-2 text-uppercase tracking-widest"
+                                className="rounded-pill flex-grow-1 btn fw-medium px-4 py-2"
                                 onClick={() => setShowAddModal(false)}
                             >
                                 ABORT
                             </Button>
                             <Button 
                                 type="submit" 
-                                className="btn-primary rounded-pill flex-grow-1 py-3 fw-black border-0 shadow-glow text-uppercase tracking-widest"
+                                className="rounded-pill flex-grow-1 btn fw-medium px-4 py-2"
                                 disabled={actionLoading}
                             >
                                 {actionLoading ? <Spinner size="sm" /> : 'EXECUTE INDEX'}

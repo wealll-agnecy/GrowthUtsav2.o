@@ -91,7 +91,7 @@ const OrganizerEvents = () => {
                                 <Button 
                                     variant="primary" 
                                     onClick={closeCeleb}
-                                    className="rounded-pill px-5 py-3 fw-black uppercase tracking-widest border-0 shadow-lg glow-hover w-100"
+                                    className="rounded-pill w-100 btn fw-medium px-4 py-2"
                                 >
                                     Let's Go!
                                 </Button>
@@ -121,7 +121,7 @@ const OrganizerEvents = () => {
                 <Button
                     as={Link}
                     to="/organizer/create-event"
-                    className="neon-btn btn-primary rounded-4 px-5 py-3 fw-black uppercase tracking-widest small shadow-2xl d-flex align-items-center gap-3 transition-all border-0"
+                    className="d-flex align-items-center gap-3 transition-all btn rounded-pill fw-medium px-4 py-2"
                 >
                     <FaPlus /> Create Event
                 </Button>
@@ -167,7 +167,7 @@ const OrganizerEvents = () => {
                 >
                     <div className="display-1 mb-4 opacity-10">🔭</div>
                     <h4 className="fw-black text-white-50 mb-4 tracking-widest uppercase">No Events Detected</h4>
-                    <Button as={Link} to="/organizer/create-event" variant="primary" className="rounded-pill px-5 py-3 fw-black border-0 shadow-lg glow-hover">INITIALIZE FIRST EVENT</Button>
+                    <Button as={Link} to="/organizer/create-event" variant="primary" className="rounded-pill btn fw-medium px-4 py-2">INITIALIZE FIRST EVENT</Button>
                 </motion.div>
             ) : (
                 <Row className="g-4">

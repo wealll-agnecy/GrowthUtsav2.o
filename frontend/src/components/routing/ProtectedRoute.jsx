@@ -10,12 +10,9 @@ const ProtectedRoute = ({ children, roles }) => {
         return <Navigate to="/login" />;
     }
 
-    // ROLE-BASED ACCESS DISABLED: Demonstration phase universal bypass
-    /*
     if (roles && !roles.includes(user.role)) {
         return <Navigate to="/" />;
     }
-    */
 
     return children;
 };

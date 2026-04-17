@@ -54,12 +54,12 @@ const EventListing = () => {
                         <Col lg={12}>
                             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                                 <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small">
-                                   <FaCompass className="me-2" /> Global Event Directory
+                                    <FaCompass className="me-2" /> Global Event Directory
                                 </Badge>
                                 <h1
                                     className="fw-black m-0 tracking-tighter listing-headline"
                                 >
-                                    Explore <span className="gradient-text">Experiences</span>
+                                    Explore <span className="gradient-text">Events</span>
                                 </h1>
                                 <p className="text-soft mt-3 mb-0 fw-medium opacity-70">
                                     Browse verified high-fidelity events in your area across the master node infrastructure.
@@ -85,7 +85,7 @@ const EventListing = () => {
                                 {hasFilters && (
                                     <button
                                         onClick={clearFilters}
-                                        className="btn btn-link p-0 text-danger text-uppercase fw-black small tracking-tighter text-decoration-none"
+                                        className="btn btn-link p-0 text-danger tracking-tighter text-decoration-none rounded-pill fw-medium px-4 py-2"
                                     >
                                         Reset
                                     </button>
@@ -97,9 +97,8 @@ const EventListing = () => {
                                     <motion.div
                                         key={cat}
                                         whileHover={{ x: 5 }}
-                                        className={`filter-item rounded-4 px-3 py-2 py-md-3 border border-white/5 transition-all cursor-pointer d-flex align-items-center justify-content-between flex-shrink-0 flex-md-shrink-1 ${
-                                            category === cat ? 'bg-primary border-transparent shadow-xl' : 'bg-white/2'
-                                        }`}
+                                        className={`filter-item rounded-4 px-3 py-2 py-md-3 border border-white/5 transition-all cursor-pointer d-flex align-items-center justify-content-between flex-shrink-0 flex-md-shrink-1 ${category === cat ? 'bg-primary border-transparent shadow-xl' : 'bg-white/2'
+                                            }`}
                                         onClick={() => handleCategoryClick(cat)}
                                     >
                                         <span className={`text-uppercase fw-black small tracking-widest ${category === cat ? 'text-white' : 'text-soft'}`}>
@@ -161,7 +160,7 @@ const EventListing = () => {
                                         <Button
                                             variant="primary"
                                             onClick={clearFilters}
-                                            className="fw-bold px-4"
+                                            className="px-4 btn rounded-pill fw-medium py-2"
                                         >
                                             Clear Filters
                                         </Button>

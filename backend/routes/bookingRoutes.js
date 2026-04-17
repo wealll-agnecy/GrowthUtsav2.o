@@ -7,16 +7,15 @@ const {
 } = require('../controllers/bookingController');
 
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 // ✅ ROUTES
-router.post('/demo-book', protect, demoBooking);
-router.post('/demobook', protect, demoBooking);
-router.post('/demo-checkout', protect, demoBooking);
-router.post('/checkout', protect, checkout);
-router.post('/create-order', protect, checkout);
-router.post('/verify', protect, verifyPayment);
+router.post('/demo-book', protect, authorize('attendee', 'admin'), demoBooking);
+router.post('/demobook', protect, authorize('attendee', 'admin'), demoBooking);
+router.post('/demo-checkout', protect, authorize('attendee', 'admin'), demoBooking);
+router.post('/checkout', protect, authorize('attendee', 'admin'), checkout);
+router.post('/create-order', protect, authorize('attendee', 'admin'), checkout);
+router.post('/verify', protect, authorize('attendee', 'admin'), verifyPayment);
 router.get('/mybookings', protect, getMyBookings);
 
 module.exports = router;

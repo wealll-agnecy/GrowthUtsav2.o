@@ -132,24 +132,53 @@ exports.getStaffStats = async (req, res) => {
     try {
         const staffId = req.user.id || req.user._id;
 
+        // Total lifetime scans
         const scans = await ScanLog.countDocuments({
             staffId: staffId,
             status: 'success'
         });
 
-        const user = await User.findById(staffId).populate('assignedEvents');
+        // Today's scans
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const todayScans = await ScanLog.countDocuments({
+            staffId: staffId,
+            status: 'success',
+            scannedAt: { $gte: startOfToday }
+        });
 
+        // Recent Scans (last 10) with limited attendee details
+        const recentScans = await ScanLog.find({
+            staffId: staffId,
+            status: 'success'
+        })
+        .sort({ scannedAt: -1 })
+        .limit(10)
+        .populate({
+            path: 'ticketId',
+            select: 'name ticketCode ticketType status'
+        });
+
+        const user = await User.findById(staffId).populate('assignedEvents');
         const activeEventsCount = (user?.assignedEvents || []).filter(e => e.status === 'live').length;
 
         res.status(200).json({
             success: true,
             data: {
                 totalScans: scans,
+                todayScans: todayScans,
+                recentScans: recentScans.map(log => ({
+                    attendee: log.ticketId?.name || 'Guest',
+                    code: log.ticketId?.ticketCode || 'N/A',
+                    type: log.ticketId?.ticketType || 'General',
+                    time: log.scannedAt
+                })),
                 activeEventsCount: activeEventsCount || 0,
                 staffRole: user?.staffRole || 'Operations'
             }
         });
     } catch (err) {
+        console.error("Staff Stats Error:", err.message);
         res.status(500).json({ success: false, message: err.message });
     }
 };

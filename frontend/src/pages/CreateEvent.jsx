@@ -295,7 +295,7 @@ const CreateEvent = () => {
                                                             <Col md={1} className="text-md-end text-center mt-3 mt-md-0">
                                                                 <Button
                                                                     variant="outline-danger"
-                                                                    className="border-0 shadow-none"
+                                                                    className="shadow-none btn rounded-pill fw-medium px-4 py-2"
                                                                     onClick={() => removeTicketType(index)}
                                                                     disabled={formData.ticketTypes.length === 1}
                                                                     type="button"
@@ -308,7 +308,7 @@ const CreateEvent = () => {
                                                 ))}
                                             </AnimatePresence>
 
-                                            <Button variant="outline-primary" onClick={addTicketType} className="create-event-btn fw-bold d-inline-flex align-items-center gap-2 mt-2 px-4 shadow-sm" style={{ background: '#fbcfe8', borderColor: '#fbcfe8', color: '#db2777' }}>
+                                            <Button variant="outline-primary" onClick={addTicketType} className="create-event-btn d-inline-flex align-items-center gap-2 mt-2 px-4 shadow-sm btn rounded-pill fw-medium py-2" style={{ background: '#fbcfe8', borderColor: '#fbcfe8', color: '#db2777' }}>
                                                 <FaPlus /> Add Additional Tier
                                             </Button>
                                         </div>
@@ -317,7 +317,7 @@ const CreateEvent = () => {
                                         <div className="pt-4 mt-4 border-top border-white/10 create-event-btn-group d-flex gap-3 justify-content-end">
                                             <Button
                                                 variant="transparent"
-                                                className="create-event-btn px-4 bg-white/5 border-white/10 text-white hover-glow-primary"
+                                                className="create-event-btn px-4 bg-white/5 text-white hover-glow-primary btn rounded-pill fw-medium py-2"
                                                 disabled={loading}
                                                 onClick={(e) => handleSubmit(e, 'draft')}
                                             >
@@ -325,7 +325,7 @@ const CreateEvent = () => {
                                             </Button>
                                             <Button
                                                 variant="primary"
-                                                className="create-event-btn px-5 shadow-sm"
+                                                className="create-event-btn shadow-sm btn rounded-pill fw-medium px-4 py-2"
                                                 disabled={loading}
                                                 onClick={(e) => handleSubmit(e, 'pending')}
                                             >

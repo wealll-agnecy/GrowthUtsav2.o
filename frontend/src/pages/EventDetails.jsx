@@ -5,7 +5,7 @@ import * as bookingApi from '../api/bookingApi';
 import { useAuth } from '../context/AuthContext';
 import { Container, Row, Col, Button, Badge, Card, Spinner, Alert, Form } from 'react-bootstrap';
 import {
-    FaMapMarkerAlt, FaCalendarAlt, FaClock, FaTag, FaCheckCircle,
+    FaMapMarkerAlt, FaCalendarAlt, FaClock, FaCheckCircle,
     FaShoppingCart, FaArrowLeft, FaShieldAlt, FaTicketAlt, FaUser
 } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -190,11 +190,8 @@ const EventDetails = () => {
                         >
                             {/* About - High Density Info */}
                             <div className="glass-card p-4 p-md-5 mb-4 border-white/5 position-relative overflow-hidden">
-                                <div className="position-absolute top-0 start-0 p-3 opacity-10">
-                                    <FaTag size={120} />
-                                </div>
                                 <h4 className="fw-black text-bright uppercase tracking-tighter mb-4 d-flex align-items-center gap-3">
-                                    <span className="text-primary-light"><FaTag /></span> Event Protocol
+                                    Event Protocol
                                 </h4>
                                 <div
                                     className="text-soft fw-medium lh-lg protocol-description-text"
@@ -320,20 +317,20 @@ const EventDetails = () => {
                                     </div>
 
                                     {/* Book Button */}
-                                    {user?.role === 'organizer' && user?.status === 'pending' ? (
-                                        <Button
-                                            variant="secondary"
-                                            size="lg"
-                                            className="w-100 fw-bold d-flex align-items-center justify-content-center gap-2 rounded-4 opacity-60"
-                                            onClick={() => alert("Booking is not available until your organizer account is verified.")}
-                                        >
-                                            <FaShoppingCart /> Verification Pending
-                                        </Button>
+                                    {user && (user.role === 'staff' || user.role === 'organizer') ? (
+                                        <div className="text-center p-3 rounded-4 bg-amber-500/10 border border-amber-500/20">
+                                            <p className="small text-amber-500 fw-bold m-0 uppercase tracking-widest">
+                                                Ticket Reservation Restricted
+                                            </p>
+                                            <p className="tiny-text text-soft m-0 mt-1">
+                                                Staff & Organizer accounts cannot purchase tickets. Please use an Attendee account.
+                                            </p>
+                                        </div>
                                     ) : (
                                         <Button
                                             variant="primary"
                                             size="lg"
-                                            className="w-100 fw-bold d-flex align-items-center justify-content-center gap-2 rounded-4"
+                                            className="w-100 d-flex align-items-center justify-content-center gap-2 btn rounded-pill fw-medium px-4 py-2"
                                             onClick={handleBooking}
                                             disabled={bookingLoading || allSoldOut}
                                         >

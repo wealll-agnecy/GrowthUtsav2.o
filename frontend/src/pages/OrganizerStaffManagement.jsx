@@ -92,7 +92,7 @@ const OrganizerStaffManagement = () => {
                         <h2 className="fw-black text-white m-0 tracking-tighter" style={{ fontSize: '2.5rem' }}>Staff <span className="gradient-text">Management</span></h2>
                         <p className="text-white-50 m-0 small uppercase tracking-widest mt-1">Event Entry & Operations Personnel</p>
                     </div>
-                    <Button variant="primary" onClick={() => setShowCreateModal(true)} className="fw-black px-5 py-3 rounded-4 d-flex align-items-center gap-2 shadow-2xl border-0 glow-hover text-uppercase tracking-widest">
+                    <Button variant="primary" onClick={() => setShowCreateModal(true)} className="d-flex align-items-center gap-2 btn rounded-pill fw-medium px-4 py-2">
                         <FaUserPlus /> Initialize Staff
                     </Button>
                 </div>
@@ -139,10 +139,10 @@ const OrganizerStaffManagement = () => {
                                         )}
                                     </td>
                                     <td className="py-4 px-5 text-end">
-                                        <Button variant="outline-light" size="sm" className="me-3 rounded-pill px-4 py-2 fw-black border-2 text-uppercase tracking-widest small shadow-lg" onClick={() => openAssignModal(staff)}>
+                                        <Button variant="outline-light" size="sm" className="me-3 rounded-pill px-4 py-2 btn fw-medium" onClick={() => openAssignModal(staff)}>
                                             <FaLink size={12} className="me-2" /> TASKS
                                         </Button>
-                                        <Button variant="outline-danger" size="sm" className="rounded-pill px-4 py-2 fw-black border-2 text-uppercase tracking-widest small shadow-lg" onClick={() => handleDelete(staff._id)}>
+                                        <Button variant="outline-danger" size="sm" className="rounded-pill px-4 py-2 btn fw-medium" onClick={() => handleDelete(staff._id)}>
                                             <FaTrash size={12} />
                                         </Button>
                                     </td>
@@ -179,7 +179,7 @@ const OrganizerStaffManagement = () => {
                                     <option value="support">Support Personnel</option>
                                 </Form.Select>
                             </Form.Group>
-                            <Button type="submit" variant="primary" className="w-100 py-4 rounded-4 fw-black tracking-widest uppercase shadow-2xl border-0 glow-hover">
+                            <Button type="submit" variant="primary" className="w-100 btn rounded-pill fw-medium px-4 py-2">
                                 DEPLOY PERSONNEL
                             </Button>
                         </Form>
@@ -215,8 +215,8 @@ const OrganizerStaffManagement = () => {
                         </div>
                     </Modal.Body>
                     <Modal.Footer className="border-top border-white/10 bg-white/5 p-4 d-flex justify-content-between">
-                        <Button variant="outline-light" className="rounded-pill px-5 py-3 fw-black border-2 text-uppercase tracking-widest small" onClick={() => setShowAssignModal(false)}>ABORT MISSION</Button>
-                        <Button variant="primary" className="rounded-pill px-5 py-3 fw-black shadow-2xl border-0 glow-hover text-uppercase tracking-widest" onClick={handleAssignEvents}>SYNC ASSIGNMENTS</Button>
+                        <Button variant="outline-light" className="rounded-pill btn fw-medium px-4 py-2" onClick={() => setShowAssignModal(false)}>ABORT MISSION</Button>
+                        <Button variant="primary" className="rounded-pill btn fw-medium px-4 py-2" onClick={handleAssignEvents}>SYNC ASSIGNMENTS</Button>
                     </Modal.Footer>
                 </Modal>
             </Container>

@@ -84,7 +84,7 @@ const TicketView = () => {
                             <Button
                                 variant="primary"
                                 onClick={handleDownload}
-                                className="rounded-pill px-4 py-2 fw-black uppercase tracking-widest small border-0 shadow-glow"
+                                className="rounded-pill px-4 py-2 btn fw-medium"
                             >
                                 <FaDownload className="me-2" /> Export PDF
                             </Button>
@@ -167,7 +167,7 @@ const TicketView = () => {
                                         </div>
                                     </div>
 
-                                    <Button variant="primary" size="lg" className="w-100 py-4 py-md-4 rounded-pill fw-black glow-hover shadow-2xl border-0 d-flex align-items-center justify-content-center gap-3 text-uppercase tracking-widest mt-2" onClick={handleDownload}>
+                                    <Button variant="primary" size="lg" className="w-100 py-md-4 rounded-pill d-flex align-items-center justify-content-center gap-3 mt-2 btn fw-medium px-4 py-2" onClick={handleDownload}>
                                         <FaDownload /> Download Identity Signature
                                     </Button>
                                 </div>

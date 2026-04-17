@@ -273,7 +273,7 @@ const CheckoutFlow = () => {
                                         <Link to={`/events/${event._id}`} className="btn-back">
                                             <FaArrowLeft /> ABORT MISSION
                                         </Link>
-                                        <Button variant="primary" className="btn-primary" onClick={() => setStep(2)}>
+                                        <Button variant="primary" className="btn rounded-pill fw-medium px-4 py-2" onClick={() => setStep(2)}>
                                             PROCEED TO SCAN
                                         </Button>
                                     </div>
@@ -325,14 +325,14 @@ const CheckoutFlow = () => {
                                             </Row>
 
                                             <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4 mt-5 pt-4 border-top border-white/10">
-                                                <button className="btn-back" onClick={() => setStep(1)}>
+                                                <button className="btn rounded-pill fw-medium px-4 py-2 btn-primary" onClick={() => setStep(1)}>
                                                     <FaArrowLeft /> RECALIBRATE
                                                 </button>
                                                 <div className="d-flex flex-column flex-sm-row gap-3 w-100 w-md-auto">
-                                                    <Button variant="outline-primary" className="btn-outline-primary" onClick={handleDemoPayment}>
+                                                    <Button variant="outline-primary" className="btn-outline-primary btn rounded-pill fw-medium px-4 py-2" onClick={handleDemoPayment}>
                                                         BYPASS SYNC
                                                     </Button>
-                                                    <Button variant="primary" className="btn-primary d-flex align-items-center justify-content-center gap-3" onClick={initiatePaymentFlow}>
+                                                    <Button variant="primary" className="d-flex align-items-center justify-content-center gap-3 btn rounded-pill fw-medium px-4 py-2" onClick={initiatePaymentFlow}>
                                                         INITIALIZE PAY {loading && <FaSync className="fa-spin" />}
                                                     </Button>
                                                 </div>
@@ -367,10 +367,10 @@ const CheckoutFlow = () => {
                             <p className="text-white-50 fs-5 mb-5 mx-auto max-w-600">Identity verification complete. Digital pass synchronized to your mission hub.</p>
                             
                             <div className="d-flex flex-column flex-sm-row justify-content-center gap-4">
-                                <Button as={Link} to={ticketId ? `/ticket/${ticketId}` : "/my-bookings"} variant="primary" className="rounded-pill px-5 py-4 fw-black uppercase tracking-widest shadow-glow fs-5 border-0">
+                                <Button as={Link} to={ticketId ? `/ticket/${ticketId}` : "/my-bookings"} variant="primary" className="rounded-pill btn fw-medium px-4 py-2">
                                     {ticketId ? "VIEW & DOWNLOAD PASS" : "VIEW PASS HUB"}
                                 </Button>
-                                <Button as={Link} to="/events" variant="link" className="text-white fw-black text-decoration-none p-4 uppercase tracking-widest small opacity-60 hover-opacity-100">
+                                <Button as={Link} to="/events" variant="link" className="text-white text-decoration-none p-4 btn rounded-pill fw-medium px-4 py-2">
                                     DEPLOY NEW MISSION
                                 </Button>
                             </div>

@@ -153,8 +153,8 @@ const OrganizerEventDashboard = () => {
                         <h3 className="fw-black text-white text-uppercase tracking-widest mb-3">Limited Dashboard</h3>
                         <p className="text-white-50 fs-5 mb-4">This event is currently {event.status}. Full analytics, attendee details, and management features will be unlocked once approved by an administrator.</p>
                         <div className="d-flex justify-content-center gap-3">
-                            <Button as={Link} to={`/organizer/edit-event/${id}`} variant="outline-light" className="rounded-pill px-5 py-3 fw-black shadow-lg border-2">EDIT EVENT</Button>
-                            <Button variant="outline-danger" className="rounded-pill px-5 py-3 fw-black shadow-lg border-2" onClick={handleDelete}>DELETE EVENT</Button>
+                            <Button as={Link} to={`/organizer/edit-event/${id}`} variant="outline-light" className="rounded-pill btn fw-medium px-4 py-2">EDIT EVENT</Button>
+                            <Button variant="outline-danger" className="rounded-pill btn fw-medium px-4 py-2" onClick={handleDelete}>DELETE EVENT</Button>
                         </div>
                     </Card>
                 </Container>
@@ -185,14 +185,14 @@ const OrganizerEventDashboard = () => {
                             as={Link}
                             to={`/organizer/edit-event/${id}`}
                             variant="outline-light"
-                            className="flex-grow-1 flex-md-grow-0 rounded-4 px-3 px-md-4 py-3 fw-black border-2 shadow-lg text-uppercase tracking-widest d-flex align-items-center justify-content-center gap-2 hover-bg-white hover-text-dark transition-all small"
+                            className="flex-grow-1 flex-md-grow-0 px-md-4 d-flex align-items-center justify-content-center gap-2 hover-bg-white hover-text-dark transition-all btn rounded-pill fw-medium px-4 py-2"
                         >
                             <FaEdit size={12} /> <span className="d-none d-sm-inline">EDIT NODE</span><span className="d-sm-none">EDIT</span>
                         </Button>
                         {event.status === 'approved' && (
                             <Button
                                 variant="primary"
-                                className="flex-grow-1 flex-md-grow-0 rounded-4 px-3 px-md-5 py-3 fw-black shadow-2xl border-0 glow-hover text-uppercase tracking-widest d-flex align-items-center justify-content-center gap-2 small"
+                                className="flex-grow-1 flex-md-grow-0 px-md-5 d-flex align-items-center justify-content-center gap-2 btn rounded-pill fw-medium px-4 py-2"
                                 onClick={() => handleStatusUpdate('live')}
                                 disabled={actionLoading}
                             >
@@ -202,7 +202,7 @@ const OrganizerEventDashboard = () => {
                         {event.status === 'live' && (
                             <Button
                                 variant="success"
-                                className="flex-grow-1 flex-md-grow-0 rounded-4 px-3 px-md-5 py-3 fw-black shadow-2xl border-0 glow-hover text-uppercase tracking-widest d-flex align-items-center justify-content-center gap-2 small"
+                                className="flex-grow-1 flex-md-grow-0 px-md-5 d-flex align-items-center justify-content-center gap-2 btn rounded-pill fw-medium px-4 py-2"
                                 onClick={() => handleStatusUpdate('completed')}
                                 disabled={actionLoading}
                             >
@@ -276,7 +276,7 @@ const OrganizerEventDashboard = () => {
                                     <h4 className="fw-black text-white uppercase tracking-widest m-0">Attendee Registry</h4>
                                     <p className="text-white-50 small mb-0 fw-medium opacity-60 uppercase tracking-tighter">Real-time Guest telemetry for this deployment node</p>
                                 </div>
-                                <Button variant="success" className="rounded-pill px-5 py-3 fw-black shadow-2xl border-0 glow-hover text-uppercase tracking-widest d-flex align-items-center gap-3" onClick={exportToCSV} disabled={attendees.length === 0}>
+                                <Button variant="success" className="rounded-pill d-flex align-items-center gap-3 btn fw-medium px-4 py-2" onClick={exportToCSV} disabled={attendees.length === 0}>
                                     <FaCloudDownloadAlt /> ARCHIVE CSV
                                 </Button>
                             </div>
@@ -369,7 +369,7 @@ const OrganizerEventDashboard = () => {
                                             <h4 className="fw-black text-white m-0">PURGE PROTOCOL</h4>
                                             <p className="text-white-50 mt-2 mb-0 fw-medium">Permanently delete this event. This action is irreversible and will wipe all guest data and analytics from the master node.</p>
                                         </div>
-                                        <Button variant="outline-danger" className="rounded-pill px-5 py-3 fw-black mt-auto border-2 shadow-lg text-uppercase tracking-widest" onClick={handleDelete}>EXECUTE PURGE</Button>
+                                        <Button variant="outline-danger" className="rounded-pill mt-auto btn fw-medium px-4 py-2" onClick={handleDelete}>EXECUTE PURGE</Button>
                                     </div>
                                 </Col>
                                 <Col md={6}>
@@ -379,7 +379,7 @@ const OrganizerEventDashboard = () => {
                                             <h4 className="fw-black text-white m-0">DATA BACKUP</h4>
                                             <p className="text-white-50 mt-2 mb-0 fw-medium">Export a full guest manifest in portable CSV format for secure offline processing and external auditing.</p>
                                         </div>
-                                        <Button variant="outline-light" className="rounded-pill px-5 py-3 fw-black mt-auto border-2 shadow-lg text-uppercase tracking-widest" onClick={exportToCSV}>EXPORT ARCHIVE</Button>
+                                        <Button variant="outline-light" className="rounded-pill mt-auto btn fw-medium px-4 py-2" onClick={exportToCSV}>EXPORT ARCHIVE</Button>
                                     </div>
                                 </Col>
                             </Row>

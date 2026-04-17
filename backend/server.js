@@ -22,40 +22,63 @@ const adminRoutes = require('./routes/adminRoutes');
 const organizerRoutes = require('./routes/organizerRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
+const enquiryRoutes = require('./routes/enquiryRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const path = require('path');
 
 const initScheduler = require('./utils/scheduler');
 
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+const { initSocket } = require('./utils/socket');
+const { initFirebase } = require('./utils/firebase');
+const http = require('http');
+
+// Initialize Notification Queue Worker
+require('./queue/notificationQueue');
+
 const app = express();
+const server = http.createServer(app);
 
-// Trust reverse proxy (needed for req.protocol accuracy on Heroku/Vercel/DigitalOcean)
-app.set('trust proxy', true);
+// Initialize Socket.io
+initSocket(server);
 
-// DEBUG LOGGER
+// Initialize Firebase
+initFirebase();
+
+// Set security HTTP headers
+app.set('trust proxy', 1); // trust first proxy
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000, // increased for dev
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+app.use('/api', limiter);
+
 app.use((req, res, next) => {
     console.log(`📡 [REQUEST]: ${req.method} ${req.path}`);
     next();
 });
 
-// Body parser
 app.use(express.json());
-
-// Set static folder for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Cookie parser
 app.use(cookieParser());
 
-// Enable CORS
 app.use(cors({
-    origin: true, // Allow all origins for debugging
+    origin: true,
     credentials: true
 }));
 
-// Mount routers
 console.log("🚀 Mounting routers...");
+app.use('/api/v1/enquiries', enquiryRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
-console.log("✅ Bookings mounted");
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/tickets', ticketRoutes);
@@ -66,34 +89,25 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/organizer', organizerRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
-// Specific ticket routes
 const { downloadTicket, verifyTicketForScanner } = require('./controllers/ticketController');
 const { protect } = require('./middleware/authMiddleware');
 app.get('/api/ticket/download/:id', protect, downloadTicket);
-app.get('/api/ticket/verify/:id', verifyTicketForScanner); // Public for scanner page
+app.get('/api/ticket/verify/:id', verifyTicketForScanner);
 
-
-
-
-// Global Error Handler
 app.use((err, req, res, next) => {
     console.error("🚨 GLOBAL SERVER ERROR:", err.message);
-    console.error("PATH:", req.path);
-    console.error("STACK:", err.stack);
-    
     res.status(err.statusCode || 500).json({
         success: false,
-        message: err.message || 'Server Error',
-        error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        message: err.message || 'Server Error'
     });
 });
 
-// Start scheduler
 initScheduler();
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server running in mode on port ${PORT}`);
+server.listen(PORT, () => {
+    console.log(`🚀 [SERVER LIVE] [PORT: ${PORT}]`);
 });

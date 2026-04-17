@@ -17,7 +17,8 @@ const {
     deleteStaff
 } = require('../controllers/staffController');
 
-const {
+const { 
+    getAdminStats,
     getTotalRevenue,
     getNetProfit,
     getActiveEvents,
@@ -31,6 +32,7 @@ router.use(protect);
 router.use(authorize('admin'));
 
 // ── Dashboard Stats ───────────────────────────────────────
+router.get('/stats', getAdminStats);
 router.get('/total-revenue', getTotalRevenue);
 router.get('/net-profit', getNetProfit);
 router.get('/active-events', getActiveEvents);

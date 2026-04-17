@@ -91,6 +91,10 @@ exports.verifyPayment = async (req, res) => {
             console.error("Email/PDF background error:", emailErr.message);
         }
 
+        // Queue Event Reminders
+        const { scheduleReminders } = require('../queue/notificationQueue');
+        await scheduleReminders(req.user.id, booking.event._id, booking.event.date);
+
         res.status(200).json({ success: true, message: "Booking successful", ticketId: ticket._id });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
@@ -142,8 +146,12 @@ exports.demoBooking = async (req, res) => {
             });
             console.log("✅ Email sent successfully");
         } catch (emailErr) {
-            console.error("⚠️ Background Email Error:", emailErr.message);
+            console.error("Email/PDF background error:", emailErr.message);
         }
+
+        // Queue Event Reminders
+        const { scheduleReminders } = require('../queue/notificationQueue');
+        await scheduleReminders(req.user.id, eventId, event.date);
 
         res.status(200).json({ 
             success: true, 
@@ -152,6 +160,7 @@ exports.demoBooking = async (req, res) => {
             ticketId: ticket._id 
         });
     } catch (err) {
+        console.error("Booking Error:", err);
         res.status(500).json({ success: false, message: err.message });
     }
 };

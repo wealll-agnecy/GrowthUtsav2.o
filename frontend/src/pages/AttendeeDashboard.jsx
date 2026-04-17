@@ -68,7 +68,7 @@ const AttendeeDashboard = () => {
                 <Button 
                     as={Link} 
                     to="/events" 
-                    className="neon-btn btn-primary rounded-4 px-4 px-md-5 py-3 fw-black uppercase tracking-widest small shadow-2xl d-flex align-items-center justify-content-center gap-3 transition-all border-0 w-100 w-lg-auto mt-3 mt-lg-0"
+                    className="px-4 px-md-5 d-flex align-items-center justify-content-center gap-3 transition-all w-100 w-lg-auto mt-3 mt-lg-0 btn rounded-pill fw-medium py-2"
                 >
                     <FaCompass /> Discover Events
                 </Button>
@@ -118,7 +118,7 @@ const AttendeeDashboard = () => {
                                 <div className="mb-2"><FaCalendarCheck className="me-2 text-primary" /> {new Date(booking.event?.date).toLocaleDateString()}</div>
                                 <div>📍 {booking.event?.venue}</div>
                             </div>
-                            <Button as={Link} to={`/tickets/${booking._id}`} variant="outline-primary" className="w-100 rounded-4 fw-black uppercase tracking-widest small border-0 bg-primary/10 hover-bg-primary transition-all py-3 shadow-glow">Access Passport</Button>
+                            <Button as={Link} to={`/tickets/${booking._id}`} variant="outline-primary" className="w-100 transition-all btn rounded-pill fw-medium px-4 py-2">Access Passport</Button>
                         </motion.div>
                     </Col>
                 ))}
@@ -142,7 +142,7 @@ const AttendeeDashboard = () => {
                                 <div className="p-5 text-center py-5">
                                     <div className="display-1 opacity-10 mb-4 animate-pulse">🎫</div>
                                     <h4 className="fw-black text-white-50 mb-4 tracking-widest uppercase">No Deployments Detected</h4>
-                                    <Button as={Link} to="/events" variant="primary" className="rounded-pill px-5 py-3 fw-black border-0 shadow-lg glow-hover text-uppercase small">Initialize Discovery</Button>
+                                    <Button as={Link} to="/events" variant="primary" className="rounded-pill btn fw-medium px-4 py-2">Initialize Discovery</Button>
                                 </div>
                             ) : (
                                 <div className="table-responsive">
@@ -179,7 +179,7 @@ const AttendeeDashboard = () => {
                                                             as={Link} 
                                                             to={`/tickets/${booking._id}`}
                                                             disabled={booking.paymentStatus !== 'completed'}
-                                                            className="rounded-4 btn-primary px-4 py-2 fw-black text-uppercase tracking-widest small border-0 shadow-lg d-inline-flex align-items-center gap-2"
+                                                            className="px-4 py-2 d-inline-flex align-items-center gap-2 btn rounded-pill fw-medium"
                                                         >
                                                             ACCESS PASS <FaExternalLinkAlt size={10} />
                                                         </Button>

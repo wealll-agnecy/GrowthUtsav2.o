@@ -292,9 +292,9 @@ const AdminEventApproval = () => {
                                 </motion.div>
                             </Modal.Body>
                             <Modal.Footer className="border-0 p-5 pt-0 gap-3">
-                                <Button variant="link" className="text-white-50 fw-black text-decoration-none text-uppercase small" onClick={() => setShowModal(false)}>ABORT MISSION</Button>
-                                <Button variant="outline-danger" className="rounded-pill px-5 py-2 fw-black border-2 shadow-lg" onClick={() => handleAction(selectedEvent?._id, 'rejected')}>PURGE NODE</Button>
-                                <Button variant="primary" className="rounded-pill px-5 py-2 fw-black border-0 shadow-lg glow-hover" onClick={() => handleAction(selectedEvent?._id, 'approved')}>AUTHORIZE ENTRY</Button>
+                                <Button variant="link" className="text-white-50 text-decoration-none btn rounded-pill fw-medium px-4 py-2" onClick={() => setShowModal(false)}>ABORT MISSION</Button>
+                                <Button variant="outline-danger" className="rounded-pill py-2 btn fw-medium px-4" onClick={() => handleAction(selectedEvent?._id, 'rejected')}>PURGE NODE</Button>
+                                <Button variant="primary" className="rounded-pill py-2 btn fw-medium px-4" onClick={() => handleAction(selectedEvent?._id, 'approved')}>AUTHORIZE ENTRY</Button>
                             </Modal.Footer>
                         </>
                     )}

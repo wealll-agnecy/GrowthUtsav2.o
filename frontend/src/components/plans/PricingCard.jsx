@@ -54,7 +54,7 @@ const PricingCard = ({ plan, onSelect, currentPlanId, loading }) => {
 
                 <Button 
                     variant={isCurrent ? "outline-success" : (isPopular ? "primary" : "outline-primary")} 
-                    className={`w-100 py-4 fw-black rounded-pill mt-auto border-2 text-uppercase tracking-widest fs-6 shadow-2xl ${isCurrent ? 'opacity-40 border-white/20 text-white' : 'glow-hover shadow-glow-sm'}`}
+                    className={`w-100 rounded-pill mt-auto fs-6 ${isCurrent ? 'opacity-40 border-white/20 text-white' : 'glow-hover shadow-glow-sm'} btn fw-medium px-4 py-2`}
                     onClick={() => !isCurrent && onSelect(plan._id)}
                     disabled={isCurrent || loading}
                 >

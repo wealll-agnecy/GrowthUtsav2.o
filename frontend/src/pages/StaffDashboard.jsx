@@ -44,12 +44,13 @@ const StaffDashboard = () => {
     );
 
     const displayStats = [
-        { label: 'Scanner Status', value: 'ONLINE', icon: <FaQrcode />, color: '#10b981', delay: 0.1 },
-        { label: 'Identity Verifications', value: (stats?.totalScans || 0).toLocaleString(), icon: <FaShieldAlt />, color: '#8b5cf6', delay: 0.2 },
-        { label: 'Active Sector', value: (stats?.staffRole || 'Gate').toUpperCase(), icon: <FaUsers />, color: '#ec4899', delay: 0.3 }
+        { label: 'Scanner Nodes', value: 'ONLINE', icon: <FaQrcode />, color: '#10b981', delay: 0.1 },
+        { label: 'Today\'s Volume', value: (stats?.todayScans || 0).toLocaleString(), icon: <FaShieldAlt />, color: '#3b82f6', delay: 0.2 },
+        { label: 'Total Inflow', value: (stats?.totalScans || 0).toLocaleString(), icon: <FaUsers />, color: '#ec4899', delay: 0.3 }
     ];
 
     const assignedEvents = user?.assignedEvents || [];
+    const recentScans = stats?.recentScans || [];
 
     return (
         <div className="dashboard-content-premium">
@@ -58,17 +59,20 @@ const StaffDashboard = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
-                className="mb-5"
+                className="mb-5 d-flex justify-content-between align-items-end"
             >
-                <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small shadow-2xl">
-                    <FaShieldAlt className="me-2" /> Operations Console
-                </Badge>
-                <h1 className="fw-black m-0 tracking-tighter text-white" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)', lineHeight: 1 }}>
-                    Sector <span className="gradient-text">Operations</span>
-                </h1>
-                <p className="text-white-50 mt-2 mb-0 fw-medium small text-uppercase tracking-widest opacity-60">
-                    Welcome back, {user?.name} — Select an event below to launch scanner
-                </p>
+                <div>
+                    <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small shadow-2xl">
+                        <FaShieldAlt className="me-2" /> Operations Console
+                    </Badge>
+                    <h1 className="fw-black m-0 tracking-tighter text-white" style={{ fontSize: 'clamp(2rem, 5vw, 4rem)', lineHeight: 1 }}>
+                        Sector <span className="gradient-text">Operations</span>
+                    </h1>
+                </div>
+                <div className="text-end d-none d-md-block">
+                    <div className="text-white-50 small uppercase tracking-widest fw-black opacity-40">Active Operator</div>
+                    <div className="text-white fw-bold">{user?.name}</div>
+                </div>
             </motion.div>
 
 
@@ -96,6 +100,45 @@ const StaffDashboard = () => {
                     </Col>
                 ))}
             </Row>
+
+            {/* ─── Recent Scans (New) ─── */}
+            <div className="mb-5">
+                <h5 className="text-white fw-black m-0 ms-1 mb-4 small uppercase tracking-widest d-flex align-items-center gap-3">
+                    <FaCheckCircle className="text-success" /> Recent Clearances
+                </h5>
+                <Card className="saas-card border-0 rounded-5 shadow-2xl overflow-hidden bg-white/2">
+                    <div className="table-responsive">
+                        <table className="table table-dark table-hover m-0">
+                            <thead>
+                                <tr className="border-white/5">
+                                    <th className="px-4 py-3 small uppercase tracking-widest opacity-40 fw-black">Attendee</th>
+                                    <th className="px-4 py-3 small uppercase tracking-widest opacity-40 fw-black">Identification</th>
+                                    <th className="px-4 py-3 small uppercase tracking-widest opacity-40 fw-black">Node Type</th>
+                                    <th className="px-4 py-3 small uppercase tracking-widest opacity-40 fw-black">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentScans.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="4" className="text-center py-5 text-white-50 small uppercase tracking-widest opacity-30">No scans recorded in current session</td>
+                                    </tr>
+                                ) : (
+                                    recentScans.map((scan, i) => (
+                                        <tr key={i} className="border-white/5 align-middle">
+                                            <td className="px-4 py-3 fw-bold">{scan.attendee}</td>
+                                            <td className="px-4 py-3 font-monospace small opacity-70">{scan.code}</td>
+                                            <td className="px-4 py-3">
+                                                <Badge className="bg-white/10 text-white-50 px-3 py-1 rounded-pill small fw-bold">{scan.type}</Badge>
+                                            </td>
+                                            <td className="px-4 py-3 text-white-50 small">{new Date(scan.time).toLocaleTimeString()}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            </div>
 
             {/* ─── Assigned Events Grid ─── */}
             <div className="mb-4">
@@ -138,7 +181,7 @@ const StaffDashboard = () => {
                                                     as={Link}
                                                     to="/staff/scanner"
                                                     state={{ eventId: event._id, eventTitle: event.title }}
-                                                    className="rounded-4 btn-primary px-4 py-2 fw-black text-uppercase tracking-widest small border-0 shadow-glow"
+                                                    className="px-4 py-2 btn rounded-pill fw-medium"
                                                 >
                                                     ENGAGE <FaArrowRight className="ms-1" />
                                                 </Button>
@@ -183,7 +226,7 @@ const StaffDashboard = () => {
                                             as={Link}
                                             to="/staff/scanner"
                                             state={{ eventId: event._id, eventTitle: event.title }}
-                                            className="rounded-pill btn-primary px-3 py-2 fw-black text-uppercase tracking-widest small border-0 shadow-glow"
+                                            className="rounded-pill py-2 btn fw-medium px-4"
                                             style={{ fontSize: '0.65rem' }}
                                         >
                                             SELECT

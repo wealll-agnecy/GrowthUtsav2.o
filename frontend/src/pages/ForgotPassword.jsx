@@ -106,7 +106,7 @@ const ForgotPassword = () => {
                                                 variant="primary" 
                                                 type="submit" 
                                                 size="lg" 
-                                                className="py-4 rounded-pill fw-black glow-hover shadow-2xl border-0 text-uppercase d-flex align-items-center justify-content-center gap-4 fs-5 tracking-widest"
+                                                className="rounded-pill d-flex align-items-center justify-content-center gap-4 btn fw-medium px-4 py-2"
                                                 disabled={loading}
                                             >
                                                 {loading ? <Spinner size="sm" className="me-2" /> : <><FaBolt /> DISPATCH RESET LINK</>}

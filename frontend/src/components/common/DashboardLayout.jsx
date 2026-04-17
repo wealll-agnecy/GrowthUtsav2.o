@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaThLarge, FaPlusCircle, FaUsers, FaChartLine, FaCog,
     FaChevronLeft, FaChevronRight, FaShieldAlt, FaTicketAlt, 
-    FaUserTie, FaSignOutAlt, FaLifeRing, FaCalendarAlt, FaQrcode, FaBars
+    FaUserTie, FaSignOutAlt, FaLifeRing, FaCalendarAlt, FaQrcode, FaBars, FaEnvelope
 } from 'react-icons/fa';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -37,6 +37,7 @@ const DashboardLayout = ({ children, role }) => {
     const adminLinks = [
         { name: 'Console', path: '/admin/dashboard', icon: <FaChartLine /> },
         { name: 'Host Requests', path: '/admin/organizer-requests', icon: <FaUserTie />, badge: pendingOrgCount },
+        { name: 'Enquiries', path: '/admin/enquiries', icon: <FaEnvelope /> },
         { name: 'Approvals', path: '/admin/event-approvals', icon: <FaShieldAlt /> },
         { name: 'Staff Hub', path: '/admin/staff', icon: <FaUsers /> },
         { name: 'Settings', path: '/admin/settings', icon: <FaCog /> },
@@ -82,15 +83,15 @@ const DashboardLayout = ({ children, role }) => {
                     <motion.span 
                         initial={{ opacity: 0 }} 
                         animate={{ opacity: 1 }} 
-                        className="fw-black fs-4 tracking-tightest gradient-text"
+                        className="fw-bold fs-6 text-uppercase tracking-widest text-secondary"
                     >
-                        GrowthUtsav
+                        Menu
                     </motion.span>
                 )}
                 <Button 
                     variant="link" 
                     onClick={() => setCollapsed(!collapsed)} 
-                    className="text-white-50 p-0 d-none d-lg-block border-0 shadow-none hover-text-white transition-all"
+                    className="text-white-50 p-0 d-none d-lg-block shadow-none hover-text-white transition-all btn rounded-pill fw-medium px-4 py-2"
                 >
                     {collapsed ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
                 </Button>
@@ -139,7 +140,7 @@ const DashboardLayout = ({ children, role }) => {
                 <Button 
                     variant="link" 
                     onClick={handleLogout} 
-                    className={`w-100 mt-3 d-flex align-items-center gap-3 px-3 py-3 rounded-4 text-danger hover-bg-danger/10 border-0 shadow-none transition-all ${collapsed ? 'justify-content-center' : ''}`}
+                    className={`w-100 mt-3 d-flex align-items-center gap-3 text-danger hover-bg-danger/10 shadow-none transition-all ${collapsed ? 'justify-content-center' : ''} btn rounded-pill fw-medium px-4 py-2`}
                 >
                     <FaSignOutAlt />
                     {!collapsed && <span className="small fw-black uppercase tracking-widest logout-label-text">Disconnect</span>}
@@ -154,7 +155,7 @@ const DashboardLayout = ({ children, role }) => {
             <motion.div
                 animate={{ width: collapsed ? '80px' : '280px' }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="d-none d-lg-block border-end border-white/5 sticky-top bg-dark-space desktop-sidebar-box"
+                className="d-none d-lg-block border-end border-white/5 bg-dark-space desktop-sidebar-box"
             >
                 <SidebarContent />
             </motion.div>
@@ -178,7 +179,9 @@ const DashboardLayout = ({ children, role }) => {
             </Offcanvas>
 
             {/* Main Content Area */}
-            <div className="flex-grow-1 d-flex flex-column min-w-0">
+            <div 
+                className={`flex-grow-1 d-flex flex-column min-w-0 dashboard-content-area ${collapsed ? 'collapsed' : ''}`}
+            >
                 <main className="p-3 p-md-4 p-xl-5">
                     <AnimatePresence mode="wait">
                         <motion.div

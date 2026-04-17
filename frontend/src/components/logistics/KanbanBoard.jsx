@@ -123,7 +123,7 @@ const KanbanBoard = ({ eventId }) => {
                     <span className="bg-primary shadow-lg p-2 rounded-4 d-inline-flex border border-white/5"><FaProjectDiagram className="text-white" /></span>
                     <h4 className="fw-black m-0 text-white display-6">Node <span className="gradient-text">Orchestration</span></h4>
                 </div>
-                <Button variant="primary" className="rounded-pill px-5 py-3 fw-black glow-hover shadow-2xl border-0 d-flex align-items-center gap-3 text-uppercase tracking-widest" onClick={() => setShowModal(true)}>
+                <Button variant="primary" className="rounded-pill d-flex align-items-center gap-3 btn fw-medium px-4 py-2" onClick={() => setShowModal(true)}>
                     <FaPlus /> NEW OPERATION
                 </Button>
             </motion.div>
@@ -255,8 +255,8 @@ const KanbanBoard = ({ eventId }) => {
                         </Form.Group>
                     </Modal.Body>
                     <Modal.Footer className="border-0 p-5 pt-0 gap-3">
-                        <Button variant="link" className="text-white-50 fw-black text-decoration-none text-uppercase small" onClick={() => setShowModal(false)}>STAND DOWN</Button>
-                        <Button variant="primary" type="submit" className="rounded-pill px-5 py-3 fw-black shadow-2xl border-0 glow-hover text-uppercase tracking-widest">DEPLOY TASK</Button>
+                        <Button variant="link" className="text-white-50 text-decoration-none btn rounded-pill fw-medium px-4 py-2" onClick={() => setShowModal(false)}>STAND DOWN</Button>
+                        <Button variant="primary" type="submit" className="rounded-pill btn fw-medium px-4 py-2">DEPLOY TASK</Button>
                     </Modal.Footer>
                 </Form>
             </Modal>

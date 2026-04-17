@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import './index.css'
+import './css/global.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -15,12 +15,20 @@ window.onunhandledrejection = function(event) {
   console.error('[UNHANDLED_PROMISE_REJECTION]', event.reason);
 };
 
+import ErrorBoundary from './components/common/ErrorBoundary'
+
+import { NotificationProvider } from './context/NotificationContext'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AuthProvider>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+        <AuthProvider>
+            <NotificationProvider>
+                <ThemeProvider>
+                    <App />
+                </ThemeProvider>
+            </NotificationProvider>
+        </AuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 )
