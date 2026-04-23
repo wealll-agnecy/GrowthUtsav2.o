@@ -1,0 +1,76 @@
+.organizer-events-page {
+  max-width: 1200px;
+  margin: auto;
+  padding: 16px;
+}
+
+/* Fix headings */
+.organizer-events-page h1 {
+  font-size: 22px !important;
+}
+
+.organizer-events-page h2 {
+  font-size: 18px !important;
+}
+
+.organizer-events-page .dashboard-title-main {
+    font-size: 22px !important;
+}
+
+/* Fix card size */
+.organizer-events-page .event-card,
+.organizer-events-page .dashboard-card {
+  border-radius: 14px !important;
+  padding: 16px !important;
+}
+
+/* Fix text */
+.organizer-events-page p,
+.organizer-events-page .dashboard-subtext {
+  font-size: 13px !important;
+}
+
+/* Fix buttons */
+.organizer-events-page button,
+.organizer-events-page .btn {
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+}
+
+/* Reduce spacing */
+.organizer-events-page .row,
+.organizer-events-page .col {
+  margin-bottom: 10px !important;
+}
+
+.organizer-events-page .stats-grid-saas {
+    gap: 15px !important;
+    margin-bottom: 25px !important;
+}
+
+/* Fix images */
+.organizer-events-page img {
+  height: 160px !important;
+  object-fit: cover !important;
+}
+
+/* Responsive Fix */
+@media (max-width: 768px) {
+  .organizer-events-page {
+    padding: 12px;
+  }
+
+  .organizer-events-page h1,
+  .organizer-events-page .dashboard-title-main {
+    font-size: 18px !important;
+  }
+
+  .organizer-events-page img {
+    height: 140px !important;
+  }
+
+  .organizer-events-page .btn {
+    width: 100%;
+  }
+}

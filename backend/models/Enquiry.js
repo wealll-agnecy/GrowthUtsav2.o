@@ -29,6 +29,10 @@ const enquirySchema = new mongoose.Schema({
         enum: ['New', 'Read', 'Resolved'],
         default: 'New'
     },
+    isRead: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now

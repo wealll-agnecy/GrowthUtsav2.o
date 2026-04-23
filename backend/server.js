@@ -18,6 +18,7 @@ const ticketRoutes = require('./routes/ticketRoutes');
 const automationRoutes = require('./routes/automationRoutes');
 const servicePlanRoutes = require('./routes/servicePlanRoutes');
 const logisticsRoutes = require('./routes/logisticsRoutes');
+const { protect } = require('./middleware/authMiddleware');
 const adminRoutes = require('./routes/adminRoutes');
 const organizerRoutes = require('./routes/organizerRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
@@ -76,6 +77,13 @@ app.use(cors({
     credentials: true
 }));
 
+const { updateLiveStatus } = require('./controllers/eventController');
+
+// ── EMERGENCY LIVE TOGGLE ROUTES (MOUNTED BEFORE ROUTERS) ──
+app.put('/api/v1/event-live/:id', protect, updateLiveStatus);
+app.put('/api/v1/events/set-live/:id', protect, updateLiveStatus);
+app.put('/api/v1/events/:id/live', protect, updateLiveStatus);
+
 console.log("🚀 Mounting routers...");
 app.use('/api/v1/enquiries', enquiryRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
@@ -92,9 +100,16 @@ app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 
 const { downloadTicket, verifyTicketForScanner } = require('./controllers/ticketController');
-const { protect } = require('./middleware/authMiddleware');
 app.get('/api/ticket/download/:id', protect, downloadTicket);
 app.get('/api/ticket/verify/:id', verifyTicketForScanner);
+
+app.use((req, res, next) => {
+    console.log(`❌ [404 ERROR]: ${req.method} ${req.originalUrl} - No route matched`);
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.originalUrl} not found on this server`
+    });
+});
 
 app.use((err, req, res, next) => {
     console.error("🚨 GLOBAL SERVER ERROR:", err.message);
@@ -105,6 +120,8 @@ app.use((err, req, res, next) => {
 });
 
 initScheduler();
+
+console.log("✅ Event Routes Loaded:", eventRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 
 const PORT = process.env.PORT || 5000;
 

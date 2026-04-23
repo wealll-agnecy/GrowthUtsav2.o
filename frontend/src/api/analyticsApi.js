@@ -13,3 +13,7 @@ export const getAdminStats = async () => {
 export const getEventAttendees = async (eventId) => {
     return await axios.get(`${API_URL}/event/${eventId}/attendees`);
 };
+
+export const getOrganizerRevenue = async () => {
+    return await axios.get('/api/v1/organizer/revenue');
+};

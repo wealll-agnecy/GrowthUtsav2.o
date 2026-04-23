@@ -6,12 +6,18 @@ const {
     getMyEvents,
     updateEvent,
     deleteEvent,
-    updateEventStatus
+    updateEventStatus,
+    toggleLive,
+    updateLiveStatus
 } = require('../controllers/eventController');
 
 const router = express.Router();
 
 const { protect, authorize, optionalProtect } = require('../middleware/authMiddleware');
+
+router.put('/toggle-live/:id', protect, authorize('organizer', 'admin'), toggleLive);
+router.put('/set-live/:id', protect, authorize('organizer', 'admin'), updateLiveStatus);
+router.put('/:id/status', protect, authorize('organizer', 'admin'), updateEventStatus);
 
 router
     .route('/')
@@ -28,8 +34,6 @@ router
     .put(protect, authorize('organizer', 'admin'), updateEvent)
     .delete(protect, authorize('organizer', 'admin'), deleteEvent);
 
-router
-    .route('/:id/status')
-    .put(protect, authorize('organizer', 'admin'), updateEventStatus);
+router.route('/:id/status').put(protect, authorize('organizer', 'admin'), updateEventStatus); // Handled above, but removing redundant block
 
 module.exports = router;

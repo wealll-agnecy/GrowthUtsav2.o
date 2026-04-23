@@ -120,6 +120,14 @@ exports.verifyPayment = async (req, res) => {
         // Save ticket link
         booking.ticketId = ticket._id;
         await booking.save();
+
+        // Ensure Ticket Financials are synced (redundant but safe)
+        const Ticket = require('../models/Ticket');
+        await Ticket.findByIdAndUpdate(ticket._id, {
+            amountPaid: booking.amountPaid,
+            totalAmount: booking.totalAmount,
+            paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL'
+        });
         
         // AUTO EMAIL with PDF
         try {
@@ -298,12 +306,13 @@ exports.verifyInstallment = async (req, res) => {
 
         await booking.save();
 
-        // Ensure ticket exists if it doesn't already
-        if (!booking.ticketId) {
-            const { createTicketAfterPayment } = require('./ticketController');
-            const ticket = await createTicketAfterPayment(booking._id, booking.event._id, req.user.id);
-            booking.ticketId = ticket._id;
-            await booking.save();
+        // Sync Ticket Financials
+        if (booking.ticketId) {
+            const Ticket = require('../models/Ticket');
+            await Ticket.findByIdAndUpdate(booking.ticketId, {
+                amountPaid: booking.amountPaid,
+                paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL'
+            });
         }
 
         res.status(200).json({ success: true, message: "Payment updated", amountPaid: booking.amountPaid });

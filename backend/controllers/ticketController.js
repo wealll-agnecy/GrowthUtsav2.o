@@ -282,7 +282,10 @@ exports.createTicketAfterPayment = async (bookingId, eventId, userId) => {
             event: eventId,
             user: userDoc._id,
             selectedDate: booking.selectedDate,
-            selectedDays: booking.selectedDays
+            selectedDays: booking.selectedDays,
+            amountPaid: booking.amountPaid || 0,
+            totalAmount: booking.totalAmount,
+            paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL'
         };
 
         const ticket = await Ticket.create(ticketData);
@@ -377,5 +380,61 @@ exports.verifyManualTicket = async (req, res, next) => {
         res.status(200).json({ success: true, message: 'Entry Allowed', data: ticket });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
+    }
+};
+// @desc    Verify Ticket Scan (Staff Access Control)
+// @route   POST /api/v1/tickets/verify-scan
+// @access  Private (Staff/Admin)
+exports.verifyTicketScan = async (req, res) => {
+    try {
+        const { ticketId } = req.body;
+
+        const ticket = await Ticket.findOne({
+            $or: [
+                { uuid: ticketId },
+                { ticketCode: ticketId }
+            ]
+        }).populate('user', 'name email').populate('event', 'title date venue');
+
+        if (!ticket) {
+            return res.json({ success: false, message: "Invalid Ticket" });
+        }
+
+        // Check if fully paid
+        const booking = await Booking.findById(ticket.booking);
+        if (booking && booking.amountPaid < booking.totalAmount) {
+            return res.json({
+                success: true,
+                status: "DENIED",
+                message: "Payment Pending",
+                ticket
+            });
+        }
+
+        if (ticket.isScanned || ticket.status === 'used') {
+            return res.json({
+                success: true,
+                status: "DENIED",
+                message: "Already Scanned",
+                ticket
+            });
+        }
+
+        // Mark as scanned
+        ticket.isScanned = true;
+        ticket.status = 'used';
+        ticket.scannedAt = new Date();
+        await ticket.save();
+
+        return res.json({
+            success: true,
+            status: "GRANTED",
+            message: "Access Granted",
+            ticket
+        });
+
+    } catch (err) {
+        console.error("Scan Verification Error:", err);
+        res.status(500).json({ success: false, message: "Server Error" });
     }
 };

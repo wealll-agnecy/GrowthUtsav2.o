@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import '../../css/cards.css';
-import '../../css/global.css';
+import '../../pages/EventListing.css'; // Importing the styles we just added
 
 const EventCard = ({ event }) => {
     const navigate = useNavigate();
@@ -13,9 +12,6 @@ const EventCard = ({ event }) => {
 
     const ticketPrices = event?.ticketTypes?.map(t => t.price) || [0];
     const minPrice = ticketPrices.length > 0 ? Math.min(...ticketPrices) : 0;
-    const hasTickets = ticketPrices.length > 0;
-
-    const ticketsLeft = event?.ticketTypes?.reduce((acc, tier) => acc + (tier.quantity - (tier.sold || 0)), 0) || 10;
 
     const bannerUrl = (event?.bannerImage && event?.bannerImage !== 'no-photo.jpg' && !event?.bannerImage.startsWith('http'))
         ? `http://localhost:5000/uploads/${event.bannerImage}`
@@ -24,49 +20,41 @@ const EventCard = ({ event }) => {
             : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1000';
 
     return (
-        <div
+        <div 
+            className="event-card" 
             onClick={() => navigate(`/events/${event?._id}`)}
-            className="minimal-card"
-            role="button"
-            tabIndex={0}
         >
-            <div className="card-img">
-                <img
-                    src={bannerUrl}
-                    alt={event?.title || 'Bridal Makeup'}
-                    loading="lazy"
-                />
-                {ticketsLeft > 0 && (
-                    <div className="ticket-badge">
-                        Hurry, {ticketsLeft} tickets left
-                    </div>
+            <div className="event-img-wrapper">
+                <img src={bannerUrl} alt={event?.title} className="event-img" />
+                {event?.isLive || event?.status === 'live' ? (
+                    <span className="event-badge live-pulse">LIVE NOW</span>
+                ) : (
+                    <span className="event-badge">Trending</span>
                 )}
+                <span className="event-price-badge">₹{minPrice}</span>
             </div>
 
-            <div className="card-body">
-                <h5>{event?.title || 'Bridal Makeup Session'}</h5>
-                <p>{event?.description?.length > 60 ? event.description.substring(0, 60) + '...' : (event?.description || 'Premium styling with expert artists.')}</p>
+            <div className="event-content">
+                <h3 className="event-title">{event?.title || 'Event Name'}</h3>
 
-                <div className="card-meta">
-                    <span>{formattedDate}</span>
-                    <span>{event?.venue || 'Venue TBA'}</span>
+                <div className="event-subinfo">
+                    <span>📍 {event?.venue || 'Venue TBA'}</span>
+                    <span>📅 {formattedDate}</span>
                 </div>
 
-                <div className="card-bottom">
-                    <span className="price">₹{minPrice}</span>
-                    <button 
-                        className="btn btn-pink btn-sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/events/${event?._id}`);
-                        }}
-                    >
-                        Book Now
-                    </button>
-                </div>
+                <button 
+                    className="event-btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/events/${event?._id}`);
+                    }}
+                >
+                    Book Now
+                </button>
             </div>
         </div>
     );
 };
 
 export default EventCard;
+

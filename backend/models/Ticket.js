@@ -66,6 +66,18 @@ const TicketSchema = new mongoose.Schema({
     scannedAt: {
         type: Date
     },
+    amountPaid: {
+        type: Number,
+        default: 0
+    },
+    totalAmount: {
+        type: Number
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['PARTIAL', 'PAID'],
+        default: 'PARTIAL'
+    },
     booking: {
         type: mongoose.Schema.ObjectId,
         ref: 'Booking'

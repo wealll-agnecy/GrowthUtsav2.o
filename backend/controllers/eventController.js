@@ -49,9 +49,12 @@ exports.getEvents = async (req, res, next) => {
         // Loop over removeFields and delete them from reqQuery
         removeFields.forEach(param => delete reqQuery[param]);
 
-        // If admin, they can see all, otherwise only approved/live/completed
+        // If admin, they can see all, otherwise only approved/live/completed OR isLive: true
         if (!req.user || req.user.role !== 'admin') {
-            reqQuery.status = { $in: ['approved', 'live', 'completed'] };
+            reqQuery.$or = [
+                { status: { $in: ['approved', 'live', 'completed'] } },
+                { isLive: true }
+            ];
         } else if (reqQuery.hasOwnProperty('status') && reqQuery.status === 'pending') {
             // Admin explicitly asking for pending is allowed
         }
@@ -61,6 +64,7 @@ exports.getEvents = async (req, res, next) => {
             reqQuery.title = { $regex: req.query.search, $options: 'i' };
         }
 
+        console.log('🔍 [GET EVENTS]: Querying with:', reqQuery);
         query = Event.find(reqQuery).populate('organizer', 'name email');
 
         // Sort
@@ -72,6 +76,7 @@ exports.getEvents = async (req, res, next) => {
         }
 
         const events = await query;
+        console.log(`✅ [GET EVENTS]: Found ${events.length} events matching query.`);
 
         res.status(200).json({
             success: true,
@@ -171,10 +176,16 @@ exports.updateEvent = async (req, res, next) => {
             });
         }
 
-        // If status is being updated to pending by organizer, that's fine.
-        // If they edit an approved event, we set status back to pending.
-        if (req.user.role !== 'admin' && req.body.status !== 'draft') {
-            req.body.status = 'pending';
+        // Governance: Organizers can only set status to 'live' if already approved
+        if (req.user.role !== 'admin') {
+            if (req.body.status === 'live') {
+                if (event.status !== 'approved' && event.status !== 'live') {
+                    return res.status(400).json({ success: false, message: 'Event must be approved by admin before going Live' });
+                }
+            } else if (req.body.status !== 'draft' && req.body.status !== 'completed') {
+                // For any other edit, reset to pending for re-approval
+                req.body.status = 'pending';
+            }
         }
 
         event = await Event.findByIdAndUpdate(req.params.id, req.body, {
@@ -277,6 +288,79 @@ exports.updateEventStatus = async (req, res, next) => {
         });
     } catch (err) {
         console.error("FINAL ERROR in updateEventStatus:", err);
+        res.status(400).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// @desc    Toggle event live status
+// @route   PUT /api/v1/events/toggle-live/:id
+// @access  Private (Organizer, Admin)
+exports.toggleLive = async (req, res, next) => {
+    try {
+        const event = await Event.findById(req.params.id);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: `No event with the id of ${req.params.id}`
+            });
+        }
+
+        // Toggle
+        event.isLive = !event.isLive;
+        
+        // Sync status for legacy compatibility
+        if (event.isLive) {
+            event.status = 'live';
+        } else {
+            event.status = 'approved';
+        }
+
+        await event.save();
+
+        res.status(200).json({
+            success: true,
+            isLive: event.isLive,
+            data: event
+        });
+    } catch (err) {
+        res.status(400).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+// @desc    Update live status explicitly
+// @route   PUT /api/v1/events/:id/live
+// @access  Private (Organizer, Admin)
+exports.updateLiveStatus = async (req, res, next) => {
+    try {
+        const { isLive } = req.body;
+        console.log(`🚀 [LIVE TOGGLE]: Event ID: ${req.params.id}, Target isLive: ${isLive}`);
+        const status = isLive ? 'live' : 'approved';
+
+        const event = await Event.findByIdAndUpdate(
+            req.params.id,
+            { isLive, status },
+            { new: true, runValidators: true }
+        );
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: `No event with the id of ${req.params.id}`
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: event
+        });
+    } catch (err) {
+        console.error("Error in updateLiveStatus:", err.message);
         res.status(400).json({
             success: false,
             message: err.message

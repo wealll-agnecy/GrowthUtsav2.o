@@ -123,13 +123,21 @@
 
 .desktop-sidebar-box {
     position: fixed !important;
-    top: var(--navbar-height, 72px) !important;
+    top: 0 !important;
     left: 0 !important;
     width: 280px;
-    height: calc(100vh - var(--navbar-height, 72px)) !important;
-    z-index: 9999 !important; /* Final Absolute Priority Override */
+    height: 100vh !important;
+    z-index: 9999 !important; /* Sidebar on top of everything */
     overflow-y: auto !important;
     background: #ffffff !important;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* SHIFT GLOBAL NAVBAR ON DASHBOARD PAGES */
+body.dashboard-active .navbar-premium {
+    left: 280px !important;
+    width: calc(100% - 280px) !important;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 @media (min-width: 992px) {
@@ -145,11 +153,67 @@
     .dashboard-content-area.collapsed .desktop-sidebar-box {
         width: 80px !important;
     }
+
+    /* Shift Navbar even more when sidebar is collapsed */
+    body.dashboard-active.sidebar-collapsed .navbar-premium {
+        left: 80px !important;
+        width: calc(100% - 80px) !important;
+    }
 }
 
 .offcanvas-sidebar-box {
     width: 280px !important;
     z-index: 10000 !important; /* Mobile Sidebar Priority */
+}
+
+/* LOGO STYLES */
+.sidebar-logo-expanded {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.sidebar-logo-expanded .logo-text {
+    font-size: 24px !important;
+    font-weight: 800;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: baseline;
+    letter-spacing: -1px;
+}
+
+.sidebar-logo-expanded .tagline {
+    font-size: 8px !important;
+    margin-top: 1px !important;
+    letter-spacing: 1.5px !important;
+    color: #64748b !important;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.sidebar-logo-min {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff4d8d, #e63e7b);
+    color: white !important;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(255, 77, 141, 0.25);
+    margin-left: -5px;
+}
+
+.logo-section-sidebar {
+    height: 50px;
+    overflow: hidden;
+}
+
+.hover-text-pink:hover {
+    color: #ff4d8d !important;
 }
 
 .dashboard-mobile-header {
@@ -162,6 +226,40 @@
 .dashboard-mobile-header,
 .dashboard-mobile-header * {
     color: #000000 !important;
+}
+
+.overflow-visible-nav {
+    overflow: visible !important;
+}
+
+/* NOTIFICATION BADGE STYLES */
+.nav-icon-box {
+    position: relative !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible !important; /* CRITICAL: Allow badge to show outside icon box */
+}
+
+.nav-notif-dot {
+    position: absolute !important;
+    top: -5px !important;
+    right: -8px !important;
+    background: #ff4d4d !important;
+    color: #ffffff !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    padding: 0px 5px !important;
+    border-radius: 50px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 2px 8px rgba(255, 77, 77, 0.5) !important;
+    z-index: 9999 !important;
+    pointer-events: none;
 }
 
 @media (max-width: 991px) {

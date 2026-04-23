@@ -42,3 +42,13 @@ export const adminApproveEvent = async (id) => {
 export const adminRejectEvent = async (id) => {
     return await axios.patch(`/api/v1/admin/events/${id}/reject`);
 };
+
+export const toggleLive = async (id) => {
+    return await axios.put(`${API_URL}/toggle-live/${id}`);
+};
+
+export const updateLiveStatus = async (id, isLive) => {
+    const status = isLive ? 'live' : 'approved';
+    console.log(`🌐 [API CALL]: PUT ${API_URL}/${id} (Legacy Update)`, { isLive, status });
+    return await axios.put(`${API_URL}/${id}`, { isLive, status });
+};

@@ -71,70 +71,41 @@ const EventListing = () => {
                 </div>
 
 
+                {/* ─── Zomato District Style Filter Bar ─── */}
+                <div className="filter-bar-sticky mb-4">
+                    <div className="filter-scroll-container">
+                        <button 
+                            className={`filter-chip ${hasFilters ? 'active' : ''}`}
+                            onClick={clearFilters}
+                        >
+                            <FaFilter size={12} />
+                            <span>Filters</span>
+                            {hasFilters && <span className="filter-count">1</span>}
+                        </button>
+
+                        <div className="filter-divider"></div>
+
+                        {CATEGORIES.map((cat) => (
+                            <button
+                                key={cat}
+                                className={`filter-chip ${category === cat ? 'selected' : ''}`}
+                                onClick={() => handleCategoryClick(cat)}
+                            >
+                                {cat}
+                                {category === cat && <FaTimes size={10} className="ms-2" />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <Row className="g-4">
-                    {/* ─── Sidebar Filters ─── */}
-                    <Col lg={3} className="mb-4">
-                        <div className="sidebar-filter glass-card p-3 p-md-4 border-white/5 shadow-2xl">
-
-                            <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4">
-                                <h6
-                                    className="m-0 fw-black text-bright uppercase tracking-widest small d-flex align-items-center gap-2"
-                                >
-                                    <FaFilter className="text-primary-light" /> Filters
-                                </h6>
-                                {hasFilters && (
-                                    <button
-                                        onClick={clearFilters}
-                                        className="btn btn-outline-pink btn-sm p-0 text-danger tracking-tighter text-decoration-none rounded-pill fw-medium px-4 py-2"
-                                    >
-                                        Reset
-                                    </button>
-                                )}
-                            </div>
-
-                            <div className="d-flex flex-row flex-lg-column gap-2 overflow-auto custom-scrollbar horizontal-scroll-container pb-2 pb-lg-0 listing-filter-container">
-                                {CATEGORIES.map((cat) => (
-                                    <motion.div
-                                        key={cat}
-                                        whileHover={{ x: 5 }}
-                                        className={`filter-item rounded-4 px-3 py-2 py-md-3 border border-white/5 transition-all cursor-pointer d-flex align-items-center justify-content-between flex-shrink-0 flex-md-shrink-1 ${category === cat ? 'bg-primary border-transparent shadow-xl' : 'bg-white/2'
-                                            }`}
-                                        onClick={() => handleCategoryClick(cat)}
-                                    >
-                                        <span className={`text-uppercase fw-black small tracking-widest ${category === cat ? 'text-white' : 'text-soft'}`}>
-                                            {cat}
-                                        </span>
-                                        <span className="d-none d-lg-block">
-                                            {category === cat
-                                                ? <FaTimes />
-                                                : <FaChevronRight className="opacity-20" size={12} />
-                                            }
-                                        </span>
-                                    </motion.div>
-                                ))}
-                            </div>
-
-
-                        </div>
-                    </Col>
-
                     {/* ─── Events Grid ─── */}
-                    <Col lg={9}>
+                    <Col lg={12}>
                         {/* Active filters + count */}
                         <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                             <span className="event-count-text">
-                                {events.length} event{events.length !== 1 ? 's' : ''} found
+                                {events.length} event{events.length !== 1 ? 's' : ''} found in your area
                             </span>
-                            <div className="d-flex gap-2 flex-wrap">
-                                {category && (
-                                    <Badge
-                                        className="d-flex align-items-center gap-2 px-3 py-2 filter-badge-item"
-                                        onClick={() => handleCategoryClick(category)}
-                                    >
-                                        {category} <FaTimes size={10} />
-                                    </Badge>
-                                )}
-                            </div>
                         </div>
 
                         {loading ? (

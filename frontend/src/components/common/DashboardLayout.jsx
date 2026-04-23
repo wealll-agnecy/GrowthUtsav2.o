@@ -16,16 +16,34 @@ const DashboardLayout = ({ children, role }) => {
     const [collapsed, setCollapsed] = useState(false);
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [pendingOrgCount, setPendingOrgCount] = useState(0);
+    const [enquiryCount, setEnquiryCount] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
     const { logout, user } = useAuth();
 
-    useEffect(() => {
+    const fetchCounts = async () => {
         if (role === 'admin') {
-            axios.get('/api/v1/admin/organizers/pending')
-                .then(res => setPendingOrgCount(res.data.count || 0))
-                .catch(() => { });
+            try {
+                const res = await axios.get('/api/v1/notifications/count');
+                console.log('🔔 Notification Counts:', res.data);
+                setPendingOrgCount(res.data.requests || 0);
+                setEnquiryCount(res.data.enquiries || 0);
+            } catch (err) {
+                console.error('Failed to fetch notification counts', err);
+            }
         }
+    };
+
+    useEffect(() => {
+        document.body.classList.add('dashboard-active');
+        
+        fetchCounts();
+        const interval = setInterval(fetchCounts, 5000); // Polling every 5 seconds
+
+        return () => {
+            document.body.classList.remove('dashboard-active');
+            clearInterval(interval);
+        };
     }, [role]);
 
     const handleLogout = async () => {
@@ -37,7 +55,7 @@ const DashboardLayout = ({ children, role }) => {
     const adminLinks = [
         { name: 'Console', path: '/admin/dashboard', icon: <FaChartLine /> },
         { name: 'Host Requests', path: '/admin/organizer-requests', icon: <FaUserTie />, badge: pendingOrgCount },
-        { name: 'Enquiries', path: '/admin/enquiries', icon: <FaEnvelope /> },
+        { name: 'Enquiries', path: '/admin/enquiries', icon: <FaEnvelope />, badge: enquiryCount },
         { name: 'Approvals', path: '/admin/event-approvals', icon: <FaShieldAlt /> },
         { name: 'Staff Hub', path: '/admin/staff', icon: <FaUsers /> },
         { name: 'Settings', path: '/admin/settings', icon: <FaCog /> },
@@ -77,25 +95,59 @@ const DashboardLayout = ({ children, role }) => {
     const links = getLinks();
     const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
 
+    useEffect(() => {
+        if (collapsed) {
+            document.body.classList.add('sidebar-collapsed');
+        } else {
+            document.body.classList.remove('sidebar-collapsed');
+        }
+    }, [collapsed]);
+
     const SidebarContent = () => (
         <div className="d-flex flex-column h-100 py-4 dashboard_left_sidebar">
-            <div className="px-4 mb-5 d-flex align-items-center justify-content-between">
+            <div className="px-4 mb-4 d-flex align-items-center justify-content-between logo-section-sidebar">
+                <Link to="/" className="logo-container text-decoration-none">
+                    {collapsed ? (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="sidebar-logo-min"
+                        >
+                            GU
+                        </motion.div>
+                    ) : (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="sidebar-logo-expanded"
+                        >
+                            <h1 className="logo-text mb-0">
+                                <span className="growth">Growth</span>
+                                <span className="utsav">Utsav</span>
+                            </h1>
+                            <p className="tagline mb-0">AN EVENT SERIES OF WE ALL</p>
+                        </motion.div>
+                    )}
+                </Link>
+                <Button
+                    variant="link"
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="text-dark p-0 d-none d-lg-block shadow-none hover-text-pink transition-all border-0"
+                >
+                    {collapsed ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
+                </Button>
+            </div>
+
+            <div className="px-4 mb-4">
                 {!collapsed && (
                     <motion.span
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="fw-bold fs-6 text-uppercase tracking-widest text-secondary"
+                        className="fw-bold fs-6 text-uppercase tracking-widest text-secondary small opacity-50"
                     >
                         Menu
                     </motion.span>
                 )}
-                <Button
-                    variant="link"
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="text-white-50 p-0 d-none d-lg-block shadow-none hover-text-white transition-all btn rounded-pill fw-medium px-4 py-2"
-                >
-                    {collapsed ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
-                </Button>
             </div>
 
             <Nav className="flex-column px-3 gap-2 flex-grow-1">
@@ -105,10 +157,11 @@ const DashboardLayout = ({ children, role }) => {
                         as={Link}
                         to={link.path}
                         onClick={() => setShowMobileSidebar(false)}
-                        className={`d-flex align-items-center gap-3 px-3 py-3 rounded-4 transition-premium ${isActive(link.path) ? 'bg-primary text-white shadow-glow' : 'text-white-50 hover-bg-white/5 hover-text-white'}`}
+                        className={`d-flex align-items-center gap-3 px-3 py-3 rounded-4 transition-premium overflow-visible-nav ${isActive(link.path) ? 'bg-primary text-white shadow-glow' : 'text-white-50 hover-bg-white/5 hover-text-white'}`}
                     >
                         <span className={`nav-icon-box ${isActive(link.path) ? 'text-white' : 'text-primary-light'}`}>
                             {link.icon}
+                            {Number(link.badge) > 0 && <span className="nav-notif-dot">{link.badge}</span>}
                         </span>
                         {!collapsed && (
                             <motion.span
@@ -117,7 +170,6 @@ const DashboardLayout = ({ children, role }) => {
                                 className="small fw-black text-uppercase tracking-widest link-text-label"
                             >
                                 {link.name}
-                                {link.badge > 0 && <Badge bg="danger" pill className="ms-2 shadow-sm">{link.badge}</Badge>}
                             </motion.span>
                         )}
                     </Nav.Link>

@@ -146,6 +146,12 @@ const Home = () => {
     });
 
     useEffect(() => {
+        if (user && user.role === 'staff') {
+            navigate('/staff/dashboard');
+        }
+    }, [user, navigate]);
+
+    useEffect(() => {
         const fetchEvents = async () => {
             try {
                 const res = await eventApi.getEvents();
@@ -161,7 +167,15 @@ const Home = () => {
         fetchEvents();
     }, []);
 
-    const featuredEvents = Array.isArray(events) ? events.slice(0, 4) : [];
+    const featuredEvents = Array.isArray(events) 
+        ? [...events].sort((a, b) => {
+            const aLive = a.status === 'live' || a.isLive;
+            const bLive = b.status === 'live' || b.isLive;
+            if (aLive && !bLive) return -1;
+            if (!aLive && bLive) return 1;
+            return 0;
+        }).slice(0, 4) 
+        : [];
 
     return (
         <div className="homepage-beauty-wrapper">

@@ -70,6 +70,16 @@ const EventSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    isLive: {
+        type: Boolean,
+        default: false
+    },
+    startDate: {
+        type: Date
+    },
+    endDate: {
+        type: Date
     }
 });
 

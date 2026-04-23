@@ -83,27 +83,28 @@ const OrganizerBookings = () => {
                                             <div className="fw-bold">{booking.event?.title}</div>
                                             <div className="tiny-text text-muted">{new Date(booking.event?.date).toLocaleDateString()}</div>
                                         </td>
-                                        <td className="py-3" style={{ minWidth: '150px' }}>
+                                        <td className="py-3" style={{ minWidth: '180px' }}>
                                             <div className="d-flex justify-content-between mb-1 tiny-text fw-bold">
                                                 <span>₹{booking.amountPaid || 0} Paid</span>
-                                                <span className="text-muted">₹{booking.totalAmount}</span>
+                                                <span className="text-danger">₹{(booking.totalAmount - (booking.amountPaid || 0))} Due</span>
                                             </div>
-                                            <div className="progress" style={{ height: '5px', borderRadius: '10px' }}>
+                                            <div className="progress mb-1" style={{ height: '6px', borderRadius: '10px' }}>
                                                 <div 
-                                                    className={`progress-bar ${booking.amountPaid >= booking.totalAmount ? 'bg-success' : 'bg-warning'}`} 
+                                                    className={`progress-bar ${(booking.amountPaid || 0) >= booking.totalAmount ? 'bg-success' : 'bg-warning'}`} 
                                                     role="progressbar" 
-                                                    style={{ width: `${(booking.amountPaid / booking.totalAmount) * 100}%` }}
+                                                    style={{ width: `${((booking.amountPaid || 0) / booking.totalAmount) * 100}%` }}
                                                 ></div>
                                             </div>
+                                            <div className="tiny-text text-muted">Total: ₹{booking.totalAmount}</div>
                                         </td>
                                         <td className="py-3">
-                                            {booking.amountPaid >= booking.totalAmount ? (
-                                                <Badge bg="success-subtle" className="text-success border border-success-light px-3 py-2 rounded-pill uppercase tracking-widest small">
-                                                    <FaCheckCircle className="me-1" /> FULL
+                                            {(booking.amountPaid || 0) >= booking.totalAmount ? (
+                                                <Badge bg="success" className="px-3 py-2 rounded-pill uppercase tracking-widest small shadow-sm">
+                                                    PAID
                                                 </Badge>
                                             ) : (
-                                                <Badge bg="warning-subtle" className="text-warning border border-warning-light px-3 py-2 rounded-pill uppercase tracking-widest small">
-                                                    <FaExclamationCircle className="me-1" /> PARTIAL
+                                                <Badge bg="warning" className="text-dark px-3 py-2 rounded-pill uppercase tracking-widest small shadow-sm">
+                                                    PARTIAL
                                                 </Badge>
                                             )}
                                         </td>

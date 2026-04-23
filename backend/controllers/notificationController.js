@@ -1,6 +1,31 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const Enquiry = require('../models/Enquiry');
 const { notificationQueue } = require('../queue/notificationQueue');
+
+// @desc    Get counts of unread enquiries and requests for admin
+// @route   GET /api/v1/notifications/count
+// @access  Private (Admin)
+exports.getNotificationCounts = async (req, res) => {
+    try {
+        const enquiries = await Enquiry.countDocuments({ isRead: false });
+        const requests = await User.countDocuments({
+            role: 'organizer',
+            status: 'pending',
+            isRejected: { $ne: true }
+        });
+
+        console.log(`📊 [NOTIF COUNT]: Enquiries: ${enquiries}, Requests: ${requests}`);
+
+        res.status(200).json({
+            success: true,
+            enquiries,
+            requests
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
 
 // @desc    Get all notifications for logged in user
 // @route   GET /api/v1/notifications

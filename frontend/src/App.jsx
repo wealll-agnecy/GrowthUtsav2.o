@@ -45,6 +45,7 @@ const StaffDashboard = lazy(() => import('./pages/StaffDashboard'));
 const StaffScanner = lazy(() => import('./pages/StaffScanner'));
 const PendingVerification = lazy(() => import('./pages/PendingVerification'));
 const VerifyTicket = lazy(() => import('./pages/VerifyTicket'));
+const ReelBook = lazy(() => import('./pages/ReelBook'));
 
 // Shared Components
 const HelpChatbot = lazy(() => import('./components/common/HelpChatbot'));
@@ -106,6 +107,7 @@ const AppContent = () => {
                             <Route path="/forgot-password" element={<ForgotPassword />} />
                             <Route path="/reset-password/:token" element={<ResetPassword />} />
                             <Route path="/pending-verification" element={<ProtectedRoute><PendingVerification /></ProtectedRoute>} />
+                            <Route path="/reels" element={<ReelBook />} />
 
                             {/* Stealth Admin Gateway */}
                             <Route path="/admin" element={<AdminSecretLogin />} />

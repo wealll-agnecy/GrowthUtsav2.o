@@ -96,4 +96,36 @@ router.get('/bookings', async (req, res) => {
     }
 });
 
+router.get('/revenue', async (req, res) => {
+    try {
+        const Booking = require('../models/Booking');
+        const Event = require('../models/Event');
+        const now = new Date();
+
+        // 1. Find all COMPLETED events owned by this organizer
+        const completedEvents = await Event.find({
+            organizer: req.user.id,
+            endDate: { $lt: now }
+        });
+
+        const eventIds = completedEvents.map(e => e._id);
+
+        // 2. Sum the amountPaid from all bookings for these events
+        const bookings = await Booking.find({ 
+            event: { $in: eventIds },
+            paymentStatus: { $in: ['partial', 'completed'] } // Only count actual payments
+        });
+
+        const totalRevenue = bookings.reduce((sum, b) => sum + (b.amountPaid || 0), 0);
+
+        res.status(200).json({ 
+            success: true, 
+            totalRevenue, 
+            totalEvents: completedEvents.length 
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 module.exports = router;

@@ -128,9 +128,13 @@ const Navbar = () => {
                 <BsNavbar.Collapse id="main-navbar-nav">
                     {/* Navigation Links */}
                     <Nav className="mx-auto d-flex align-items-center gap-lg-2">
-                        <Nav.Link as={Link} to="/" className={`nav-link-premium ${isActive('/') ? 'active' : ''}`}>Home</Nav.Link>
-                        <Nav.Link as={Link} to="/events" className={`nav-link-premium ${isActive('/events') ? 'active' : ''}`}>Events</Nav.Link>
-                        <Nav.Link as={Link} to="/contact-us" className={`nav-link-premium ${isActive('/contact-us') ? 'active' : ''}`}>Contact Us</Nav.Link>
+                        {user?.role !== 'staff' && (
+                            <>
+                                <Nav.Link as={Link} to="/" className={`nav-link-premium ${isActive('/') ? 'active' : ''}`}>Home</Nav.Link>
+                                <Nav.Link as={Link} to="/events" className={`nav-link-premium ${isActive('/events') ? 'active' : ''}`}>Events</Nav.Link>
+                                <Nav.Link as={Link} to="/contact-us" className={`nav-link-premium ${isActive('/contact-us') ? 'active' : ''}`}>Contact Us</Nav.Link>
+                            </>
+                        )}
                         {user?.role === 'admin' && (
                             <Nav.Link as={Link} to="/admin/dashboard" className={`nav-link-premium ${isActive('/admin/dashboard') ? 'active' : ''}`}>Admin Console</Nav.Link>
                         )}
@@ -188,37 +192,47 @@ const Navbar = () => {
                                         initial={{ opacity: 0, y: 15, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                                        className="notification-dropdown position-absolute end-0 premium-notif-panel"
+                                        className="notification-dropdown premium-notif-panel shadow-premium"
                                     >
-                                        <div className="p-2 border-bottom d-flex justify-content-between align-items-center">
-                                            <span className="fw-bold small px-2">RECENT SIGNALS</span>
+                                        <div className="p-2 border-bottom d-flex justify-content-between align-items-center mb-2">
+                                            <span className="fw-black tiny-text tracking-widest text-uppercase">Recent Signals</span>
                                             {notifications.length > 0 && (
-                                                <button onClick={clearAll} className="btn btn-link btn-sm text-danger text-decoration-none tiny-text fw-bold">CLEAR ALL</button>
+                                                <button onClick={clearAll} className="btn btn-link btn-sm text-danger text-decoration-none tiny-text fw-bold p-0">Clear All</button>
                                             )}
                                         </div>
 
-                                        <div className="notification-list premium-notif-list">
+                                        <div className="premium-notif-list">
                                             {notifications.length > 0 ? (
                                                 notifications.map(n => (
-                                                    <div key={n._id || Math.random()} onClick={() => handleNotifClick(n)} className={`dropdown-item border-bottom ${!n.isRead ? 'bg-light' : ''}`}>
-                                                        <div className="d-flex gap-3 align-items-start">
-                                                            <div className="icon-circle bg-primary bg-opacity-10 text-primary mt-1">
-                                                                <FaBell size={12} />
-                                                            </div>
-                                                            <div className="flex-grow-1 overflow-hidden">
-                                                                <div className={`tiny-text text-truncate mb-1 ${!n.isRead ? 'fw-bold' : 'text-muted'}`}>{n.message}</div>
-                                                                <div className="text-muted tiny-timestamp">{timeAgo(n.createdAt)}</div>
-                                                            </div>
-                                                            {!n.isRead && <div className="unread-dot-small bg-primary mt-2"></div>}
+                                                    <div 
+                                                        key={n._id || Math.random()} 
+                                                        onClick={() => handleNotifClick(n)} 
+                                                        className={`notif-item-premium ${!n.isRead ? 'notif-item-unread' : ''}`}
+                                                    >
+                                                        <div className="notif-icon-box">
+                                                            <BiBell size={18} />
                                                         </div>
+                                                        <div className="notif-text-content">
+                                                            <div className="notif-msg">{n.message}</div>
+                                                            <div className="notif-time-ago">
+                                                                <FaClock size={10} /> {timeAgo(n.createdAt)}
+                                                            </div>
+                                                        </div>
+                                                        {!n.isRead && <div className="unread-indicator"></div>}
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="p-4 text-center text-muted small">No notifications found</div>
+                                                <div className="p-5 text-center text-muted small opacity-50">
+                                                    <BiBell size={40} className="mb-2 d-block mx-auto" />
+                                                    No new signals detected.
+                                                </div>
                                             )}
                                         </div>
-                                        <div className="mt-2 pt-2 border-top text-center">
-                                            <Link to="/notifications" className="tiny-text fw-bold text-primary text-decoration-none" onClick={() => setIsNotifOpen(false)}>VIEW ALL LOGS</Link>
+                                        
+                                        <div className="notif-footer-premium">
+                                            <Link to="/notifications" className="btn-view-all btn d-flex align-items-center justify-content-center" onClick={() => setIsNotifOpen(false)}>
+                                                View All Logs
+                                            </Link>
                                         </div>
                                     </motion.div>
                                 )}

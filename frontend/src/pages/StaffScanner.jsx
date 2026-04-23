@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import axios from 'axios';
-import { Container, Button, Card, Badge } from 'react-bootstrap';
-import { FaCamera, FaHistory, FaCheckCircle, FaTimesCircle, FaExclamationTriangle, FaBackward } from 'react-icons/fa';
+import { Container, Button, Badge, Row, Col } from 'react-bootstrap';
+import { FaCheckCircle, FaTimesCircle, FaBackward, FaQrcode } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import './StaffScanner.css';
 
 const StaffScanner = () => {
     const [scanResult, setScanResult] = useState(null);
@@ -18,7 +19,7 @@ const StaffScanner = () => {
     useEffect(() => {
         let scanner = null;
         
-        if (isScanning) {
+        if (isScanning && !scanResult) {
             scanner = new Html5QrcodeScanner('reader', {
                 qrbox: { width: 280, height: 280 },
                 fps: 20,
@@ -50,22 +51,19 @@ const StaffScanner = () => {
                 scanner.clear().catch(error => console.error("Scanner cleanup failure", error));
             }
         };
-    }, [isScanning]);
+    }, [isScanning, scanResult]);
 
     const handleVerification = async (qrUrl) => {
         setLoading(true);
         setIsScanning(false);
         try {
-            // Robust extraction: get the last segment of the URL
-            // Works for: https://domain/ticket/ID or just ID
             const segments = qrUrl.split('/');
             const ticketId = segments[segments.length - 1] || segments[segments.length - 2];
             
-            console.log("Verifying ID:", ticketId);
-            const res = await axios.get(`/api/v1/tickets/verify/${ticketId}`);
+            const res = await axios.post('/api/v1/tickets/verify-scan', { ticketId });
             const data = res.data;
 
-            if (data.status === 'VALID') {
+            if (data.status === 'GRANTED') {
                 successAudio.current.play().catch(() => {});
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
             } else {
@@ -74,24 +72,13 @@ const StaffScanner = () => {
             }
 
             setScanResult(data);
-
-            // AUTO RESET PROTOCOL
-            setTimeout(() => {
-                resetScanner();
-            }, 4000);
-
         } catch (err) {
             console.error("Verification Error:", err);
             errorAudio.current.play().catch(() => {});
             setScanResult({ 
                 status: 'INVALID', 
-                message: err.response?.data?.message || 'Biometric identifier breach detected.' 
+                message: err.response?.data?.message || 'Verification system failure.' 
             });
-            
-            // Auto-reset even on error
-            setTimeout(() => {
-                resetScanner();
-            }, 5000);
         } finally {
             setLoading(false);
         }
@@ -103,133 +90,109 @@ const StaffScanner = () => {
     };
 
     return (
-        <div className="bg-black vh-100 vw-100 overflow-hidden d-flex flex-column">
-            {/* Header Hub */}
-            <div className="p-3 d-flex justify-content-between align-items-center bg-dark/50 backdrop-blur z-3">
-                <Link to="/staff/dashboard" className="btn btn-outline-pink rounded-pill px-4 py-2 small fw-bold tracking-widest text-uppercase">
-                    <FaBackward className="me-2" /> Exit Terminal
-                </Link>
-                <div className="d-flex align-items-center gap-3">
-                    <div className={`status-indicator ${isScanning ? 'pulse-green' : 'pulse-amber'}`}></div>
-                    <Badge bg="primary" className="rounded-pill px-3 py-2 fw-black uppercase tracking-widest shadow-glow">
-                        SCANNER_ACTIVE_v5.4
+        <div className="scanner-page">
+            <Container>
+                <div className="d-flex justify-content-between align-items-center w-100 max-w-500 mx-auto mb-4">
+                    <Link to="/staff/dashboard" className="text-decoration-none text-muted small fw-bold">
+                        <FaBackward className="me-2" /> EXIT
+                    </Link>
+                    <Badge bg={isScanning ? "success" : "secondary"} className="rounded-pill px-3 py-2">
+                        {isScanning ? "SENSOR ACTIVE" : "PAUSED"}
                     </Badge>
                 </div>
-            </div>
 
-            {/* Main Scanner Node */}
-            <div className="flex-grow-1 d-flex align-items-center justify-content-center p-3 relative bg-deep-space">
-                {isScanning ? (
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-100 max-w-500">
-                        <div className="text-center mb-5">
-                            <div className="h4 text-white fw-black tracking-widest uppercase mb-2">Target Recognition Active</div>
-                            <div className="text-white-50 x-small fw-bold opacity-60 tracking-tighter">ALIGN QR CODE WITHIN THE ILLUMINATED BOUNDS</div>
-                        </div>
-                        <div className="scanner-container position-relative">
-                            <div id="reader" className="scanner-frame glass-card border-white/10 overflow-hidden shadow-2xl rounded-5 bg-black/40"></div>
-                            {/* Scanning Animation Overlays */}
-                            <div className="scanner-laser"></div>
-                        </div>
-                    </motion.div>
-                ) : (
-                    <AnimatePresence mode="wait">
-                        {scanResult && (
-                            <motion.div 
-                                initial={{ opacity: 0 }} 
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className={`vh-100 vw-100 fixed-top z-index-1050 d-flex align-items-center justify-content-center p-4 ${
-                                    scanResult.status === 'VALID' ? 'bg-success' : 'bg-danger'
-                                }`}
-                                style={{ transition: 'background-color 0.5s ease' }}
-                            >
-                                <div className="max-w-500 w-100 text-center text-white">
-                                    <motion.div
-                                        initial={{ y: 50, scale: 0.9, opacity: 0 }}
-                                        animate={{ y: 0, scale: 1, opacity: 1 }}
-                                        transition={{ type: 'spring', damping: 15 }}
-                                    >
-                                        <div className="mb-5">
-                                            {scanResult.status === 'VALID' ? (
-                                                <div className="result-icon-wrapper success">
-                                                    <FaCheckCircle size={120} className="shadow-glow" />
-                                                </div>
-                                            ) : (
-                                                <div className="result-icon-wrapper danger">
-                                                    {scanResult.status === 'USED' ? <FaExclamationTriangle size={120} className="shadow-glow" /> : <FaTimesCircle size={120} className="shadow-glow" />}
-                                                </div>
-                                            )}
+                <h2 className="scanner-title text-center">Scan Ticket</h2>
+
+                <AnimatePresence mode="wait">
+                    {!scanResult ? (
+                        <motion.div 
+                            key="scanner"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="w-100 d-flex justify-content-center"
+                        >
+                            <div className="scanner-box">
+                                <div className="scanner-corner top-left"></div>
+                                <div className="scanner-corner top-right"></div>
+                                <div className="scanner-corner bottom-left"></div>
+                                <div className="scanner-corner bottom-right"></div>
+                                <div id="reader" style={{ width: '100%' }}></div>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div 
+                            key="result"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="scan-result-card mx-auto"
+                        >
+                            <div className={`status-badge ${scanResult.status === 'GRANTED' ? 'green' : 'red'}`}>
+                                {scanResult.status === 'GRANTED' ? (
+                                    <><FaCheckCircle className="me-2" /> GRANTED</>
+                                ) : (
+                                    <><FaTimesCircle className="me-2" /> DENIED</>
+                                )}
+                            </div>
+
+                            {scanResult.ticket && (
+                                <>
+                                    <div className="attendee-name">{scanResult.ticket.user?.name || scanResult.ticket.name}</div>
+                                    <div className="attendee-detail mb-4">{scanResult.ticket.user?.email || scanResult.ticket.email}</div>
+
+                                    <div className="info-grid text-start">
+                                        <div>
+                                            <div className="info-label">Event</div>
+                                            <div className="info-value text-truncate">{scanResult.ticket.event?.title || scanResult.ticket.eventName}</div>
                                         </div>
-
-                                        <h1 className="display-2 fw-black tracking-tightest mb-2 uppercase">
-                                            {scanResult.status === 'VALID' ? 'ACCESS GRANTED' : 'ACCESS DENIED'}
-                                        </h1>
-                                        <div className="h3 fw-bold opacity-90 mb-5 tracking-widest uppercase">
-                                            {scanResult.status === 'VALID' ? 'Clear for Entry ✅' : (scanResult.status === 'USED' ? 'ALREADY SCANNED ❌' : 'INVALID TICKET ❌')}
-                                        </div>
-
-                                        {scanResult.ticket && (
-                                            <div className="glass-panel text-start p-5 rounded-5 mb-5 border-white/20 shadow-2xl backdrop-blur-3xl bg-white/10">
-                                                <div className="mb-4 border-bottom border-white/10 pb-4">
-                                                    <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Credential Holder</div>
-                                                    <div className="h1 m-0 fw-black tracking-tight">{scanResult.ticket.name}</div>
-                                                    <div className="text-white-50 small font-monospace">{scanResult.ticket.email}</div>
-                                                </div>
-                                                <div className="d-flex flex-column gap-4">
-                                                    <div>
-                                                        <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Deployment Location</div>
-                                                        <div className="fw-bold fs-4">{scanResult.ticket.eventName}</div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Validity</div>
-                                                        <div className="fw-bold fs-5">
-                                                            VALID FOR: {scanResult.ticket.selectedDays?.length > 0 ? `${scanResult.ticket.selectedDays.length} Days` : '1 Day'}
-                                                        </div>
-                                                        <div className="fw-bold fs-6 opacity-75 mt-1">
-                                                            {scanResult.ticket.selectedDays?.length > 0 
-                                                                ? `DATES: ${scanResult.ticket.selectedDays.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })).join(', ')}`
-                                                                : `DATE: ${new Date(scanResult.ticket.selectedDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
-                                                        </div>
-                                                    </div>
-                                                    <div className="d-flex justify-content-between">
-                                                        <div>
-                                                            <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Access Tier</div>
-                                                            <div className="fw-black fs-5 text-primary-light">{scanResult.ticket.ticketType}</div>
-                                                        </div>
-                                                        <div className="text-end">
-                                                            <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Status</div>
-                                                            <Badge bg={scanResult.status === 'VALID' ? 'primary' : 'warning'} className="px-3 py-2 rounded-pill uppercase tracking-widest">
-                                                                {scanResult.status}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        <div>
+                                            <div className="info-label">Payment Status</div>
+                                            <div className="info-value">
+                                                <Badge bg={scanResult.ticket.paymentStatus === 'PAID' ? 'success' : 'warning'} className="rounded-pill px-2">
+                                                    {scanResult.ticket.paymentStatus || 'N/A'}
+                                                </Badge>
                                             </div>
-                                        )}
-
-                                        <div className="mt-5 pt-4">
-                                            <div className="text-white-50 small fw-bold tracking-widest uppercase mb-3 opacity-60">System will auto-reset in 5 seconds</div>
-                                            <Button 
-                                                onClick={resetScanner}
-                                                className="btn btn-pink rounded-pill fw-medium px-4 py-2"
-                                            >
-                                                Manual Reset
-                                            </Button>
                                         </div>
-                                    </motion.div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                )}
-            </div>
+                                        <div>
+                                            <div className="info-label">Total / Paid</div>
+                                            <div className="info-value text-success">
+                                                ₹{scanResult.ticket.amountPaid || 0} / ₹{scanResult.ticket.totalAmount || 0}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="info-label">Remaining</div>
+                                            <div className="info-value text-danger">
+                                                ₹{(scanResult.ticket.totalAmount || 0) - (scanResult.ticket.amountPaid || 0)}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="info-label">Type</div>
+                                            <div className="info-value">{scanResult.ticket.ticketType}</div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
-            {/* Footer Intel */}
-            <div className="p-4 text-center">
-                <div className="text-white-50 x-small fw-black uppercase tracking-widest opacity-20 font-monospace">
-                    SECURE HUB NODE: {window.location.hostname.toUpperCase()} // STATUS: ONLINE
+                            {!scanResult.ticket && (
+                                <div className="py-4">
+                                    <div className="h5 fw-bold text-danger mb-2">Invalid Sequence</div>
+                                    <p className="text-muted small">{scanResult.message}</p>
+                                </div>
+                            )}
+
+                            <button className="next-btn" onClick={resetScanner}>
+                                NEXT SCAN
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <div className="text-center mt-5 opacity-25">
+                    <FaQrcode size={40} />
+                    <div className="x-small fw-bold mt-2 uppercase tracking-widest">GrowthUtsav Terminal v2.0</div>
                 </div>
-            </div>
+            </Container>
         </div>
     );
 };

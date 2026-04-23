@@ -194,148 +194,73 @@ const MyBookings = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.08, type: 'spring', damping: 20 }}
                                     >
-                                        <div className="booking-card-premium">
-                                            {/* Left accent */}
-                                            <div className="left-accent" style={{ background: 'linear-gradient(to bottom, #f25f90ff, #ed619eff)' }} />
+                                        <div className="booking-card">
+                                            <div className="booking-img-container">
+                                                <img
+                                                    src={getBannerUrl(booking)}
+                                                    alt={booking.event?.title}
+                                                />
+                                                <div className={`booking-badge ${booking.ticketId ? 'confirmed' : 'pending'}`}>
+                                                    {booking.ticketId ? 'Confirmed' : 'Pending'}
+                                                </div>
+                                            </div>
 
-                                            <Row className="g-0" style={{ minHeight: 200 }}>
-                                                {/* Image */}
-                                                <Col xs={4} sm={4}>
-                                                    <div className="h-100 position-relative overflow-hidden">
-                                                        <img
-                                                            src={getBannerUrl(booking)}
-                                                            alt={booking.event?.title}
-                                                            className="w-100 h-100 position-absolute"
-                                                            style={{ objectFit: 'cover', top: 0, left: 0 }}
-                                                        />
+                                            <div className="booking-details">
+                                                <div className="booking-meta-top">
+                                                    <span className="event-cat">{booking.event?.category}</span>
+                                                    <span className="booking-id">#{booking._id.slice(-6).toUpperCase()}</span>
+                                                </div>
+
+                                                <h4 className="event-name">{booking.event?.title}</h4>
+
+                                                <div className="event-info-row">
+                                                    <span><FaCalendarAlt size={11} className="me-1" /> {booking.selectedDays?.length > 0 ? `${booking.selectedDays.length} Days` : new Date(booking.selectedDate || booking.event?.date).toLocaleDateString()}</span>
+                                                    <span><FaMapMarkerAlt size={11} className="me-1" /> {booking.event?.venue}</span>
+                                                </div>
+
+                                                <div className="booking-summary-mini">
+                                                    <div className="ticket-line">
+                                                        <span className="type">{booking.ticketType} × {booking.quantity}</span>
+                                                        <span className="price">₹{booking.totalAmount}</span>
                                                     </div>
-                                                </Col>
-
-                                                {/* Content */}
-                                                <Col xs={8} sm={8}>
-                                                    <div
-                                                        className="h-100 d-flex flex-column"
-                                                        style={{ padding: '1.25rem 1.25rem 1.25rem 1rem' }}
-                                                    >
-                                                        {/* Status Badge */}
-                                                        <div className="mb-3">
-                                                            <span className={`booking-status ${booking.ticketId ? 'status-confirmed' : 'status-pending'}`}>
-                                                                {booking.ticketId ? <FaShieldAlt size={10} /> : <FaClock size={10} />}
-                                                                {booking.ticketId ? 'Confirmed' : 'Processing'}
-                                                            </span>
+                                                    
+                                                    <div className="payment-bar-mini">
+                                                        <div className="bar-track">
+                                                            <div 
+                                                                className="bar-fill" 
+                                                                style={{ 
+                                                                    width: `${Math.round(((booking.amountPaid || 0) / booking.totalAmount) * 100)}%`,
+                                                                    background: (booking.amountPaid || 0) >= booking.totalAmount ? '#4caf50' : '#ff9800'
+                                                                }} 
+                                                            />
                                                         </div>
-
-                                                        {/* Category */}
-                                                        <div className="small fw-bold text-uppercase tracking-widest text-pink-600 mb-1" style={{ fontSize: '0.65rem', color: '#000000ff' }}>
-                                                            {booking.event?.category}
+                                                        <div className="bar-labels">
+                                                            <span>Paid: ₹{booking.amountPaid || 0}</span>
+                                                            <span>Remaining: ₹{booking.totalAmount - (booking.amountPaid || 0)}</span>
                                                         </div>
+                                                    </div>
+                                                </div>
 
-                                                        {/* Title */}
-                                                        <h6 className="booking-title">
-                                                            {booking.event?.title}
-                                                        </h6>
-
-                                                        {/* Date & Venue */}
-                                                        <div className="mb-3 d-flex flex-column gap-1">
-                                                            <div className="booking-info">
-                                                                <FaCalendarAlt size={12} style={{ color: '#1871ddff' }} />
-                                                                {booking.selectedDays && booking.selectedDays.length > 0
-                                                                    ? `${booking.selectedDays.length} Day(s) Selected`
-                                                                    : ((booking.selectedDate || booking.event?.date) && new Date(booking.selectedDate || booking.event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }))}
-                                                            </div>
-                                                            <div className="booking-info">
-                                                                <FaMapMarkerAlt size={12} style={{ color: '#2681e3ff' }} />
-                                                                <span className="text-truncate">{booking.event?.venue}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Ticket Info */}
-                                                        <div
-                                                            className="rounded-4 mb-4 p-3"
-                                                            style={{
-                                                                background: 'rgba(236, 64, 122, 0.05)',
-                                                                border: '1px solid rgba(173, 61, 98, 0.1)',
+                                                <div className="booking-actions">
+                                                    {(booking.amountPaid || 0) < booking.totalAmount && (
+                                                        <button
+                                                            className="pay-due-btn"
+                                                            onClick={() => {
+                                                                setSelectedBooking(booking);
+                                                                setInstallmentAmount((booking.totalAmount - (booking.amountPaid || 0)).toString());
+                                                                setShowInstallmentModal(true);
                                                             }}
                                                         >
-                                                            <div className="d-flex justify-content-between align-items-center">
-                                                                <div>
-                                                                    <div style={{ color: '#3d3a3aff', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                                                        {booking.ticketType}
-                                                                    </div>
-                                                                    <div style={{ color: '#6b7280', fontSize: '0.75rem', fontWeight: 600 }}>
-                                                                        {booking.quantity} ticket{booking.quantity > 1 ? 's' : ''}
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="fw-black h4 m-0"
-                                                                    style={{
-                                                                        color: '#AD1457',
-                                                                        letterSpacing: '-1px'
-                                                                    }}
-                                                                >
-                                                                    ₹{booking.totalAmount}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Payment Progress */}
-                                                        <div className="mb-4">
-                                                            <div className="d-flex justify-content-between align-items-center mb-1">
-                                                                <span className="small fw-bold text-muted uppercase" style={{ fontSize: '0.6rem' }}>Payment Status</span>
-                                                                <span className="small fw-bold" style={{ fontSize: '0.6rem', color: (booking.amountPaid || 0) >= booking.totalAmount ? '#4caf50' : '#ff9800' }}>
-                                                                    {Math.round(((booking.amountPaid || 0) / booking.totalAmount) * 100)}% Collected
-                                                                </span>
-                                                            </div>
-                                                            <ProgressBar 
-                                                                now={((booking.amountPaid || 0) / booking.totalAmount) * 100} 
-                                                                variant={(booking.amountPaid || 0) >= booking.totalAmount ? "success" : "warning"}
-                                                                style={{ height: '6px', borderRadius: '10px', background: 'rgba(0,0,0,0.05)' }}
-                                                            />
-                                                            <div className="d-flex justify-content-between mt-1" style={{ fontSize: '0.65rem' }}>
-                                                                <span className="text-muted fw-bold">Paid: ₹{booking.amountPaid || 0}</span>
-                                                                <span className="text-dark fw-bold">Total: ₹{booking.totalAmount}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Footer */}
-                                                        <div className="mt-auto d-flex justify-content-between align-items-center gap-2">
-                                                            <span style={{ fontSize: '0.68rem', color: '#475569', fontFamily: 'monospace' }} className="d-none d-sm-inline">
-                                                                #{booking._id.slice(-8).toUpperCase()}
-                                                            </span>
-                                                            <div className="d-flex gap-2 w-100 justify-content-end">
-                                                                {(booking.amountPaid || 0) < booking.totalAmount && (
-                                                                    <Button 
-                                                                        variant="outline-primary" 
-                                                                        className="btn-sm rounded-pill px-3 fw-bold"
-                                                                        onClick={() => {
-                                                                            setSelectedBooking(booking);
-                                                                            setInstallmentAmount((booking.totalAmount - (booking.amountPaid || 0)).toString());
-                                                                            setShowInstallmentModal(true);
-                                                                        }}
-                                                                        style={{ fontSize: '0.7rem', color: '#ec407a', borderColor: '#ec407a' }}
-                                                                    >
-                                                                        <FaWallet size={10} className="me-1" /> Pay Due
-                                                                    </Button>
-                                                                )}
-                                                                {booking.ticketId ? (
-                                                                    <Button
-                                                                        as={Link}
-                                                                        to={`/tickets/${booking.ticketId}`}
-                                                                        className="btn btn-pink btn-sm rounded-pill px-3"
-                                                                        style={{ fontSize: '0.7rem' }}
-                                                                    >
-                                                                        <FaTicketAlt size={10} className="me-1" /> View Pass
-                                                                    </Button>
-                                                                ) : (
-                                                                    <span className="booking-status status-pending">
-                                                                        <FaClock size={10} /> Pending
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Col>
-                                            </Row>
+                                                            Pay Due
+                                                        </button>
+                                                    )}
+                                                    {booking.ticketId && (
+                                                        <Link to={`/tickets/${booking.ticketId}`} className="view-ticket-btn">
+                                                            View Ticket
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 </Col>
@@ -373,9 +298,9 @@ const MyBookings = () => {
                     <Form onSubmit={handlePayInstallment}>
                         <Form.Group className="mb-4">
                             <Form.Label className="small fw-bold text-muted uppercase">Amount to Pay (₹)</Form.Label>
-                            <Form.Control 
-                                type="number" 
-                                className="premium-input text-center fs-4 fw-black" 
+                            <Form.Control
+                                type="number"
+                                className="premium-input text-center fs-4 fw-black"
                                 value={installmentAmount}
                                 onChange={(e) => setInstallmentAmount(e.target.value)}
                                 max={selectedBooking ? selectedBooking.totalAmount - selectedBooking.amountPaid : 0}
@@ -383,8 +308,8 @@ const MyBookings = () => {
                                 required
                             />
                         </Form.Group>
-                        <Button 
-                            type="submit" 
+                        <Button
+                            type="submit"
                             className="btn btn-pink w-100 py-3 rounded-4 fw-black uppercase tracking-widest"
                             disabled={isPaying || !sdkLoaded}
                         >

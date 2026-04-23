@@ -13,17 +13,20 @@ import '../css/global.css';
 
 const OrganizerDashboard = () => {
     const [stats, setStats] = useState({ totalEvents: 0, approvedEvents: 0, totalTicketsSold: 0, totalRevenue: 0 });
+    const [revenueData, setRevenueData] = useState({ totalRevenue: 0, totalEvents: 0 });
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
         try {
-            const [statsRes, eventsRes] = await Promise.all([
+            const [statsRes, eventsRes, revenueRes] = await Promise.all([
                 analyticsApi.getOrganizerStats(),
-                eventApi.getMyEvents()
+                eventApi.getMyEvents(),
+                analyticsApi.getOrganizerRevenue()
             ]);
             
             setStats(statsRes.data?.data || { totalEvents: 0, approvedEvents: 0, totalTicketsSold: 0, totalRevenue: 0 });
+            setRevenueData(revenueRes.data || { totalRevenue: 0, totalEvents: 0 });
             setEvents((eventsRes.data?.data || []).slice(0, 5)); // recent 5 events
         } catch (err) {
             console.error('Failed to load organizer dashboard data', err);
@@ -42,7 +45,27 @@ const OrganizerDashboard = () => {
             await eventApi.deleteEvent(id);
             fetchData();
         } catch (err) {
-            alert('Failed to delete event.');
+            const toast = (await import('react-hot-toast')).default;
+            toast.error('Failed to delete event.');
+        }
+    };
+
+    const handleLiveToggle = async (eventId, newStatus) => {
+        try {
+            console.log(`Attempting to set event ${eventId} isLive to: ${newStatus}`);
+            const toast = (await import('react-hot-toast')).default;
+            const res = await eventApi.updateLiveStatus(eventId, newStatus);
+            
+            if (res.data.success) {
+                toast.success(`Event is now ${newStatus ? 'LIVE' : 'OFFLINE'}`);
+                setEvents(prev => prev.map(ev => 
+                    ev._id === eventId ? { ...ev, isLive: newStatus, status: newStatus ? 'live' : 'approved' } : ev
+                ));
+            }
+        } catch (err) {
+            console.error('Toggle failed:', err);
+            const toast = (await import('react-hot-toast')).default;
+            toast.error(err.response?.data?.message || 'Update failed');
         }
     };
 
@@ -50,8 +73,13 @@ const OrganizerDashboard = () => {
         return <DashboardSkeleton />;
     }
 
-    const platformFee = (stats?.totalRevenue || 0) * 0.10; // 10% platform fee
-    const netProfit = (stats?.totalRevenue || 0) - platformFee;
+    const netProfit = revenueData?.totalRevenue || 0;
+
+    const calculateDays = (start, end) => {
+        if (!start || !end) return 1;
+        const diff = new Date(end) - new Date(start);
+        return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    };
 
     return (
         <div className="dashboard-page" style={{ background: 'linear-gradient(135deg, #fff0f5 0%, #f3e8ff 100%)' }}>
@@ -82,9 +110,9 @@ const OrganizerDashboard = () => {
                         <div className="mt-2 text-slate small fw-bold">Total Sales</div>
                     </div>
                     <div className="dashboard-card shadow-sm">
-                        <span className="card-title-sm">Total Revenue</span>
-                        <h3 className="card-value-lg">₹{(stats?.totalRevenue || 0).toLocaleString()}</h3>
-                        <div className="mt-2 text-slate small fw-bold">Gross Earnings</div>
+                        <span className="card-title-sm">Completed Events</span>
+                        <h3 className="card-value-lg">{revenueData?.totalEvents || 0}</h3>
+                        <div className="mt-2 text-slate small fw-bold">Past Events History</div>
                     </div>
                 </div>
 
@@ -98,7 +126,7 @@ const OrganizerDashboard = () => {
                                 <h2 className="card-value-lg my-2">
                                     ₹{netProfit.toLocaleString()}
                                 </h2>
-                                <p className="small opacity-75 m-0 mb-4">After Platform Fees</p>
+                                <p className="small opacity-75 m-0 mb-4">Finalized Earnings</p>
                             </div>
                             <div className="pt-4 border-top border-white/20">
                                 <div className="d-flex justify-content-between mb-2">
@@ -109,34 +137,54 @@ const OrganizerDashboard = () => {
                                     <span className="small opacity-80">Monthly Avg:</span>
                                     <span className="fw-bold">₹{Math.round((stats?.totalRevenue || 0) / 12).toLocaleString()}</span>
                                 </div>
-                                <div className="d-flex justify-content-between text-danger">
-                                    <span className="small opacity-80">Platform Fee (10%):</span>
-                                    <span className="fw-bold">-₹{platformFee.toLocaleString()}</span>
-                                </div>
                             </div>
                         </div>
                     </Col>
                     
-                    {/* Right: Event Activity */}
+                    {/* Right: Live Events Management Panel */}
                     <Col lg={8}>
                         <div className="dashboard-card h-100">
-                            <div className="d-flex justify-content-between align-items-center mb-4">
-                                <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Recent Events Activity</h5>
-                            </div>
-                            <div className="data-list audit-feed-scroll overflow-auto" style={{ maxHeight: '250px', paddingRight: '5px' }}>
+                            <h4 className="mb-3 dashboard-title-main" style={{ fontSize: '1.25rem' }}>Live Events Control</h4>
+                            <div className="data-list audit-feed-scroll overflow-auto" style={{ maxHeight: '350px', paddingRight: '5px' }}>
                                 {events.length === 0 ? (
-                                    <div className="text-center py-5 text-slate opacity-50 small">No recent activity detected.</div>
+                                    <div className="text-center py-5 text-slate opacity-50 small">No events detected.</div>
                                 ) : (
-                                    events.map(ev => (
-                                        <div key={ev._id} className="data-item p-3 d-flex justify-content-between align-items-center">
-                                            <div className="data-left">
-                                                <h6 className="mb-1 text-truncate" style={{ maxWidth: '300px' }}>{ev.title}</h6>
-                                                <p className="m-0 small opacity-75">{new Date(ev.date).toLocaleDateString()}</p>
+                                    events.map((event) => (
+                                        <div className="live-event-row" key={event._id}>
+                                            <div className="live-event-info">
+                                                <h6>{event.title}</h6>
+                                                <p>📍 {event.venue}</p>
+                                                <p>⏳ {calculateDays(event.startDate, event.endDate)} Day(s) Running</p>
                                             </div>
-                                            <div className="d-flex align-items-center gap-3">
-                                                <span className={`status-badge ${ev.status === 'live' ? 'badge-pink' : (ev.status === 'pending' ? 'bg-warning text-dark' : 'bg-secondary text-white')}`}>
-                                                    {ev.status.toUpperCase()}
+
+                                            <div className="live-event-actions">
+                                                <span className={`status-badge ${event.isLive ? "live" : "offline"}`}>
+                                                    {event.isLive ? "LIVE" : "OFFLINE"}
                                                 </span>
+
+                                                <div className="d-flex gap-2 mt-2 mt-md-0">
+                                                    <Button
+                                                        variant="success"
+                                                        size="sm"
+                                                        className="px-3 rounded-pill fw-bold"
+                                                        onClick={() => handleLiveToggle(event._id, true)}
+                                                        disabled={event.isLive}
+                                                        style={{ fontSize: '11px' }}
+                                                    >
+                                                        Go Live
+                                                    </Button>
+
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        className="px-3 rounded-pill fw-bold"
+                                                        onClick={() => handleLiveToggle(event._id, false)}
+                                                        disabled={!event.isLive}
+                                                        style={{ fontSize: '11px' }}
+                                                    >
+                                                        Offline
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))

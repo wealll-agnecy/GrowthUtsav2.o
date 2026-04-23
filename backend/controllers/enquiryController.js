@@ -38,12 +38,17 @@ exports.getEnquiryById = async (req, res) => {
     console.log(`🔍 [ADMIN]: Searching for Enquiry with ID: ${id}`);
     
     try {
-        const enquiry = await Enquiry.findById(id);
+        const enquiry = await Enquiry.findByIdAndUpdate(
+            id,
+            { isRead: true, status: 'Read' },
+            { new: true }
+        );
+
         if (!enquiry) {
             console.log(`❓ [ADMIN]: Enquiry NOT FOUND for ID: ${id}`);
             return res.status(404).json({ message: 'Enquiry not found' });
         }
-        console.log(`✅ [ADMIN]: Enquiry found: ${enquiry.name}`);
+        console.log(`✅ [ADMIN]: Enquiry found and marked as read: ${enquiry.name}`);
         res.status(200).json(enquiry);
     } catch (error) {
         console.error(`🚨 [ADMIN]: Error in getEnquiryById for ID ${id}:`, error.message);
