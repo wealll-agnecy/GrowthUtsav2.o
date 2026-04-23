@@ -112,6 +112,19 @@
   color: var(--accent);
 }
 
+/* ALIGNMENT FIX FOR PROFILE DROPDOWN */
+.profile-dropdown-premium .dropdown-toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.profile-dropdown-premium .dropdown-toggle::after {
+    display: none !important; /* Forces no-caret even if utility fails */
+}
+
 /* PREMIUM PING BADGE */
 .badge-ping {
   position: absolute;
@@ -163,6 +176,14 @@
   padding: 12px !important;
   box-shadow: var(--premium-shadow) !important;
   margin-top: 15px !important;
+  z-index: 1000 !important; /* Below critical sidebar priority (9999) */
+}
+
+.premium-notif-panel {
+  width: 380px !important;
+  right: 15px !important; /* Pinned to right gutter */
+  left: auto !important;
+  pointer-events: auto;
 }
 
 .dropdown-item {
@@ -198,11 +219,21 @@
 .search-input-navbar {
   background: transparent !important;
   border: none !important;
-  padding: 8px 0 !important;
-  font-size: 0.85rem !important;
+  padding: 8px 10px 8px 38px !important;
   color: var(--text-primary) !important;
   width: 100% !important;
+  font-size: 0.95rem !important;
   box-shadow: none !important;
+}
+
+.search-icon-inside {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted) !important;
+  pointer-events: none;
+  z-index: 5;
 }
 
 .search-input-navbar:focus {

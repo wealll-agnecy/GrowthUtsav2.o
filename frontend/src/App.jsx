@@ -29,7 +29,9 @@ const TicketView = lazy(() => import('./pages/TicketView'));
 const CheckoutFlow = lazy(() => import('./pages/CheckoutFlow'));
 const CreateEvent = lazy(() => import('./pages/CreateEvent'));
 const OrganizerEvents = lazy(() => import('./pages/OrganizerEvents'));
-const OrganizerEventDashboard = lazy(() => import('./pages/OrganizerEventDashboard'));
+const OrganizerDashboard = lazy(() => import('./pages/OrganizerDashboard'));
+const OrganizerBookings = lazy(() => import('./pages/OrganizerBookings'));
+const OrganizerEventAnalytics = lazy(() => import('./pages/OrganizerEventAnalytics'));
 const OrganizerStaffManagement = lazy(() => import('./pages/OrganizerStaffManagement'));
 const PricingPlans = lazy(() => import('./pages/PricingPlans'));
 const LogisticsDashboard = lazy(() => import('./pages/LogisticsDashboard'));
@@ -113,8 +115,10 @@ const AppContent = () => {
                             <Route path="/profile" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
 
                             {/* Organizer Dashboard Routes */}
-                            <Route path="/organizer/dashboard" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerEvents /></DashboardWrapper></ProtectedRoute>} />
-                            <Route path="/organizer/event/:id" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerEventDashboard /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/organizer/dashboard" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerDashboard /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/organizer/bookings" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerBookings /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/organizer/events" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerEvents /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/organizer/event/:id" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerEventAnalytics /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/organizer/plans" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><PricingPlans /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/organizer/staff" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerStaffManagement /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/logistics/:eventId" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><LogisticsDashboard /></DashboardWrapper></ProtectedRoute>} />

@@ -14,7 +14,7 @@ exports.getTicket = async (req, res, next) => {
     try {
         const ticket = await Ticket.findById(req.params.id)
             .populate('event', 'title date time venue bannerImage')
-            .populate('booking', 'ticketType quantity totalAmount');
+            .populate('booking', 'ticketType quantity totalAmount selectedDate selectedDays amountPaid paymentStatus');
 
         if (!ticket) {
             return res.status(404).json({ success: false, message: 'Ticket not found' });
@@ -130,10 +130,22 @@ exports.verifyTicketForScanner = async (req, res) => {
             bookedAt: ticket.bookedAt,
             seat: ticket.seatNumber || 'General',
             status: ticket.status === 'used' ? 'USED' : 'VALID',
-            isScanned: ticket.status === 'used'
+            isScanned: ticket.status === 'used',
+            selectedDate: ticket.selectedDate || ticket.event?.date,
+            selectedDays: ticket.selectedDays
         };
 
         // AUTO ENTRY MARKING
+        const booking = await Booking.findById(ticket.booking);
+        if (!booking || booking.amountPaid < booking.totalAmount) {
+            return res.status(200).json({
+                success: true,
+                status: 'DENIED',
+                message: 'ACCESS DENIED: Full amount not paid ⚠️',
+                data: details
+            });
+        }
+
         if (ticket.status === 'unused') {
             ticket.status = 'used';
             ticket.scannedAt = Date.now();
@@ -188,10 +200,22 @@ exports.verifyTicketForStaff = async (req, res) => {
             ticketCode: ticket.ticketCode,
             ticketType: ticket.ticketType,
             isScanned: ticket.isScanned,
-            status: ticket.status
+            status: ticket.status,
+            selectedDate: ticket.selectedDate || ticket.event?.date,
+            selectedDays: ticket.selectedDays
         };
 
         // ACCESS CONTROL LOGIC
+        const booking = await Booking.findById(ticket.booking);
+        if (!booking || booking.amountPaid < booking.totalAmount) {
+            return res.status(200).json({
+                success: true,
+                status: 'DENIED',
+                message: 'ACCESS DENIED: Full amount not paid ⚠️',
+                ticket: details
+            });
+        }
+
         if (ticket.isScanned || ticket.status === 'used') {
             return res.status(200).json({
                 success: true,
@@ -256,7 +280,9 @@ exports.createTicketAfterPayment = async (bookingId, eventId, userId) => {
             status: 'unused',
             booking: bookingId,
             event: eventId,
-            user: userDoc._id
+            user: userDoc._id,
+            selectedDate: booking.selectedDate,
+            selectedDays: booking.selectedDays
         };
 
         const ticket = await Ticket.create(ticketData);

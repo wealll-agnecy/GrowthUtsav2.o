@@ -1,19 +1,21 @@
 /* ═══════════ MINIMALIST PREMIUM CARDS ═══════════ */
 
 /* CARD */
+.event-card,
 .minimal-card {
   background: var(--bg-card);
   border-radius: 20px;
   overflow: hidden;
   transition: all 0.3s ease;
   height: 100%;
+  min-height: 320px;
   display: flex;
   flex-direction: column;
   cursor: pointer;
   border: 1px solid var(--border);
   width: 100%; 
-  aspect-ratio: 1 / 1;
   border-radius: 32px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Requested shadow */
 }
 
 .minimal-card:hover {
@@ -25,13 +27,12 @@
 /* IMAGE */
 .card-img {
   width: 100%;
-  height: 150px; /* Smaller image for square focus */
   overflow: hidden;
 }
 
 .card-img img {
   width: 100%;
-  height: 100%;
+  height: 220px;
   object-fit: cover;
   transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
@@ -40,12 +41,39 @@
   transform: scale(1.05);
 }
 
-/* BODY */
+/* BADGE (HIDDEN DEFAULT) */
+.ticket-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(236, 72, 153, 0.9); /* Premium Pink */
+  color: #fff;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+/* SHOW ON HOVER */
+.minimal-card:hover .ticket-badge,
+.event-card:hover .ticket-badge {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* BODY / CONTENT */
 .card-body {
-  padding: 16px 20px; /* Tighten padding */
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  justify-content: space-between;
+  flex: 1;
 }
 
 .card-body h5 {

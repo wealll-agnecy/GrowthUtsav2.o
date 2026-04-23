@@ -13,14 +13,6 @@ exports.createEvent = async (req, res, next) => {
             req.body.status = 'pending';
         }
 
-        // Organizer status check
-        if (req.user.role === 'organizer' && req.user.status !== 'verified') {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Your account verification is pending. Please wait for admin approval before creating events.' 
-            });
-        }
-
         const event = await Event.create(req.body);
 
         // Notify ALL users about the new event via BullMQ

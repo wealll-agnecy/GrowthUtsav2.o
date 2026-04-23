@@ -112,8 +112,12 @@ const Navbar = () => {
         >
             <Container fluid className="px-lg-5">
                 {/* Brand Logo */}
-                <BsNavbar.Brand as={Link} to="/" className="navbar-brand">
-                    Growth<span className="brand-accent">Utsav</span>
+                <BsNavbar.Brand as={Link} to="/" className="logo-container">
+                    <h1 className="logo-text mb-0">
+                        <span className="growth">Growth</span>
+                        <span className="utsav">Utsav</span>
+                    </h1>
+                    <p className="tagline mb-0">AN EVENT SERIES OF WE ALL</p>
                 </BsNavbar.Brand>
 
                 {/* Mobile Toggle */}
@@ -139,7 +143,7 @@ const Navbar = () => {
                     <div className="d-flex align-items-center gap-3">
                         
                         {/* Sliding Search Bar */}
-                        <div className="position-relative d-flex align-items-center" ref={searchRef}>
+                        <div className="position-relative d-flex align-items-center" style={{ height: '40px' }} ref={searchRef}>
                             <AnimatePresence>
                                 {isSearchOpen && (
                                     <motion.div
@@ -148,16 +152,19 @@ const Navbar = () => {
                                         exit={{ width: 0, opacity: 0 }}
                                         className="search-bar-container"
                                     >
-                                        <input 
-                                            type="text" 
-                                            placeholder="Search events, artists..." 
-                                            className="search-input-navbar"
-                                            autoFocus
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && navigate(`/events?query=${searchQuery}`)}
-                                        />
-                                        <BiX className="search-close-icon" onClick={() => setIsSearchOpen(false)} />
+                                        <div className="position-relative d-flex align-items-center w-100">
+                                            <BiSearch className="search-icon-inside" size={18} />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Search events, artists..." 
+                                                className="search-input-navbar"
+                                                autoFocus
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                            />
+                                            <BiX className="search-close-icon" onClick={() => setIsSearchOpen(false)} />
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -169,7 +176,7 @@ const Navbar = () => {
                         </div>
 
                         {/* Notification Bell */}
-                        <div className="position-relative" ref={notifRef}>
+                        <div className="position-relative d-flex align-items-center" style={{ height: '40px' }} ref={notifRef}>
                             <div className="icon-wrapper cursor-pointer" onClick={toggleNotifs} title="Notifications">
                                 <BiBell size={22} />
                                 {unreadCount > 0 && <span className="badge-ping"></span>}
@@ -237,11 +244,18 @@ const Navbar = () => {
                                     <div className="fw-bold small">{user.name}</div>
                                     <div className="text-muted tiny-text uppercase">{user.role}</div>
                                 </div>
-                                <NavDropdown.Item as={Link} to="/profile">My Account</NavDropdown.Item>
+                                {user.role !== 'staff' && (
+                                    <NavDropdown.Item as={Link} to="/profile">My Account</NavDropdown.Item>
+                                )}
                                 {user.role === 'admin' ? (
                                     <NavDropdown.Item as={Link} to="/admin/dashboard">Admin Panel</NavDropdown.Item>
                                 ) : user.role === 'organizer' ? (
                                     <NavDropdown.Item as={Link} to="/organizer/dashboard">Management</NavDropdown.Item>
+                                ) : user.role === 'staff' ? (
+                                    <>
+                                        <NavDropdown.Item as={Link} to="/staff/scanner">Scanner</NavDropdown.Item>
+                                        <NavDropdown.Item as={Link} to="/staff/dashboard">Dashboard</NavDropdown.Item>
+                                    </>
                                 ) : (
                                     <NavDropdown.Item as={Link} to="/my-bookings">My Tickets</NavDropdown.Item>
                                 )}
@@ -250,8 +264,8 @@ const Navbar = () => {
                             </NavDropdown>
                         ) : (
                             <div className="d-flex align-items-center gap-2">
-                                <Link to="/login" className="btn btn-premium-outline">Sign In</Link>
-                                <Link to="/register" className="btn btn-premium-gradient">Get Started</Link>
+                                <Link to="/login" className="btn btn-outline-pink">Sign In</Link>
+                                <Link to="/register" className="btn btn-pink">Get Started</Link>
                             </div>
                         )}
                     </div>

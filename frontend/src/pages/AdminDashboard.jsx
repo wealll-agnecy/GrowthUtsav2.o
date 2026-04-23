@@ -133,129 +133,99 @@ const AdminDashboard = () => {
     const currentRevenue = Number(liveStats.revenue) || 0;
 
     return (
-        <div className="dashboard-content-premium">
-            <h4 className="fw-black m-0 mb-4 small uppercase tracking-widest text-primary">Platform Core / Console</h4>
-            <Row className="g-4 mb-5">
-                <Col lg={2} md={4} xs={6}>
-                    <StatsCard 
-                        title="Organizers" 
-                        value={liveStats.totalOrganizers} 
-                        growth="Active" 
-                        icon={<FaUsers />} 
-                        color="#8b5cf6" 
-                    />
-                </Col>
-                <Col lg={2} md={4} xs={6}>
-                    <StatsCard 
-                        title="Staff Units" 
-                        value={liveStats.totalStaff} 
-                        growth="Verified" 
-                        icon={<FaShieldAlt />} 
-                        color="#c084fc" 
-                    />
-                </Col>
-                <Col lg={2} md={4} xs={6}>
-                    <StatsCard 
-                        title="Event Nodes" 
-                        value={liveStats.totalEvents} 
-                        growth="Global" 
-                        icon={<FaCalendarCheck />} 
-                        color="#ec4899" 
-                    />
-                </Col>
-                <Col lg={3} md={6} xs={6}>
-                    <StatsCard 
-                        title="Clearances (Tickets)" 
-                        value={liveStats.ticketsSold} 
-                        growth="Sold" 
-                        icon={<FaTicketAlt />} 
-                        color="#f59e0b" 
-                    />
-                </Col>
-                <Col lg={3} md={6} xs={12}>
-                    <StatsCard 
-                        title="Economic Flow" 
-                        value={`₹${(liveStats?.revenue || 0).toLocaleString()}`} 
-                        growth={`₹${liveStats?.profit || 0} Net`} 
-                        icon={<FaWallet />} 
-                        color="#10b981" 
-                    />
-                </Col>
-            </Row>
+        <div className="dashboard-page p-0">
+            <Container fluid className="px-md-5 pt-0 pb-3">
+                {/* ─── Header ─── */}
+                <div className="dashboard-header overview-section mb-3">
+                    <h2 className="dashboard-title-main mb-1">Overview</h2>
+                    <p className="dashboard-subtext m-0">Analytics, finances and platform management nodes.</p>
+                </div>
 
-            {/* ─── Financial Intelligence & Profit Hub ─── */}
-            <Row className="g-4 mb-5">
-                <Col lg={4}>
-                    <Card className="saas-card p-4 border-0 shadow-2xl h-100 bg-primary/5">
-                        <div className="d-flex align-items-center gap-3 mb-4">
-                            <div className="bg-primary/20 p-3 rounded-4 text-primary shadow-glow"><FaMoneyBillWave size={22} /></div>
+                {/* ─── Stats Grid ─── */}
+                <div className="stats-grid-saas mt-2">
+                    <div className="dashboard-card">
+                        <span className="card-title-sm">Organizers</span>
+                        <h3 className="card-value-lg">{liveStats.totalOrganizers}</h3>
+                        <div className="mt-2 text-success small fw-bold">Active Hosts</div>
+                    </div>
+                    <div className="dashboard-card">
+                        <span className="card-title-sm">Staff units</span>
+                        <h3 className="card-value-lg">{liveStats.totalStaff}</h3>
+                        <div className="mt-2 text-slate small fw-bold">Master Nodes</div>
+                    </div>
+                    <div className="dashboard-card">
+                        <span className="card-title-sm">Live Events</span>
+                        <h3 className="card-value-lg">{liveStats.totalEvents}</h3>
+                        <div className="mt-2 text-slate small fw-bold">Global Catalog</div>
+                    </div>
+                    <div className="dashboard-card">
+                        <span className="card-title-sm">Tickets</span>
+                        <h3 className="card-value-lg">{liveStats.ticketsSold.toLocaleString()}</h3>
+                        <div className="mt-2 text-slate small fw-bold">Total Sales</div>
+                    </div>
+                </div>
+
+                {/* ─── Primary Intelligence ─── */}
+                <Row className="g-4 mb-4">
+                    <Col lg={4}>
+                        <div className="dashboard-card highlight-card d-flex flex-column justify-content-between">
                             <div>
-                                <h5 className="text-white fw-black m-0 mb-1">PROFIT NODE</h5>
-                                <Badge className="bg-primary px-3 py-1 rounded-pill small tracking-widest fw-black">NET CLEARANCE</Badge>
+                                <span className="card-title-sm opacity-75">Net Profit</span>
+                                <h2 className="card-value-lg my-2">
+                                    ₹{(liveStats?.profit || liveStats?.netProfit || 0).toLocaleString()}
+                                </h2>
+                                <p className="small opacity-75 m-0 mb-4">Master Ledger Calculation</p>
+                            </div>
+                            <div className="pt-4 border-top border-white/20">
+                                <div className="d-flex justify-content-between mb-2">
+                                    <span className="small opacity-80">Gross Volume:</span>
+                                    <span className="fw-bold">₹{(liveStats?.revenue || 0).toLocaleString()}</span>
+                                </div>
+                                <div className="d-flex justify-content-between">
+                                    <span className="small opacity-80">Operational Leak:</span>
+                                    <span className="fw-bold">-₹{(liveStats?.expenses || 0).toLocaleString()}</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="mb-4">
-                            <div className="text-white small fw-black tracking-widest uppercase mb-1" style={{ opacity: 0.9 }}>Estimated Net Profit</div>
-                            <div className="h1 fw-black text-white m-0 tracking-tighter net-profit-val">
-                                ₹{(liveStats?.profit || liveStats?.netProfit || 0).toLocaleString()}
+                    </Col>
+                    
+                    <Col lg={8}>
+                        <div className="dashboard-card">
+                            <div className="d-flex justify-content-between align-items-center mb-4">
+                                <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Financial Ledger</h5>
+                                <span className="status-badge">{expenses.length} Entries</span>
                             </div>
-                        </div>
-                        <div className="mt-auto pt-4 border-top border-white/5">
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="text-white small fw-bold" style={{ opacity: 0.9 }}>Gross Volume:</span>
-                                <span className="text-bright fw-black">₹{(liveStats?.revenue || 0).toLocaleString()}</span>
+                            
+                            <div className="data-list audit-feed-scroll overflow-auto mb-4" style={{ maxHeight: '280px', paddingRight: '5px' }}>
+                                {expenses.length === 0 ? (
+                                    <div className="text-center py-5 text-slate opacity-50 small">No transactions recorded.</div>
+                                ) : (
+                                    expenses.map(exp => (
+                                        <div key={exp._id} className="data-item">
+                                            <div className="data-left">
+                                                <h6>{exp.title}</h6>
+                                                <p>{exp.category || 'General'}</p>
+                                            </div>
+                                            <div className="d-flex align-items-center gap-4">
+                                                <span className="fw-bold text-danger">₹{(exp.amount || 0).toLocaleString()}</span>
+                                                <button onClick={() => handleDeleteExpense(exp._id)} className="btn btn-link p-0 text-slate hover-text-danger transition-all">
+                                                    <FaTrash size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
-                            <div className="d-flex justify-content-between">
-                                <span className="text-white small fw-bold" style={{ opacity: 0.9 }}>Operational Leak:</span>
-                                <span className="text-danger fw-black">-₹{(liveStats?.expenses || 0).toLocaleString()}</span>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col lg={8}>
-                    <Card className="saas-card p-4 border-0 shadow-2xl">
-                        <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h5 className="text-white fw-black m-0 uppercase tracking-widest">Financial Ledger</h5>
-                            <Badge className="bg-white/10 text-white px-3 py-2 border border-white/20 rounded-pill small">TRACKING {expenses.length} ENTRIES</Badge>
-                        </div>
-                        <div className="table-responsive-custom ledger-table-container">
-                            <Table variant="dark" hover className="m-0 align-middle">
-                                <thead className="bg-white/2 border-bottom border-white/5">
-                                    <tr className="small text-white fw-bold uppercase tracking-widest">
-                                        <th className="py-3 px-4">Entity</th>
-                                        <th className="py-3">Tier</th>
-                                        <th className="py-3 text-end">Volume</th>
-                                        <th className="py-3 text-end px-4">Purge</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {expenses.length === 0 ? (
-                                        <tr><td colSpan="4" className="text-center py-5 text-muted">No fiscal data logged in master nodes.</td></tr>
-                                    ) : (
-                                        expenses.map(exp => (
-                                            <tr key={exp._id} className="border-bottom border-white/5">
-                                                <td className="py-3 px-4 fw-bold">{exp.title}</td>
-                                                <td className="py-3"><Badge className="bg-white/5 border border-white/10 text-white-50 px-2 py-1">{exp.category || 'Utility'}</Badge></td>
-                                                <td className="py-3 text-end text-danger fw-black">₹{(exp.amount || 0).toLocaleString()}</td>
-                                                <td className="py-3 text-end px-4">
-                                                    <button onClick={() => handleDeleteExpense(exp._id)} className="btn btn-link p-0 text-danger transition-all rounded-pill fw-bold px-4 py-2 hover-scale"><FaTrash size={12} /></button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </Table>
-                        </div>
-                        <div className="mt-4 pt-4 border-top border-white/5">
-                            <form onSubmit={handleAddExpense} className="row g-3">
+
+                            <form onSubmit={handleAddExpense} className="row g-2 pt-3 border-top">
                                 <div className="col-md-5">
-                                    <input type="text" className="form-control bg-dark border-secondary text-white rounded-pill px-4" placeholder="Expense description..." required value={newExpense.title} onChange={e => setNewExpense({...newExpense, title: e.target.value})} />
+                                    <input type="text" className="form-control rounded-8 border-slate-200" placeholder="Description" required value={newExpense.title} onChange={e => setNewExpense({...newExpense, title: e.target.value})} />
+                                </div>
+                                <div className="col-md-2">
+                                    <input type="number" className="form-control rounded-8 border-slate-200" placeholder="Amount" required value={newExpense.amount} onChange={e => setNewExpense({...newExpense, amount: e.target.value})} />
                                 </div>
                                 <div className="col-md-3">
-                                    <input type="number" className="form-control bg-dark border-secondary text-white rounded-pill px-4" placeholder="Amount..." required value={newExpense.amount} onChange={e => setNewExpense({...newExpense, amount: e.target.value})} />
-                                </div>
-                                <div className="col-md-3">
-                                    <select className="form-select bg-dark border-secondary text-white rounded-pill px-4" value={newExpense.category} onChange={e => setNewExpense({...newExpense, category: e.target.value})}>
+                                    <select className="form-select rounded-8 border-slate-200" value={newExpense.category} onChange={e => setNewExpense({...newExpense, category: e.target.value})}>
                                         <option value="Server">Server</option>
                                         <option value="Marketing">Marketing</option>
                                         <option value="Staff">Staff</option>
@@ -263,163 +233,99 @@ const AdminDashboard = () => {
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
-                                <div className="col-md-1">
-                                    <button type="submit" className="btn-primary w-100 p-0 d-flex align-items-center justify-content-center btn rounded-pill fw-medium px-4 py-2" disabled={expenseLoading}>
-                                        {expenseLoading ? <Spinner size="sm" /> : <FaPlus size={14} />}
+                                <div className="col-md-2">
+                                    <button type="submit" className="btn btn-pink w-100 fw-bold py-2" disabled={expenseLoading}>
+                                        {expenseLoading ? <Spinner size="sm" /> : 'Log Entry'}
                                     </button>
                                 </div>
                             </form>
                         </div>
-                    </Card>
-                </Col>
-            </Row>
+                    </Col>
+                </Row>
 
-
-            {/* ─── Analytics Visualization ─── */}
-            <Row className="g-4 mb-5">
-                <Col lg={8}>
-                    <Card className="saas-card p-5 border-0 shadow-2xl h-100 overflow-hidden">
-                        <div className="d-flex justify-content-between align-items-center mb-5">
-                            <h5 className="text-bright-slate fw-black m-0 uppercase tracking-widest d-flex align-items-center gap-3">
-                                <FaChartLine className="text-primary" /> Revenue Propagation
-                            </h5>
-                            <Badge className="bg-primary-subtle text-primary px-3 py-2 rounded-pill small fw-black tracking-widest">LIVE TELEMETRY</Badge>
-                        </div>
-                        <RevenueChart data={[
-                            { name: 'Jan', revenue: 45000 },
-                            { name: 'Feb', revenue: 52000 },
-                            { name: 'Mar', revenue: 48000 },
-                            { name: 'Apr', revenue: currentRevenue },
-                        ]} />
-                    </Card>
-                </Col>
-                <Col lg={4}>
-                    <Card className="saas-card p-5 border-0 shadow-2xl h-100">
-                        <CategoryPerformanceChart data={[
-                            { name: 'Tech', sales: 400 },
-                            { name: 'Music', sales: 300 },
-                            { name: 'Comedy', sales: 200 },
-                            { name: 'Startup', sales: 100 },
-                        ]} />
-                    </Card>
-                </Col>
-            </Row>
-
-
-            {/* ─── Operational Logs ─── */}
-            <Row className="g-4">
-                <Col lg={6}>
-                    <Card className="saas-card h-100 p-0 border-0 overflow-hidden">
-                        <div className="p-4 d-flex justify-content-between align-items-center bg-white/2">
-                            <h5 className="text-bright-slate fw-black m-0">Incident & Audit Feed</h5>
-                            <FaEllipsisV className="text-soft-purple ms-auto cursor-pointer" size={14} />
-                        </div>
-                        <Card.Body className="p-4 overflow-auto audit-feed-scroll">
-                            <div className="activity-feed-premium">
-                                {(liveStats?.activities || []).length > 0 ? (
-                                    (liveStats?.activities || []).map((log, i) => (
-                                        <div key={i} className="activity-item">
-                                            <div className="activity-dot shadow-lg"></div>
-                                            <div className="d-flex justify-content-between align-items-start mb-1">
-                                                <h6 className="text-bright-slate fw-black m-0 small tracking-tight">{log.type.toUpperCase()}</h6>
-                                                <span className="text-muted small audit-feed-timestamp">{new Date(log.time).toLocaleTimeString()}</span>
+                {/* ─── Secondary Data Grid ─── */}
+                <Row className="g-4 mb-4">
+                    <Col lg={4}>
+                        <div className="dashboard-card">
+                            <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem', marginBottom: '20px' }}>Identity Moderation</h5>
+                            <div className="data-list audit-feed-scroll overflow-auto" style={{ maxHeight: '350px', paddingRight: '5px' }}>
+                                {pendingRequests.length === 0 ? (
+                                    <div className="text-center py-5">
+                                        <FaCheckCircle className="text-success opacity-20 mb-3" size={40} />
+                                        <p className="text-slate opacity-50 small m-0">No pending requests</p>
+                                    </div>
+                                ) : (
+                                    pendingRequests.map((req) => (
+                                        <div key={req._id} className="data-item p-3">
+                                            <div className="data-left">
+                                                <h6>{req.name || 'User'}</h6>
+                                                <p className="truncate m-0">{req.email}</p>
                                             </div>
-                                            <p className="text-soft-purple small m-0 opacity-80 d-flex align-items-center gap-2">
-                                                <span className="text-primary opacity-60">
-                                                    {log.type === 'booking' ? <FaShoppingBag /> : <FaBolt />}
-                                                </span> 
-                                                {log.message}
-                                            </p>
+                                            <div className="d-flex gap-2">
+                                                <Button className="btn btn-outline-pink border" as={Link} to="/admin/organizer-requests">
+                                                    <FaEye className="text-slate" />
+                                                </Button>
+                                                <Button className="btn btn-pink p-2" onClick={() => handleOrgAction(req._id, 'approve')} disabled={actionLoading[req._id]}>
+                                                    {actionLoading[req._id] ? <Spinner size="sm" /> : <FaCheck />}
+                                                </Button>
+                                                <Button className="btn btn-outline-pink p-2" onClick={() => handleOrgAction(req._id, 'reject')} disabled={actionLoading[req._id]}>
+                                                    <FaTimes />
+                                                </Button>
+                                            </div>
                                         </div>
                                     ))
-                                ) : (
-                                    <div className="text-center py-5 text-muted small">No recent activity detected in master logs.</div>
                                 )}
                             </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                <Col lg={6}>
-                    <Card className="saas-card h-100 p-0 border-0 overflow-hidden">
-                         <div className="p-4 d-flex justify-content-between align-items-center bg-white/2">
-                            <h5 className="text-bright-slate fw-black m-0">Identity Moderation</h5>
-                            <Badge className="bg-danger-subtle px-3 py-2 rounded-pill small fw-black tracking-widest">{pendingRequests.length} ALERT</Badge>
-                        </div>
-                        <Card.Body className="p-4">
-                            {pendingRequests.length === 0 ? (
-                                <div className="text-center py-5">
-                                    <div className="bg-success-subtle p-3 rounded-circle d-inline-flex mb-3">
-                                        <FaCheckCircle size={30} />
-                                    </div>
-                                    <h6 className="text-bright-slate fw-bold m-0">Moderation Clear</h6>
-                                    <p className="text-muted small">No pending identity requests</p>
+                            {pendingRequests.length > 0 && (
+                                <div className="mt-4 text-center">
+                                    <Link to="/admin/organizer-requests" className="btn btn-outline-pink w-100 text-decoration-none d-block text-center">
+                                        View All Requests
+                                    </Link>
                                 </div>
-                            ) : (
-                                <Table borderless className="align-middle premium-table">
-                                    <tbody>
-                                        {pendingRequests.map((req) => (
-                                            <tr key={req._id}>
-                                                <td className="ps-0 pt-3 pb-3 border-bottom border-white/5">
-                                                    <div className="d-flex align-items-center gap-3">
-                                                        <div className="rounded-circle bg-purple-subtle d-flex align-items-center justify-content-center fw-black text-primary shadow-sm moderation-avatar-circle">
-                                                            {req.name?.charAt(0) || 'H'}
-                                                        </div>
-                                                        <div className="overflow-hidden">
-                                                            <div className="text-bright-slate fw-black small truncate mb-1">{req.name || 'Identity Host'}</div>
-
-                                                            <div className="text-soft-purple small truncate moderation-email-label">{req.email}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="text-end pe-0 pt-3 pb-3 border-bottom border-white/5">
-                                                    <div className="d-flex justify-content-end gap-2">
-                                                        <Button 
-                                                            size="sm" 
-                                                            variant="outline-info" 
-                                                            className="p-2 shadow-none hover-bg-white/10 btn rounded-pill fw-medium px-4 py-2"
-                                                            as={Link}
-                                                            to="/admin/organizer-requests"
-                                                            title="Deep Audit"
-                                                        >
-                                                            <FaEye className="text-info" />
-                                                        </Button>
-                                                        <Button 
-                                                            size="sm" 
-                                                            variant="success" 
-                                                            className="p-2 glow-hover-sm btn rounded-pill fw-medium px-4 py-2"
-                                                            onClick={() => handleOrgAction(req._id, 'approve')}
-                                                            disabled={actionLoading[req._id]}
-                                                            title="Authorize Host"
-                                                        >
-                                                            {actionLoading[req._id] ? <Spinner size="sm" animation="border" /> : <FaCheck />}
-                                                        </Button>
-                                                        <Button 
-                                                            size="sm" 
-                                                            variant="outline-danger" 
-                                                            className="p-2 shadow-none hover-bg-danger/10 btn rounded-pill fw-medium px-4 py-2"
-                                                            onClick={() => handleOrgAction(req._id, 'reject')}
-                                                            disabled={actionLoading[req._id]}
-                                                            title="Purge Identity"
-                                                        >
-                                                            <FaTimes />
-                                                        </Button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
                             )}
-                            <div className="mt-4 text-center">
-                                <Button as={Link} to="/admin/organizer-requests" className="btn rounded-pill py-2 d-flex align-items-center gap-3 mx-auto fw-medium px-4">
-                                    Full Moderation Protocol <FaChevronRight size={10} />
-                                </Button>
+                        </div>
+                    </Col>
+
+                    <Col lg={8}>
+                        <div className="dashboard-card">
+                            <div className="d-flex justify-content-between align-items-center mb-4">
+                                <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Revenue Intelligence</h5>
+                                <span className="status-badge badge-pink">Real-time</span>
                             </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                            <div style={{ height: '340px' }}>
+                                <RevenueChart data={[
+                                    { name: 'Jan', revenue: 45000 },
+                                    { name: 'Feb', revenue: 52000 },
+                                    { name: 'Mar', revenue: 48000 },
+                                    { name: 'Apr', revenue: currentRevenue },
+                                ]} />
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+
+                {/* ─── Audit Feed ─── */}
+                <div className="dashboard-card mb-4">
+                    <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem', marginBottom: '25px' }}>Security & Audit Feed</h5>
+                    <div className="data-list">
+                        {(liveStats?.activities || []).length > 0 ? (
+                            (liveStats?.activities || []).slice(0, 10).map((log, i) => (
+                                <div key={i} className="data-item p-3 border-0 bg-transparent border-bottom rounded-0">
+                                    <div className="data-left">
+                                        <h6 style={{ fontSize: '0.875rem' }}>{log.message}</h6>
+                                        <p style={{ fontSize: '0.75rem' }}>{new Date(log.time).toLocaleString()}</p>
+                                    </div>
+                                    <div className="text-slate uppercase small fw-bold tracking-wider" style={{ opacity: 0.6 }}>
+                                        {log.type}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-5 text-slate opacity-40 small">Zero active logs.</div>
+                        )}
+                    </div>
+                </div>
+            </Container>
         </div>
     );
 };

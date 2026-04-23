@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaThLarge, FaPlusCircle, FaUsers, FaChartLine, FaCog,
-    FaChevronLeft, FaChevronRight, FaShieldAlt, FaTicketAlt, 
+    FaChevronLeft, FaChevronRight, FaShieldAlt, FaTicketAlt,
     FaUserTie, FaSignOutAlt, FaLifeRing, FaCalendarAlt, FaQrcode, FaBars, FaEnvelope
 } from 'react-icons/fa';
 import axios from 'axios';
@@ -44,11 +44,12 @@ const DashboardLayout = ({ children, role }) => {
     ];
 
     const organizerLinks = [
-        { name: 'Overview', path: '/organizer/dashboard', icon: <FaThLarge /> },
-        { name: 'Create Node', path: '/organizer/create-event', icon: <FaPlusCircle /> },
-        { name: 'Teammates', path: '/organizer/staff', icon: <FaUsers /> },
-        { name: 'Subscription', path: '/organizer/plans', icon: <FaTicketAlt /> },
-        { name: 'Support', path: '/help', icon: <FaLifeRing /> },
+        { name: 'Dashboard', path: '/organizer/dashboard', icon: <FaThLarge /> },
+        { name: 'My Events', path: '/organizer/events', icon: <FaCalendarAlt /> },
+        { name: 'Create Event', path: '/organizer/create-event', icon: <FaPlusCircle /> },
+        { name: 'Bookings', path: '/organizer/bookings', icon: <FaTicketAlt /> },
+        { name: 'Earnings', path: '/organizer/earnings', icon: <FaChartLine /> },
+        { name: 'Settings', path: '/organizer/settings', icon: <FaCog /> },
     ];
 
     const attendeeLinks = [
@@ -65,7 +66,7 @@ const DashboardLayout = ({ children, role }) => {
     ];
 
     const getLinks = () => {
-        switch(role) {
+        switch (role) {
             case 'admin': return adminLinks;
             case 'organizer': return organizerLinks;
             case 'staff': return staffLinks;
@@ -77,20 +78,20 @@ const DashboardLayout = ({ children, role }) => {
     const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
 
     const SidebarContent = () => (
-        <div className="d-flex flex-column h-100 py-4">
+        <div className="d-flex flex-column h-100 py-4 dashboard_left_sidebar">
             <div className="px-4 mb-5 d-flex align-items-center justify-content-between">
                 {!collapsed && (
-                    <motion.span 
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }} 
+                    <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                         className="fw-bold fs-6 text-uppercase tracking-widest text-secondary"
                     >
                         Menu
                     </motion.span>
                 )}
-                <Button 
-                    variant="link" 
-                    onClick={() => setCollapsed(!collapsed)} 
+                <Button
+                    variant="link"
+                    onClick={() => setCollapsed(!collapsed)}
                     className="text-white-50 p-0 d-none d-lg-block shadow-none hover-text-white transition-all btn rounded-pill fw-medium px-4 py-2"
                 >
                     {collapsed ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
@@ -110,9 +111,9 @@ const DashboardLayout = ({ children, role }) => {
                             {link.icon}
                         </span>
                         {!collapsed && (
-                            <motion.span 
-                                initial={{ opacity: 0, x: -10 }} 
-                                animate={{ opacity: 1, x: 0 }} 
+                            <motion.span
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
                                 className="small fw-black text-uppercase tracking-widest link-text-label"
                             >
                                 {link.name}
@@ -125,8 +126,8 @@ const DashboardLayout = ({ children, role }) => {
 
             <div className="px-3 mt-auto pt-4 border-top border-white/5">
                 <div className={`d-flex align-items-center gap-3 p-2 rounded-4 user-drawer-info ${collapsed ? 'justify-content-center' : ''}`}>
-                    <div 
-                        className="rounded-circle bg-gradient-premium d-flex align-items-center justify-content-center fw-black text-white shadow-lg user-avatar-badge" 
+                    <div
+                        className="rounded-circle bg-gradient-premium d-flex align-items-center justify-content-center fw-black text-white shadow-lg user-avatar-badge"
                     >
                         {user?.name?.charAt(0) || role?.charAt(0).toUpperCase()}
                     </div>
@@ -137,9 +138,9 @@ const DashboardLayout = ({ children, role }) => {
                         </div>
                     )}
                 </div>
-                <Button 
-                    variant="link" 
-                    onClick={handleLogout} 
+                <Button
+                    variant="link"
+                    onClick={handleLogout}
                     className={`w-100 mt-3 d-flex align-items-center gap-3 text-danger hover-bg-danger/10 shadow-none transition-all ${collapsed ? 'justify-content-center' : ''} btn rounded-pill fw-medium px-4 py-2`}
                 >
                     <FaSignOutAlt />
@@ -161,12 +162,12 @@ const DashboardLayout = ({ children, role }) => {
             </motion.div>
 
             {/* Mobile Header Overlap Fix (Optional: if the main Navbar isn't enough) */}
-            <div className="d-lg-none mt-2"></div>
+
 
 
             {/* Mobile Offcanvas Sidebar */}
-            <Offcanvas 
-                show={showMobileSidebar} 
+            <Offcanvas
+                show={showMobileSidebar}
                 onHide={() => setShowMobileSidebar(false)}
                 className="bg-dark-space text-white border-0 offcanvas-sidebar-box"
                 placement="start"
@@ -179,14 +180,29 @@ const DashboardLayout = ({ children, role }) => {
             </Offcanvas>
 
             {/* Main Content Area */}
-            <div 
+            <div
                 className={`flex-grow-1 d-flex flex-column min-w-0 dashboard-content-area ${collapsed ? 'collapsed' : ''}`}
             >
-                <main className="p-3 p-md-4 p-xl-5">
+                {/* Mobile Dashboard Header */}
+                <div className="d-lg-none d-flex align-items-center justify-content-between p-3 border-bottom border-white/5 bg-dark-space shadow-sm sticky-top dashboard-mobile-header">
+                    <Button
+                        variant="link"
+                        onClick={() => setShowMobileSidebar(true)}
+                        className="text-white p-0 shadow-none hover-text-primary transition-all"
+                    >
+                        <FaBars size={20} />
+                    </Button>
+                    <span className="small fw-black text-uppercase tracking-widest text-white">
+                        {role} console
+                    </span>
+                    <div className="mobile-header-spacer" style={{ width: '20px' }}></div>
+                </div>
+
+                <main className="p-0">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={location.pathname}
-                            initial={{ opacity: 0, y: 15 }}
+                            initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -15 }}
                             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}

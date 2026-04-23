@@ -68,8 +68,7 @@ const PendingVerification = () => {
                                 <small className="fw-black uppercase tracking-widest opacity-60">Status Check Trigger</small>
                                 <div className="mt-3">
                                     <Button 
-                                        variant="outline-warning" 
-                                        className="rounded-pill px-4 py-2 d-flex align-items-center gap-2 mx-auto btn fw-medium"
+                                        className="btn btn-outline-pink rounded-pill px-4 py-2 d-flex align-items-center gap-2 mx-auto fw-medium"
                                         onClick={checkVerificationStatus}
                                         disabled={checking}
                                     >
@@ -83,14 +82,13 @@ const PendingVerification = () => {
                                 <Button 
                                     as={Link} 
                                     to="/" 
-                                    className="btn-primary-gradient rounded-pill transition-all btn fw-medium px-4 py-2"
+                                    className="btn btn-pink rounded-pill transition-all fw-medium px-4 py-2"
                                 >
                                     <FaRocket className="me-2" /> Explore the Platform
                                 </Button>
                                 <Button 
-                                    variant="link"
                                     onClick={logout}
-                                    className="text-white-50 text-decoration-none hover-text-white btn rounded-pill fw-medium px-4 py-2"
+                                    className="btn btn-outline-pink text-decoration-none rounded-pill fw-medium px-4 py-2"
                                 >
                                     Login with different identity
                                 </Button>

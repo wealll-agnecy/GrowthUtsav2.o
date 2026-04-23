@@ -54,11 +54,10 @@ const AdminEnquiryDetails = () => {
     if (!enquiry) return null;
 
     return (
-        <Container className="py-4">
+        <Container className="pt-1 pb-4">
             <Button 
-                variant="link" 
                 onClick={() => navigate('/admin/enquiries')}
-                className="text-decoration-none text-secondary mb-4 p-0 d-flex align-items-center gap-2 hover-text-primary transition-all fw-medium"
+                className="btn btn-outline-pink mb-4 p-0 d-flex align-items-center gap-2 transition-all fw-medium"
             >
                 <FaArrowLeft /> Back to Enquiries
             </Button>
@@ -77,7 +76,7 @@ const AdminEnquiryDetails = () => {
                                 </span>
                             </div>
                         </div>
-                        <Button variant="outline-danger" className="rounded-pill px-4 btn-sm" onClick={handleDelete}>
+                        <Button className="btn btn-pink rounded-pill px-4" onClick={handleDelete}>
                             <FaTrash className="me-2" /> Delete
                         </Button>
                     </div>

@@ -61,7 +61,7 @@ const OrganizerEvents = () => {
     );
 
     return (
-        <div className="dashboard-content-premium">
+        <div className="dashboard-page">
             <AnimatePresence>
                 {showCeleb && (
                     <motion.div 
@@ -69,106 +69,70 @@ const OrganizerEvents = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                        style={{ zIndex: 9999, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}
+                        style={{ zIndex: 9999, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
                     >
                         <motion.div
-                            initial={{ scale: 0.5, y: 100 }}
+                            initial={{ scale: 0.8, y: 50 }}
                             animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.5, y: 100 }}
-                            className="glass-card p-5 text-center rounded-5 border-primary shadow-2xl overflow-hidden position-relative"
+                            className="dashboard-card p-5 text-center shadow-2xl"
                             style={{ maxWidth: '500px' }}
                         >
-                            <motion.div 
-                                className="position-absolute top-0 start-0 w-100 h-100 opacity-20"
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                                style={{ background: 'conic-gradient(from 0deg, var(--primary), transparent, var(--secondary), transparent, var(--primary))' }}
-                            />
-                            <div className="position-relative">
-                                <div className="display-1 mb-4">🏆</div>
-                                <h2 className="fw-black text-white mb-3 uppercase tracking-tighter" style={{ fontSize: '2.5rem' }}>Verified!</h2>
-                                <p className="text-white-50 fs-5 mb-5 fw-medium">🎉 Congratulations! You are now a part of GrowthUtsav</p>
-                                <Button 
-                                    variant="primary" 
-                                    onClick={closeCeleb}
-                                    className="rounded-pill w-100 btn fw-medium px-4 py-2"
-                                >
-                                    Let's Go!
-                                </Button>
-                            </div>
+                            <div className="display-1 mb-4">🏆</div>
+                            <h2 className="dashboard-title-main mb-3 uppercase tracking-tighter">Verified!</h2>
+                            <p className="dashboard-subtext fs-5 mb-5 fw-medium">🎉 Congratulations! You are now a part of GrowthUtsav</p>
+                            <Button 
+                                className="btn btn-pink w-100 fw-bold py-3 px-5 rounded-pill"
+                                onClick={closeCeleb}
+                            >
+                                Let's Go!
+                            </Button>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
-                className="mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4 pt-4"
-            >
-                <div className="flex-grow-1">
-                    <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small shadow-2xl">
-                        <FaSatellite className="me-2" /> Global Management Hub
-                    </Badge>
-                    <h1 className="fw-black m-0 tracking-tighter text-white" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', lineHeight: 1 }}>
-                        My <span className="gradient-text">Events</span>
-                    </h1>
-                    <p className="text-white-50 mt-3 fw-medium tracking-wide text-uppercase small opacity-60">
-                        Monitoring {orgStats.totalEvents} active event nodes across the infrastructure
+            <div className="dashboard-header d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4">
+                <div>
+                    <h1 className="dashboard-title-main">My Events</h1>
+                    <p className="dashboard-subtext">
+                        Monitoring {orgStats.totalEvents} active event nodes across the infrastructure.
                     </p>
                 </div>
                 <Button
                     as={Link}
                     to="/organizer/create-event"
-                    className="d-flex align-items-center gap-3 transition-all btn rounded-pill fw-medium px-4 py-2"
+                    className="btn btn-pink d-flex align-items-center gap-3 transition-all rounded-pill fw-bold px-4 py-3"
                 >
                     <FaPlus /> Create Event
                 </Button>
-            </motion.div>
+            </div>
 
-            {/* ─── Stats Row ─── */}
-            <Row className="g-4 mb-5">
-                <Col lg={4}>
-                    <StatsCard 
-                        title="Aggregate Revenue" 
-                        value={`₹${(orgStats.totalRevenue || 0).toLocaleString()}`} 
-                        icon={<FaWallet />} 
-                        color="#8b5cf6" 
-                        delay={0.1}
-                    />
-                </Col>
-                <Col lg={4}>
-                    <StatsCard 
-                        title="Ticket Circulation" 
-                        value={orgStats.totalTicketsSold} 
-                        icon={<FaTicketAlt />} 
-                        color="#ec4899" 
-                        delay={0.2}
-                    />
-                </Col>
-                <Col lg={4}>
-                    <StatsCard 
-                        title="Active Nodes" 
-                        value={orgStats.approvedEvents} 
-                        icon={<FaCalendarCheck />} 
-                        color="#06b6d4" 
-                        delay={0.3}
-                    />
-                </Col>
-            </Row>
+            {/* ─── Stats Grid ─── */}
+            <div className="stats-grid-saas mb-5">
+                <div className="dashboard-card shadow-sm">
+                    <span className="card-title-sm">Aggregate Revenue</span>
+                    <h3 className="card-value-lg">₹{(orgStats.totalRevenue || 0).toLocaleString()}</h3>
+                    <div className="mt-2 text-success small fw-bold">Global Balance</div>
+                </div>
+                <div className="dashboard-card shadow-sm">
+                    <span className="card-title-sm">Ticket Circulation</span>
+                    <h3 className="card-value-lg">{orgStats.totalTicketsSold}</h3>
+                    <div className="mt-2 text-pink small fw-bold">Sold Out Capacity</div>
+                </div>
+                <div className="dashboard-card shadow-sm">
+                    <span className="card-title-sm">Active Nodes</span>
+                    <h3 className="card-value-lg">{orgStats.approvedEvents}</h3>
+                    <div className="mt-2 text-slate small fw-bold">Live Catalog</div>
+                </div>
+            </div>
 
 
             {(events || []).length === 0 ? (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-5 glass-card rounded-5 border-white/5 shadow-2xl"
-                >
+                <div className="dashboard-card text-center py-5 shadow-sm">
                     <div className="display-1 mb-4 opacity-10">🔭</div>
-                    <h4 className="fw-black text-white-50 mb-4 tracking-widest uppercase">No Events Detected</h4>
-                    <Button as={Link} to="/organizer/create-event" variant="primary" className="rounded-pill btn fw-medium px-4 py-2">INITIALIZE FIRST EVENT</Button>
-                </motion.div>
+                    <h4 className="dashboard-title-main mb-4" style={{ fontSize: '1.5rem' }}>No Events Detected</h4>
+                    <Button as={Link} to="/organizer/create-event" className="btn btn-pink rounded-pill fw-bold px-4 py-2">INITIALIZE FIRST EVENT</Button>
+                </div>
             ) : (
                 <Row className="g-4">
                     {(events || []).map((event, idx) => (

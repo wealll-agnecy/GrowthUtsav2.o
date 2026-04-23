@@ -1,59 +1,171 @@
+/* ═══════════ LIGHT PINK + GOLD LUXURY SIDEBAR ═══════════ */
+.desktop-sidebar-box, 
+.offcanvas-sidebar-box,
+.bg-dark-space {
+    background: #ffffff !important;
+    border-right: 2px solid #fef3c7 !important; /* Light Gold/Amber Border */
+    box-shadow: 10px 0 30px rgba(212, 175, 55, 0.05) !important;
+}
+
+.dashboard_left_sidebar {
+    background: #fffafa !important; /* Extremely light rose white */
+}
+
+/* Luxury Gold Scrollbar */
+.desktop-sidebar-box::-webkit-scrollbar {
+    width: 4px;
+}
+
+.desktop-sidebar-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.desktop-sidebar-box::-webkit-scrollbar-thumb {
+    background: #d4af37 !important; /* Gold */
+    opacity: 0.5;
+    border-radius: 10px;
+}
+
 .nav-icon-box {
-    font-size: 1.2rem;
+    font-size: 1.35rem;
+    transition: var(--transition-premium);
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.05));
+}
+
+/* Vibrant Icon Palette */
+.nav-link:nth-of-type(1) .nav-icon-box { color: #8b5cf6 !important; } /* Violet */
+.nav-link:nth-of-type(2) .nav-icon-box { color: #ec4899 !important; } /* Pink */
+.nav-link:nth-of-type(3) .nav-icon-box { color: #10b981 !important; } /* Emerald */
+.nav-link:nth-of-type(4) .nav-icon-box { color: #f59e0b !important; } /* Amber */
+.nav-link:nth-of-type(5) .nav-icon-box { color: #3b82f6 !important; } /* Blue */
+.nav-link:nth-of-type(6) .nav-icon-box { color: #f43f5e !important; } /* Rose */
+.nav-link:nth-of-type(7) .nav-icon-box { color: #6366f1 !important; } /* Indigo */
+
+/* Vibrant Light Pink Active State with Gold Leaf Effect */
+.nav-link.bg-primary {
+    background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%) !important; /* Light Pink */
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+    border: 1px solid #d4af37 !important; /* Fine Gold Border */
+    color: #111827 !important;
+}
+
+.nav-link.bg-primary .nav-icon-box {
+    color: #ffffff !important;
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.6));
+}
+
+.nav-link:not(.bg-primary) {
+    color: #000000 !important;
+}
+
+.nav-link:not(.bg-primary):hover {
+    background: #fff1f2 !important;
+    color: #ec4899 !important; /* Premium Pink on hover is okay for interactive feedback */
+    border-right: 3px solid #d4af37;
 }
 
 .link-text-label {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    color: #000000 !important;
+    text-transform: uppercase;
 }
 
+/* PROFILE & USER AREA */
 .user-drawer-info {
-    background: rgba(255,255,255,0.03);
+    background: #ffffff !important;
+    border: 1px solid #fde68a; /* Light Gold */
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.08);
+    margin: 0 15px;
+    border-radius: 16px !important;
+    transition: var(--transition-premium);
+}
+
+.user-drawer-info:hover {
+    border-color: #d4af37;
+    background: #fff1f2 !important;
 }
 
 .user-avatar-badge {
-    width: 36px;
-    height: 36px;
-    font-size: 0.8rem;
-    min-width: 36px;
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+    min-width: 44px;
+    background: linear-gradient(135deg, #fce7f3 0%, #d4af37 100%) !important; /* Pink to Gold */
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
+    color: #111827 !important;
 }
 
 .user-name-label {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #000000 !important;
 }
 
 .user-role-label {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #000000 !important; /* Removed gold role for black consistency */
 }
 
 .logout-label-text {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 700;
 }
 
+/* LAYOUT & BEHAVIOR */
 .dashboard-main-container {
-    min-height: calc(100vh - var(--navbar-height));
-    background: var(--deep-space);
+    min-height: 100vh;
+    background: #fff1f2;
 }
 
 .desktop-sidebar-box {
-    position: fixed;
-    top: var(--navbar-height, 70px);
-    left: 0;
-    height: calc(100vh - var(--navbar-height, 70px));
-    z-index: 1060;
-    overflow-y: auto;
+    position: fixed !important;
+    top: var(--navbar-height, 72px) !important;
+    left: 0 !important;
+    width: 280px;
+    height: calc(100vh - var(--navbar-height, 72px)) !important;
+    z-index: 9999 !important; /* Final Absolute Priority Override */
+    overflow-y: auto !important;
+    background: #ffffff !important;
 }
 
 @media (min-width: 992px) {
     .dashboard-content-area {
-        margin-left: 280px;
-        transition: margin-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-left: 280px !important;
+        transition: var(--transition-premium) !important;
     }
     
     .dashboard-content-area.collapsed {
-        margin-left: 80px;
+        margin-left: 80px !important;
+    }
+
+    .dashboard-content-area.collapsed .desktop-sidebar-box {
+        width: 80px !important;
     }
 }
 
 .offcanvas-sidebar-box {
-    width: 280px;
+    width: 280px !important;
+    z-index: 10000 !important; /* Mobile Sidebar Priority */
+}
+
+.dashboard-mobile-header {
+    z-index: 1040;
+    top: 0;
+    background: #ffffff !important;
+    border-bottom: 2px solid #fef3c7 !important;
+}
+
+.dashboard-mobile-header,
+.dashboard-mobile-header * {
+    color: #000000 !important;
+}
+
+@media (max-width: 991px) {
+    .dashboard-content-area main {
+        padding: 1.5rem !important;
+    }
 }

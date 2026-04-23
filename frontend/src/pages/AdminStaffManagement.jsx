@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Form, Badge, Modal, Spinner, Table } from 'react-bootstrap';
-import { FaUserPlus, FaTrash, FaLink, FaIdBadge, FaCheck, FaShieldAlt } from 'react-icons/fa';
+import { Container, Row, Col, Card, Button, Form, Badge, Modal, Spinner, Table, Alert } from 'react-bootstrap';
+import { FaUserPlus, FaTrash, FaLink, FaIdBadge, FaCheck, FaShieldAlt, FaEye, FaSearch, FaUsers } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import * as adminApi from '../api/adminApi';
 import * as eventApi from '../api/eventApi';
+import '../css/admin-pages.css';
 
 const AdminStaffManagement = () => {
     const [staffList, setStaffList] = useState([]);
@@ -13,6 +14,7 @@ const AdminStaffManagement = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
+    const [search, setSearch] = useState('');
 
     // Form states
     const [formData, setFormData] = useState({ name: '', email: '', password: '', staffRole: 'gate staff' });
@@ -44,7 +46,7 @@ const AdminStaffManagement = () => {
             await adminApi.createStaff(formData);
             setShowCreateModal(false);
             setFormData({ name: '', email: '', password: '', staffRole: 'gate staff' });
-            toast.success('Personnel initialized and deployed');
+            toast.success('Personnel record created');
             fetchData();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Initialization failure');
@@ -86,144 +88,167 @@ const AdminStaffManagement = () => {
         }
     };
 
-    if (loading) return <div className="text-center mt-5"><Spinner animation="border" variant="primary" /></div>;
+    const filteredStaff = staffList.filter(s => 
+        s.name?.toLowerCase().includes(search.toLowerCase()) ||
+        s.email?.toLowerCase().includes(search.toLowerCase()) ||
+        s.staffRole?.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
-        <div className="dashboard-content pb-5">
-            <Container fluid className="px-md-5">
-                <div className="d-flex justify-content-between align-items-end mb-5 border-bottom border-white/10 pb-4 mt-4">
+        <div className="admin-page-container">
+            <Container fluid>
+                <div className="admin-page-header">
                     <div>
-                        <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small">
-                            <FaShieldAlt className="me-2" /> Global Protocol
-                        </Badge>
-                        <h2 className="fw-black text-white m-0 tracking-tighter" style={{ fontSize: '3rem' }}>Personnel <span className="gradient-text">Registry</span></h2>
-                        <p className="text-white-50 m-0 small uppercase tracking-widest mt-1 opacity-60">Central Administrative Control of All Staff Assets</p>
+                        <h1>Personnel Management</h1>
+                        <p className="dashboard-subtext">Manage platform staff and assignment protocols</p>
                     </div>
-                    <Button variant="primary" onClick={() => setShowCreateModal(true)} className="rounded-pill d-flex align-items-center gap-2 btn fw-medium px-4 py-2">
-                        <FaUserPlus /> Initialize Personnel
-                    </Button>
+                    <div className="d-flex gap-3">
+                        <div className="admin-search-wrapper position-relative">
+                            <FaSearch className="search-icon position-absolute top-50 translate-middle-y ms-3 text-muted" style={{ zIndex: 10 }} />
+                            <input
+                                type="text"
+                                className="form-control admin-search-input"
+                                placeholder="Search by name, role..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                style={{ minWidth: '300px' }}
+                            />
+                        </div>
+                        <button className="btn btn-pink" onClick={() => setShowCreateModal(true)}>
+                            <FaUserPlus /> New Personnel
+                        </button>
+                    </div>
                 </div>
 
-                <Card className="glass-panel border-0 rounded-5 shadow-2xl overflow-hidden">
-                    <Table responsive hover className="mb-0 text-white align-middle" variant="dark">
-                        <thead>
-                            <tr className="uppercase tracking-widest small text-white-50" style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.03)' }}>
-                                <th className="py-4 px-5 fw-black border-0">Identity Signature</th>
-                                <th className="py-4 px-5 fw-black border-0">Operational Class</th>
-                                <th className="py-4 px-5 fw-black border-0">Node Assignments</th>
-                                <th className="py-4 px-5 fw-black border-0 text-end">Control</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {staffList.length === 0 && (
-                                <tr><td colSpan="4" className="text-center py-5 text-white-50 fs-5 fw-medium italic border-0">No active personnel detected in global registry.</td></tr>
-                            )}
-                            {staffList.map(staff => (
-                                <tr key={staff._id} className="border-bottom border-white/5 bg-transparent hover-bg-white/5 transition-all">
-                                    <td className="py-4 px-5">
-                                        <div className="fw-black mb-1 text-bright fs-5">{staff.name}</div>
-                                        <div className="small text-white-50 fw-medium font-monospace opacity-60">{staff.email}</div>
-                                    </td>
-                                    <td className="py-4 px-5">
-                                        <Badge bg={
-                                            staff.staffRole === 'coordinator' ? 'warning' :
-                                                staff.staffRole === 'support' ? 'info' : 'primary'
-                                        } className="uppercase tracking-widest shadow-lg px-3 py-2 rounded-pill fw-black">
-                                            <FaIdBadge className="me-2" /> {staff.staffRole}
-                                        </Badge>
-                                    </td>
-                                    <td className="py-4 px-5">
-                                        {staff.assignedEvents.length > 0 ? (
-                                            <div className="d-flex flex-wrap gap-2">
-                                                {staff.assignedEvents.map(e => (
-                                                    <Badge bg="white/5" key={e._id} className="border border-white/10 fw-black uppercase tracking-tighter py-2 px-3 rounded-pill text-white/70">
-                                                        {e.title}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className="small text-white-50 fst-italic opacity-30">Standby Mode</span>
-                                        )}
-                                    </td>
-                                    <td className="py-4 px-5 text-end">
-                                        <Button variant="outline-primary" size="sm" className="me-3 rounded-pill px-4 py-2 btn fw-medium" onClick={() => openAssignModal(staff)}>
-                                            <FaLink size={12} className="me-2" /> ASSIGN
-                                        </Button>
-                                        <Button variant="outline-danger" size="sm" className="rounded-pill px-4 py-2 btn fw-medium" onClick={() => handleDelete(staff._id)}>
-                                            <FaTrash size={12} />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                </Card>
+                <div className="admin-card">
+                    {loading ? (
+                        <div className="loading-skeleton">
+                            {[1, 2, 3, 4, 5].map(i => <div key={i} className="skeleton-row" />)}
+                        </div>
+                    ) : filteredStaff.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-state-icon"><FaUsers /></div>
+                            <h3>No Personnel Found</h3>
+                            <p>{search ? `Matching "${search}"` : 'The staff registry is currently empty.'}</p>
+                        </div>
+                    ) : (
+                        <div className="admin-table-wrapper">
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Identity Name</th>
+                                        <th>Operational Role</th>
+                                        <th>Active Assignments</th>
+                                        <th className="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredStaff.map(staff => (
+                                        <tr key={staff._id}>
+                                            <td>
+                                                <div className="fw-bold">{staff.name}</div>
+                                                <div className="small text-muted">{staff.email}</div>
+                                            </td>
+                                            <td>
+                                                <span className={`admin-badge badge-${
+                                                    staff.staffRole === 'coordinator' ? 'approved' : 'resolved'
+                                                }`}>
+                                                    {staff.staffRole}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {staff.assignedEvents.length > 0 ? (
+                                                    <div className="d-flex flex-wrap gap-2">
+                                                        {staff.assignedEvents.map(e => (
+                                                            <span key={e._id} className="small bg-light px-2 py-1 rounded border" style={{ fontSize: '11px' }}>
+                                                                {e.title}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="small text-muted italic">No active nodes</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <div className="action-btn-group justify-content-end">
+                                                    <button className="btn btn-outline-pink" title="Assign Nodes" onClick={() => openAssignModal(staff)}>
+                                                        <FaLink />
+                                                    </button>
+                                                    <button className="btn btn-pink" title="Terminate" onClick={() => handleDelete(staff._id)}>
+                                                        <FaTrash size={12} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </Container>
 
-                {/* Create Staff Modal */}
-                <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} contentClassName="bg-dark text-white border-white/10 rounded-5 shadow-2xl overflow-hidden" centered>
-                    <Modal.Header closeButton closeVariant="white" className="border-bottom border-white/10 p-4">
-                        <Modal.Title className="fw-black tracking-widest h4 m-0 text-bright uppercase">INITIALIZE PERSONNEL</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body className="p-5">
-                        <Form onSubmit={handleCreateStaff}>
-                            <Form.Group className="mb-4">
-                                <Form.Label className="small text-white-50 uppercase tracking-widest fw-black mb-3">Identity Signature</Form.Label>
-                                <Form.Control required type="text" className="bg-white/5 border-white/10 text-white py-3 px-4 rounded-4 shadow-none focus-border-primary" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-4">
-                                <Form.Label className="small text-white-50 uppercase tracking-widest fw-black mb-3">Communication Uplink</Form.Label>
-                                <Form.Control required type="email" className="bg-white/5 border-white/10 text-white py-3 px-4 rounded-4 shadow-none focus-border-primary" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-4">
-                                <Form.Label className="small text-white-50 uppercase tracking-widest fw-black mb-3">Security Access Key</Form.Label>
-                                <Form.Control required type="password" minLength={6} className="bg-white/5 border-white/10 text-white py-3 px-4 rounded-4 shadow-none focus-border-primary" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-5">
-                                <Form.Label className="small text-white-50 uppercase tracking-widest fw-black mb-3">Operational Designation</Form.Label>
-                                <Form.Select className="bg-white/5 border-white/10 text-white py-3 px-4 rounded-4 shadow-none focus-border-primary cursor-pointer" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
-                                    <option value="gate staff">Gate Staff (Scanning & Validation)</option>
-                                    <option value="coordinator">Coordinator (Operations)</option>
-                                    <option value="support">Support Personnel</option>
-                                </Form.Select>
-                            </Form.Group>
-                            <Button type="submit" variant="primary" className="w-100 btn rounded-pill fw-medium px-4 py-2">
-                                DEPLOY PERSONNEL
-                            </Button>
-                        </Form>
-                    </Modal.Body>
-                </Modal>
+            {/* Create Staff Modal */}
+            <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} centered size="sm">
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="fw-bold fs-5">New Personnel</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="p-3">
+                    <Form onSubmit={handleCreateStaff}>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="small uppercase fw-bold text-muted">Full Name</Form.Label>
+                            <Form.Control required type="text" className="rounded-8" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="small uppercase fw-bold text-muted">Email Link</Form.Label>
+                            <Form.Control required type="email" className="rounded-8" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label className="small uppercase fw-bold text-muted">Initial Access Key</Form.Label>
+                            <Form.Control required type="password" minLength={6} className="rounded-8" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                        </Form.Group>
+                        <Form.Group className="mb-4">
+                            <Form.Label className="small uppercase fw-bold text-muted">Operational Designation</Form.Label>
+                            <Form.Select className="rounded-8" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
+                                <option value="gate staff">Gate Staff</option>
+                                <option value="coordinator">Coordinator</option>
+                                <option value="support">Support</option>
+                            </Form.Select>
+                        </Form.Group>
+                        <Button type="submit" className="btn btn-pink w-100 rounded-8 py-2 fw-bold">CREATE RECORD</Button>
+                    </Form>
+                </Modal.Body>
+            </Modal>
 
-                {/* Assign Events Modal */}
-                <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)} contentClassName="bg-dark text-white border-white/10 rounded-5 shadow-2xl overflow-hidden" centered size="lg">
-                    <Modal.Header closeButton closeVariant="white" className="border-bottom border-white/10 p-4">
-                        <Modal.Title className="fw-black tracking-widest h4 m-0 text-bright uppercase">ASSIGN OPERATIONAL NODES</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                        <div className="list-group list-group-flush">
-                            {events.length === 0 && <div className="p-5 text-center text-white-50 italic fs-5">No active nodes available for deployment in global registry.</div>}
+            {/* Assign Events Modal */}
+            <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)} centered size="sm">
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="fw-bold fs-5">Assign Nodes</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                    <div className="list-group list-group-flush">
                             {events.map(event => (
                                 <div
                                     key={event._id}
-                                    className={`list-group-item list-group-item-action bg-transparent text-white border-bottom border-white/5 py-4 px-5 d-flex align-items-center justify-content-between cursor-pointer transition-all ${selectedEvents.includes(event._id) ? 'bg-primary/10' : ''}`}
+                                    className={`list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2 px-3 cursor-pointer ${selectedEvents.includes(event._id) ? 'bg-light' : ''}`}
                                     onClick={() => toggleEventSelection(event._id)}
                                 >
-                                    <div>
-                                        <div className="fw-black fs-5 tracking-tight text-white">{event.title}</div>
-                                        <div className="small text-white-50 uppercase tracking-widest font-monospace mt-1">{new Date(event.date).toLocaleDateString()} • {event.venue}</div>
+                                    <div className="flex-grow-1 overflow-hidden">
+                                        <div className="fw-bold small text-truncate">{event.title}</div>
+                                        <div className="text-muted text-truncate" style={{ fontSize: '10px' }}>{new Date(event.date).toLocaleDateString()} • {event.venue}</div>
                                     </div>
-                                    <div className={`border-2 rounded-circle d-flex align-items-center justify-content-center transition-all ${selectedEvents.includes(event._id) ? 'bg-primary border-primary text-white shadow-glow-sm' : 'border-white/20'}`} style={{ width: 32, height: 32 }}>
-                                        {selectedEvents.includes(event._id) && <FaCheck size={16} />}
-                                    </div>
+                                <div className={`border rounded-circle d-flex align-items-center justify-content-center ${selectedEvents.includes(event._id) ? 'bg-primary border-primary text-white' : 'bg-white'}`} style={{ width: 24, height: 24 }}>
+                                    {selectedEvents.includes(event._id) && <FaCheck size={12} />}
                                 </div>
-                            ))}
-                        </div>
-                    </Modal.Body>
-                    <Modal.Footer className="border-top border-white/10 bg-white/5 p-4 d-flex justify-content-between">
-                        <Button variant="outline-light" className="rounded-pill btn fw-medium px-4 py-2" onClick={() => setShowAssignModal(false)}>ABORT MISSION</Button>
-                        <Button variant="primary" className="rounded-pill btn fw-medium px-4 py-2" onClick={handleAssignEvents}>SYNC ASSIGNMENTS</Button>
-                    </Modal.Footer>
-                </Modal>
-            </Container>
+                            </div>
+                        ))}
+                    </div>
+                </Modal.Body>
+                <Modal.Footer className="border-0">
+                    <Button className="btn btn-outline-pink" onClick={() => setShowAssignModal(false)}>Close</Button>
+                    <Button className="btn btn-pink" onClick={handleAssignEvents}>Sync Assignments</Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };

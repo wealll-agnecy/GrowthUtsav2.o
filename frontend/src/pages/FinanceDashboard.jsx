@@ -91,7 +91,7 @@ const FinanceDashboard = () => {
     return (
         <div className="dashboard-content-premium">
             {/* ─── Header ─── */}
-            <div className="mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4 pt-4">
+            <div className="mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4 pt-1">
                 <div className="flex-grow-1">
                     <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small shadow-2xl">
                         <FaFileInvoiceDollar className="me-2" /> Global Fiscal Control
@@ -102,14 +102,13 @@ const FinanceDashboard = () => {
                 </div>
                 <div className="d-flex gap-3">
                     <Button
-                        variant="outline-light"
-                        className="px-4 d-flex align-items-center gap-3 btn rounded-pill fw-medium py-2"
+                        className="btn btn-outline-pink px-4 d-flex align-items-center gap-3 rounded-pill fw-medium py-2"
                         onClick={() => window.print()}
                     >
                         <FaDownload /> EXPORT AUDIT
                     </Button>
                     <Button
-                        className="d-flex align-items-center gap-3 transition-all btn rounded-pill fw-medium px-4 py-2"
+                        className="btn btn-pink d-flex align-items-center gap-3 transition-all rounded-pill fw-medium px-4 py-2"
                         onClick={() => setShowAddModal(true)}
                     >
                         <FaPlus /> INDEX EXPENSE
@@ -118,7 +117,7 @@ const FinanceDashboard = () => {
             </div>
 
             {/* ─── Mission Critical Stats ─── */}
-            <Row className="g-4 mb-5">
+            <Row className="g-4 mb-3">
                 <Col lg={4}>
                     <StatsCard 
                         title="Aggregated Revenue" 
@@ -149,7 +148,7 @@ const FinanceDashboard = () => {
                 </Col>
             </Row>
 
-            <Row className="g-4 mb-5">
+            <Row className="g-4 mb-3">
                 {/* ─── Revenue Visualization ─── */}
                 <Col lg={8}>
                     <Card className="saas-card p-5 border-0 shadow-2xl h-100 overflow-hidden">
@@ -231,8 +230,7 @@ const FinanceDashboard = () => {
                                         </td>
                                         <td className="py-4 text-end px-5">
                                             <Button 
-                                                variant="outline-danger" 
-                                                className="p-2 shadow-none hover-bg-danger/10 btn rounded-pill fw-medium px-4 py-2"
+                                                className="btn btn-outline-pink p-2 shadow-none rounded-pill fw-medium px-4 py-2"
                                                 onClick={() => handleDeleteExpense(exp._id)}
                                             >
                                                 <FaTrash size={14} />
@@ -320,15 +318,14 @@ const FinanceDashboard = () => {
                         </Form.Group>
                         <div className="d-flex gap-3">
                             <Button 
-                                variant="outline-light" 
-                                className="rounded-pill flex-grow-1 btn fw-medium px-4 py-2"
+                                className="btn btn-outline-pink rounded-pill flex-grow-1 fw-medium px-4 py-2"
                                 onClick={() => setShowAddModal(false)}
                             >
                                 ABORT
                             </Button>
                             <Button 
                                 type="submit" 
-                                className="rounded-pill flex-grow-1 btn fw-medium px-4 py-2"
+                                className="btn btn-pink rounded-pill flex-grow-1 fw-medium px-4 py-2"
                                 disabled={actionLoading}
                             >
                                 {actionLoading ? <Spinner size="sm" /> : 'EXECUTE INDEX'}

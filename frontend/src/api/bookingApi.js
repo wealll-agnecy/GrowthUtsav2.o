@@ -22,3 +22,11 @@ export const verifyPayment = async (paymentData) => {
 export const getMyBookings = async () => {
     return await axios.get(`${API_URL}/mybookings`);
 };
+
+export const initiateInstallment = async (id, amount) => {
+    return await axios.post(`${API_URL}/${id}/installment`, { amount });
+};
+
+export const verifyInstallment = async (paymentData) => {
+    return await axios.post(`${API_URL}/verify-installment`, paymentData);
+};

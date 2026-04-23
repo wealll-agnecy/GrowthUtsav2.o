@@ -1,4 +1,7 @@
 const User = require('../models/User');
+const Event = require('../models/Event');
+const Booking = require('../models/Booking');
+const Expense = require('../models/Expense');
 const { notificationQueue } = require('../queue/notificationQueue');
 
 // @desc    Get all pending organizer requests
@@ -131,5 +134,102 @@ exports.getAllUsers = async (req, res) => {
         res.status(200).json({ success: true, count: users.length, data: users });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Get comprehensive event details for organizer dashboard
+// @route   GET /api/v1/organizer/event/:id/details
+// @access  Private (Organizer)
+exports.getOrganizerEventDetails = async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const event = await Event.findById(eventId);
+
+        if (!event) {
+            return res.status(404).json({ success: false, message: 'Event not found' });
+        }
+
+        // Verify ownership or admin
+        if (event.organizer.toString() !== (req.user.id || req.user._id).toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Not authorized an event owner' });
+        }
+
+        // 1. Fetch Bookings and Expenses
+        const bookings = await Booking.find({ event: eventId, paymentStatus: 'completed' });
+        const expenses = await Expense.find({ eventId });
+
+        // Calculate Totals
+        const totalTickets = bookings.reduce((acc, b) => acc + (b.quantity || 0), 0);
+        const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+        const totalExpenses = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
+        
+        const profit = totalRevenue > totalExpenses ? totalRevenue - totalExpenses : 0;
+        const loss = totalExpenses > totalRevenue ? totalExpenses - totalRevenue : 0;
+
+        // 2. Date-wise Ticket Sales
+        const dateSalesMap = {};
+        bookings.forEach(b => {
+            const bDates = b.selectedDays && b.selectedDays.length > 0 
+                ? b.selectedDays.map(d => new Date(d).toISOString().split('T')[0]) 
+                : [new Date(b.selectedDate || event.date).toISOString().split('T')[0]];
+            
+            bDates.forEach(dateStr => {
+                if (!dateSalesMap[dateStr]) {
+                    dateSalesMap[dateStr] = { tickets: 0, revenue: 0 };
+                }
+                const sliceRev = b.totalAmount / bDates.length;
+                const sliceTix = b.quantity / bDates.length;
+                dateSalesMap[dateStr].tickets += sliceTix;
+                dateSalesMap[dateStr].revenue += sliceRev;
+            });
+        });
+        
+        const dateWiseSales = Object.keys(dateSalesMap).map(date => ({
+            date,
+            ticketsSold: Math.ceil(dateSalesMap[date].tickets),
+            revenue: dateSalesMap[date].revenue
+        }));
+
+        // 3. Plan-wise Sales
+        const planSalesMap = {};
+        bookings.forEach(b => {
+            const plan = b.ticketType || 'General';
+            if (!planSalesMap[plan]) planSalesMap[plan] = { tickets: 0, revenue: 0 };
+            planSalesMap[plan].tickets += (b.quantity || 0);
+            planSalesMap[plan].revenue += (b.totalAmount || 0);
+        });
+        
+        const planWiseSales = Object.keys(planSalesMap).map(plan => ({
+            planName: plan,
+            ticketsSold: planSalesMap[plan].tickets,
+            revenue: planSalesMap[plan].revenue
+        }));
+
+        // 4. Expenses Breakdown
+        const expensesBreakdown = expenses.map(e => ({
+            title: e.title || e.category,
+            amount: e.amount,
+            date: e.date
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: {
+                summary: {
+                    eventName: event.title,
+                    totalTickets,
+                    totalRevenue,
+                    totalExpenses,
+                    profit,
+                    loss
+                },
+                dateWiseSales,
+                planWiseSales,
+                expensesBreakdown
+            }
+        });
+    } catch (error) {
+        console.error("Event details analytics error:", error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };

@@ -56,29 +56,27 @@ const PricingPlans = () => {
     );
 
     return (
-        <div className="dashboard-content pb-5">
-            <Container fluid className="p-0">
-                <div className="text-center mb-5 mt-4">
+        <div className="dashboard-page overflow-hidden">
+            <Container fluid className="px-md-5">
+                <div className="dashboard-header text-center mb-5">
                     <motion.div
-                        initial={{ opacity: 0, y: -40 }}
+                        initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1, ease: [0.19, 1, 0.22, 1] }}
+                        transition={{ duration: 0.8 }}
                     >
-                        <Badge className="bg-primary-subtle text-primary border border-primary-light px-4 py-2 mb-4 text-uppercase tracking-widest fw-black small shadow-2xl">
-                            <FaCrown className="me-2" /> Strategic Protocol Grid
-                        </Badge>
-                        <h1 className="fw-black m-0 tracking-tighter text-white display-2" style={{ lineHeight: 1 }}>
-                            Expansion <span className="gradient-text">Manifest</span>
-                        </h1>
-                        <p className="text-white-50 mt-4 mx-auto fw-medium fs-5" style={{ maxWidth: '750px', lineHeight: 1.6 }}>
-                            Unlock high-velocity tools, quantum-secured inventory management, and premium platform resonance for your global digital clusters.
+                        <div className="mb-3">
+                            <span className="status-badge badge-pink">STRATEGIC SERVICE PLANS</span>
+                        </div>
+                        <h1 className="dashboard-title-main" style={{ fontSize: '3rem' }}>Upgrade Your Presence</h1>
+                        <p className="dashboard-subtext mx-auto" style={{ maxWidth: '700px' }}>
+                            Unlock high-velocity tools, premium platform features, and professional management capabilities for your events.
                         </p>
 
-                        <div className="mt-5 d-flex justify-content-center">
-                            <div className="glass-card px-5 py-3 rounded-pill border-white/5 shadow-2xl d-flex align-items-center gap-3">
-                                <FaSatellite className="text-primary-light animate-pulse" />
-                                <span className="text-white-50 fw-black uppercase tracking-widest small">Current Node Status:</span>
-                                <span className="text-primary-light fw-black uppercase tracking-widest small shadow-glow">{user?.servicePlan?.name || 'Standard Tier'}</span>
+                        <div className="mt-4 d-flex justify-content-center">
+                            <div className="dashboard-card px-4 py-2 d-flex align-items-center gap-3 border-slate-200 shadow-sm" style={{ height: 'auto' }}>
+                                <FaBolt className="text-pink" />
+                                <span className="card-title-sm m-0" style={{ fontSize: '0.7rem' }}>Current Status:</span>
+                                <span className="fw-bold tracking-widest text-pink small">{user?.servicePlan?.name?.toUpperCase() || 'STANDARD TIER'}</span>
                             </div>
                         </div>
                     </motion.div>
@@ -86,20 +84,20 @@ const PricingPlans = () => {
 
                 {error && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                        <Alert variant="danger" className="glass-panel text-danger border-danger/20 rounded-5 mb-5 p-5 shadow-2xl text-center fw-black text-uppercase tracking-widest">
-                            <FaShieldAlt className="me-3 opacity-50" size={30} />
+                        <Alert variant="danger" className="border-danger/20 rounded-4 mb-5 p-4 text-center fw-bold">
+                            <FaShieldAlt className="me-3 opacity-50" size={20} />
                             {error}
                         </Alert>
                     </motion.div>
                 )}
 
-                <Row className="g-5 justify-content-center align-items-stretch mt-3">
+                <Row className="g-4 justify-content-center align-items-stretch mt-3">
                     {(plans || []).map((plan, idx) => (
                         <Col key={plan._id} md={6} lg={4}>
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                transition={{ delay: idx * 0.1, type: 'spring', damping: 20 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
                                 className="h-100"
                             >
                                 <PricingCard
@@ -113,21 +111,16 @@ const PricingPlans = () => {
                     ))}
                 </Row>
 
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    className="text-center mt-5 pt-5"
-                >
-                    <div className="p-5 rounded-5 glass-panel border-white/5 shadow-2xl d-inline-block border-primary/10 backdrop-blur-3xl position-relative overflow-hidden" style={{ maxWidth: '900px' }}>
-                        <div className="position-absolute top-0 end-0 m-4 opacity-5 pointer-events-none"><FaBolt size={60} /></div>
-                        <p className="text-white-50 fs-5 fw-medium m-0 position-relative z-index-1">
-                            <FaShieldAlt className="me-3 text-primary glow-text" size={24} />
-                            All tiers include core universal management protocols, quantum-secured financial processing, and digital souvenir issuance.
-                            <br /><span className="small opacity-60 italic mt-3 d-block d-md-inline">Looking for an enterprise-grade bespoke solution? <span className="text-primary-light fw-black cursor-pointer text-decoration-underline hover-opacity-100 transition-all">Sychronize with Global Sales</span></span>
+                <div className="mt-5 pt-5 text-center">
+                    <div className="dashboard-card d-inline-block p-4 border-slate-100 shadow-sm" style={{ maxWidth: '800px', height: 'auto' }}>
+                        <p className="dashboard-subtext m-0 d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                            <FaShieldAlt className="text-pink" />
+                            All tiers include core management protocols, secure financial processing, and digital certificate issuance.
+                            <span className="opacity-50 small">|</span>
+                            <span className="text-pink fw-bold cursor-pointer hover-text-pink-dark transition-all">Sychronize with Global Sales</span>
                         </p>
                     </div>
-                </motion.div>
+                </div>
             </Container>
         </div>
     );

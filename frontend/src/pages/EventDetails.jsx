@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import * as eventApi from '../api/eventApi';
-import * as bookingApi from '../api/bookingApi';
 import { useAuth } from '../context/AuthContext';
-import { Container, Row, Col, Button, Badge, Card, Spinner, Alert, Form } from 'react-bootstrap';
+import { Container, Row, Col, Form, Spinner, Alert } from 'react-bootstrap';
 import {
     FaMapMarkerAlt, FaCalendarAlt, FaClock, FaCheckCircle,
-    FaShoppingCart, FaArrowLeft, FaShieldAlt, FaTicketAlt, FaUser
+    FaShoppingCart, FaArrowLeft, FaShieldAlt, FaTicketAlt
 } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import EventCard from '../components/events/EventCard';
 import './EventDetails.css';
 
 const EventDetails = () => {
@@ -16,30 +16,50 @@ const EventDetails = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [event, setEvent] = useState(null);
+    const [relatedEvents, setRelatedEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [bookingLoading, setBookingLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedTier, setSelectedTier] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDays, setSelectedDays] = useState([]);
+    const [isAllDays, setIsAllDays] = useState(false);
     const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
-        const fetchEvent = async () => {
+        const fetchEventAndRelated = async () => {
+            setLoading(true);
             try {
+                // Fetch current event
                 const res = await eventApi.getEvent(id);
-                setEvent(res.data.data);
-                if (res.data.data.ticketTypes.length > 0) {
-                    setSelectedTier(res.data.data.ticketTypes[0].name);
+                const eventData = res.data.data;
+                setEvent(eventData);
+                
+                if (eventData.isMultiDay && eventData.multiDayPlan.length > 0) {
+                    const firstDay = eventData.multiDayPlan[0];
+                    setSelectedDate(firstDay.date);
+                    setSelectedDays([firstDay.date]);
+                    setSelectedTier(firstDay.plans[0].name);
+                } else if (eventData.ticketTypes.length > 0) {
+                    setSelectedDate(eventData.date);
+                    setSelectedTier(eventData.ticketTypes[0].name);
                 }
+
+                // Fetch related events (same category)
+                const relatedRes = await eventApi.getEvents(`category=${eventData.category}&limit=4`);
+                const filtered = relatedRes.data.data.filter(e => e._id !== id).slice(0, 3);
+                setRelatedEvents(filtered);
+
             } catch (err) {
                 setError(err.response?.data?.message || 'Event not found');
             } finally {
                 setLoading(false);
             }
         };
-        fetchEvent();
+        fetchEventAndRelated();
+        window.scrollTo(0, 0);
     }, [id]);
 
-    const handleBooking = async () => {
+    const handleBooking = () => {
         if (!user) { navigate('/login'); return; }
 
         if (user.role === 'organizer' && user.status === 'pending') {
@@ -47,331 +67,348 @@ const EventDetails = () => {
             return;
         }
 
-        // Ensure quantity is parsed correctly
         const parsedQuantity = parseInt(quantity);
         if (!parsedQuantity || parsedQuantity < 1) {
             alert('Please select a valid quantity.');
             return;
         }
 
-        // Navigate to the full booking/checkout flow
+        if (event.isMultiDay && selectedDays.length === 0) {
+            alert('Please select at least one day to book.');
+            return;
+        }
+
+        let currentPrice = 0;
+        if (event.isMultiDay) {
+            selectedDays.forEach(date => {
+                const day = event.multiDayPlan.find(d => d.date === date);
+                const plan = day?.plans.find(p => p.name === selectedTier);
+                currentPrice += plan?.price || 0;
+            });
+        } else {
+            const ticket = event.ticketTypes.find(t => t.name === selectedTier);
+            currentPrice = ticket?.price || 0;
+        }
+
         navigate('/checkout', {
             state: {
                 event,
                 ticketType: selectedTier,
+                selectedDate: event.isMultiDay ? selectedDays[0] : selectedDate,
+                selectedDays: event.isMultiDay ? selectedDays : [],
                 quantity: parsedQuantity,
-                totalPrice: (event.ticketTypes.find(t => t.name === selectedTier)?.price || 0) * parsedQuantity
+                totalPrice: currentPrice * parsedQuantity
             }
         });
     };
 
     if (loading) {
         return (
-            <div className="d-flex align-items-center justify-content-center loader-screen-center">
+            <div className="loader-screen-center">
                 <div className="text-center">
-                    <FaTicketAlt size={40} className="loader-icon-indigo" />
-                    <p className="text-soft">Loading event...</p>
+                    <FaTicketAlt size={50} className="loader-icon-pink" />
+                    <p className="mt-3 fw-bold text-muted">Loading your premium experience...</p>
                 </div>
             </div>
         );
     }
 
-    if (error) {
+    if (error || !event) {
         return (
-            <div className="page-wrapper d-flex align-items-center justify-content-center min-vh-70">
-                <Container fluid className="px-md-5">
-                    <Row className="justify-content-center">
-                        <Col md={6} className="text-center">
-                            <Alert variant="danger" className="rounded-4 p-4 mb-4">
-                                <FaShieldAlt size={32} className="mb-3 error-screen-badge" />
-                                <h5 className="fw-bold mb-1">Event Not Found</h5>
-                                <p className="mb-0 small">{error}</p>
-                            </Alert>
-                        </Col>
-                    </Row>
+            <div className="loader-screen-center">
+                <Container>
+                    <Alert variant="danger" className="text-center rounded-4 p-5">
+                        <FaShieldAlt size={40} className="mb-3" />
+                        <h3>Event Not Found</h3>
+                        <p>{error || "We couldn't find the event you're looking for."}</p>
+                        <Link to="/events" className="btn btn-outline-pink mt-3">Back to Events</Link>
+                    </Alert>
                 </Container>
             </div>
         );
     }
-
-    if (!event) return null;
 
     const formattedDate = new Date(event.date).toLocaleDateString('en-US', {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
     });
 
     const bannerUrl = (event.bannerImage && event.bannerImage !== 'no-photo.jpg')
-        ? event.bannerImage
+        ? (event.bannerImage.startsWith('http') ? event.bannerImage : `http://localhost:5000/uploads/${event.bannerImage}`)
         : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=2000';
 
-    const selectedTicket = event.ticketTypes.find(t => t.name === selectedTier);
-    const totalPrice = (selectedTicket?.price || 0) * quantity;
-    const allSoldOut = event.ticketTypes.every(t => t.quantity - t.sold <= 0);
+    let selectedTicket;
+    let currentPlans = [];
+    let allSoldOut = false;
+    let computedTotalPrice = 0;
+    let displayPricePerPerson = 0;
+
+    if (event.isMultiDay) {
+        // Use the first selected day (or first day if none selected) to find plans
+        const referenceDate = selectedDays.length > 0 ? selectedDays[0] : event.multiDayPlan[0].date;
+        const currentDay = event.multiDayPlan.find(d => d.date === referenceDate);
+        currentPlans = currentDay?.plans || [];
+        selectedTicket = currentPlans.find(p => p.name === selectedTier);
+        
+        let anySoldOut = false;
+        selectedDays.forEach(date => {
+            const day = event.multiDayPlan.find(d => d.date === date);
+            const plan = day?.plans.find(p => p.name === selectedTier);
+            if (plan) {
+                displayPricePerPerson += plan.price;
+                if (plan.quantity - plan.sold <= 0) anySoldOut = true;
+            }
+        });
+        allSoldOut = anySoldOut;
+    } else {
+        selectedTicket = event.ticketTypes.find(t => t.name === selectedTier);
+        currentPlans = event.ticketTypes;
+        allSoldOut = event.ticketTypes.every(t => t.quantity - t.sold <= 0);
+        displayPricePerPerson = selectedTicket?.price || 0;
+    }
+
+    computedTotalPrice = displayPricePerPerson * quantity;
 
     return (
-        <div className="pb-5">
-            {/* ─── Cinematic Banner ─── */}
-            <section
-                className="position-relative text-white overflow-hidden cinematic-header-section"
-            >
-                {/* Background image with high-fidelity mask */}
-                <motion.div
-                    initial={{ scale: 1.1, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 2, ease: [0.19, 1, 0.22, 1] }}
-                    className="position-absolute top-0 start-0 w-100 h-100 bg-cover-center"
-                    style={{ backgroundImage: `url("${bannerUrl}")` }}
-                />
-                <div
-                    className="position-absolute top-0 start-0 w-100 h-100 header-gradient-overlay"
-                />
+        <div className="event-details-page">
+            {/* 1. HERO SECTION */}
+            <section className="event-hero">
+                <img src={bannerUrl} alt={event.title} className="hero-img" />
+                <div className="hero-overlay"></div>
 
-                <Container
-                    fluid
-                    className="position-relative d-flex flex-column justify-content-end pb-5 px-3 px-md-5 header-content-container"
-                >
-
+                <div className="hero-content">
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
+                        transition={{ duration: 0.6 }}
                     >
-
-                        {/* Category + status */}
-                        <div className="d-flex flex-wrap gap-2 mb-3">
-                            <Badge className="category-badge-exclusive">
-                                {event.category}
-                            </Badge>
-                            <Badge className="status-badge-outline">
-                                ● LIVE
-                            </Badge>
+                        <span className="hero-tag">Featured Event</span>
+                        <h1>{event.title}</h1>
+                        <div className="hero-meta">
+                            <span><FaMapMarkerAlt className="me-2" /> {event.venue}</span>
+                            <span><FaCalendarAlt className="ms-3 me-2" /> {formattedDate}</span>
                         </div>
-
-                        {/* Title */}
-                        <h1
-                            className="fw-black mb-4 h1-responsive main-title-cinematic"
-                        >
-                            {event.title}
-                        </h1>
-
-                        {/* Date, Time, Venue - Premium Chips */}
-                        <div className="d-flex flex-wrap gap-2 gap-md-3">
-                            {[
-                                { icon: <FaCalendarAlt />, text: formattedDate },
-                                { icon: <FaClock />, text: event.time },
-                                { icon: <FaMapMarkerAlt />, text: event.venue },
-                            ].map((item, i) => (
-                                <motion.div
-                                    key={i}
-                                    whileHover={{ y: -5 }}
-                                    className="glass-card px-3 px-md-4 py-2 py-md-3 d-flex align-items-center gap-2 gap-md-3 border-white/5"
-                                >
-                                    <span className="text-primary-light h6 h5-md m-0 d-flex">{item.icon}</span>
-                                    <span className="text-soft fw-black uppercase tracking-widest x-small">
-                                        {item.text}
-                                    </span>
-                                </motion.div>
-                            ))}
-                        </div>
-
                     </motion.div>
-                </Container>
+                </div>
+                
+                <Link to="/events" className="position-absolute top-0 start-0 m-4 text-white z-3 text-decoration-none d-flex align-items-center gap-2 small fw-bold">
+                    <FaArrowLeft /> Back
+                </Link>
             </section>
 
-            {/* ─── Content ─── */}
-            <Container fluid className="mt-4 px-md-5">
-                <Row className="g-4">
-                    {/* ─── Left: Description ─── */}
-                    <Col lg={8}>
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                        >
-                            {/* About - High Density Info */}
-                            <div className="glass-card p-4 p-md-5 mb-4 border-white/5 position-relative overflow-hidden">
-                                <h4 className="fw-black text-bright uppercase tracking-tighter mb-4 d-flex align-items-center gap-3">
-                                    Event Protocol
-                                </h4>
-                                <div
-                                    className="text-soft fw-medium lh-lg protocol-description-text"
-                                >
-                                    {event.description}
+            {/* 2. MAIN CONTENT (2 COLUMN) */}
+            <section className="event-main py-5">
+                <Container>
+                    <Row className="g-5">
+                        {/* LEFT (70%) */}
+                        <Col lg={8}>
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                            >
+                                <div className="event-content-card">
+                                    <h3>About This Event</h3>
+                                    <div className="description-text">
+                                        {event.description}
+                                    </div>
+
+                                    <h4 className="mt-5">What You'll Learn</h4>
+                                    <ul className="highlights-list">
+                                        <li>Advanced Makeup Techniques & Layering</li>
+                                        <li>Professional Skin Preparation & Priming</li>
+                                        <li>Mastering the Art of Bridal Transformations</li>
+                                        <li>Industry-Specific Styling & Color Theory</li>
+                                        <li>Exclusive Insights from Lead Artists</li>
+                                    </ul>
                                 </div>
-                            </div>
 
-                            {/* Event Details Grid */}
-                            <Card className="mb-4 rounded-5">
-                                <Card.Body className="p-4 bg-transparent">
-                                    <h4 className="fw-bold mb-4 text-bright">
-                                        Event Details
-                                    </h4>
-                                    <Row className="g-3">
-                                        <Col sm={6}>
-                                            <div className="info-block">
-                                                <div className="info-label">Date</div>
-                                                <div className="info-value">{formattedDate}</div>
-                                            </div>
-                                        </Col>
-                                        <Col sm={6}>
-                                            <div className="info-block">
-                                                <div className="info-label">Time</div>
-                                                <div className="info-value">{event.time}</div>
-                                            </div>
-                                        </Col>
-                                        <Col xs={12}>
-                                            <div className="info-block">
-                                                <div className="info-label">Venue</div>
-                                                <div className="info-value">{event.venue}</div>
-                                            </div>
-                                        </Col>
-                                    </Row>
-                                </Card.Body>
-                            </Card>
-
-                            {/* Organizer */}
-                            <Card className="rounded-5">
-                                <Card.Body className="p-4 d-flex align-items-center gap-4 bg-transparent">
-                                    <img
-                                        src={`https://ui-avatars.com/api/?name=${event.organizer?.name}&background=6366f1&color=fff&bold=true&size=60`}
-                                        alt={event.organizer?.name}
-                                        className="rounded-circle flex-shrink-0"
-                                        width={56}
-                                        height={56}
-                                    />
-                                    <div>
-                                        <div className="organizer-label-small">
-                                            Organized By
+                                <div className="event-content-card mt-4">
+                                    <h3>Event Schedule</h3>
+                                    <div className="d-flex flex-wrap gap-4">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <FaClock className="text-pink" />
+                                            <span><strong>Time:</strong> {event.time}</span>
                                         </div>
-                                        <div className="fw-bold text-bright fs-5">
-                                            {event.organizer?.name}
+                                        <div className="d-flex align-items-center gap-2">
+                                            <FaCalendarAlt className="text-pink" />
+                                            <span><strong>Date:</strong> {formattedDate}</span>
                                         </div>
                                     </div>
-                                </Card.Body>
-                            </Card>
-                        </motion.div>
-                    </Col>
-
-                    {/* ─── Right: Booking Sidebar ─── */}
-                    <Col lg={4}>
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.7 }}
-                            className="booking-sidebar-sticky"
-                        >
-                            <Card className="glass-card tilt-3d border-0 shadow-2xl rounded-5 overflow-hidden">
-                                {/* High-Contrast Booking Header */}
-                                <div className="bg-primary p-4 text-center position-relative overflow-hidden">
-                                    <div className="position-absolute top-0 start-0 w-100 h-100 opacity-20 booking-header-gradient-mask" />
-                                    <FaTicketAlt size={32} className="text-white mb-2 shadow-2xl" />
-                                    <h5 className="fw-black text-white uppercase tracking-widest m-0">Secure Booking</h5>
-                                    <p className="text-white-50 small m-0 fw-bold">Official Ticketing Partner</p>
                                 </div>
+                            </motion.div>
+                        </Col>
 
-                                <Card.Body className="p-4 bg-transparent">
-                                    {/* Ticket Type */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Ticket Type</Form.Label>
-                                        <Form.Select
-                                            value={selectedTier}
-                                            onChange={(e) => setSelectedTier(e.target.value)}
-                                        >
-                                            {event.ticketTypes.map((tier, idx) => (
-                                                <option
-                                                    key={idx}
-                                                    value={tier.name}
-                                                    disabled={tier.quantity - tier.sold <= 0}
+                        {/* RIGHT (30%) */}
+                        <Col lg={4}>
+                            <div className="booking-card-wrapper">
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.6, delay: 0.4 }}
+                                    className="booking-card"
+                                >
+                                    <span className="booking-price">₹{displayPricePerPerson}</span>
+                                    <p className="text-muted small fw-bold">Per Person</p>
+                                    
+                                    <ul className="booking-details">
+                                        <li><FaCalendarAlt /> {event.isMultiDay ? `${selectedDays.length} Day(s) Selected` : formattedDate}</li>
+                                        <li><FaMapMarkerAlt /> {event.venue}</li>
+                                        <li><FaClock /> {event.time}</li>
+                                    </ul>
+
+                                    {event.isMultiDay && (
+                                        <div className="mb-4">
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <Form.Label className="small fw-bold text-muted uppercase tracking-wider m-0">Select Event Date</Form.Label>
+                                                <span className="badge bg-light text-pink border border-pink fw-bold">
+                                                    {selectedDays.length} day(s) selected
+                                                </span>
+                                            </div>
+                                            <div className="date-selector-scroll d-flex gap-2 pb-2">
+                                                <div 
+                                                    className={`date-chip ${isAllDays ? 'active' : ''}`}
+                                                    onClick={() => {
+                                                        if (!isAllDays) {
+                                                            setIsAllDays(true);
+                                                            setSelectedDays(event.multiDayPlan.map(d => d.date));
+                                                        } else {
+                                                            setIsAllDays(false);
+                                                            setSelectedDays([]);
+                                                        }
+                                                    }}
                                                 >
-                                                    {tier.name} — ₹{tier.price}
-                                                    {tier.quantity - tier.sold <= 0 ? ' (Sold Out)' : ` (${tier.quantity - tier.sold} left)`}
-                                                </option>
+                                                    <div className="chip-day">All</div>
+                                                    <div className="chip-weekday">Days</div>
+                                                </div>
+                                                {event.multiDayPlan.map((day, idx) => {
+                                                    const isSelected = selectedDays.includes(day.date);
+                                                    return (
+                                                        <div 
+                                                            key={idx}
+                                                            className={`date-chip ${isSelected ? 'active' : ''}`}
+                                                            onClick={() => {
+                                                                if (isAllDays) {
+                                                                    setIsAllDays(false);
+                                                                    setSelectedDays([day.date]);
+                                                                    setSelectedDate(day.date);
+                                                                } else {
+                                                                    if (isSelected) {
+                                                                        setSelectedDays(selectedDays.filter(d => d !== day.date));
+                                                                    } else {
+                                                                        setSelectedDays([...selectedDays, day.date]);
+                                                                        setSelectedDate(day.date);
+                                                                    }
+                                                                }
+                                                                setSelectedTier(day.plans[0].name);
+                                                            }}
+                                                        >
+                                                            <div className="chip-day">{new Date(day.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</div>
+                                                            <div className="chip-weekday">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold text-muted uppercase tracking-wider">
+                                            {event.isMultiDay ? 'Select Plan' : 'Ticket Category'}
+                                        </Form.Label>
+                                        <div className="plan-selector d-flex flex-column gap-2">
+                                            {currentPlans.map((tier, idx) => (
+                                                <div 
+                                                    key={idx}
+                                                    className={`plan-option-card ${selectedTier === tier.name ? 'selected' : ''} ${tier.quantity - tier.sold <= 0 ? 'sold-out' : ''}`}
+                                                    onClick={() => tier.quantity - tier.sold > 0 && setSelectedTier(tier.name)}
+                                                >
+                                                    <div className="d-flex justify-content-between align-items-center w-100">
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <div className={`plan-radio ${selectedTier === tier.name ? 'checked' : ''}`}></div>
+                                                            <span className="plan-name">{tier.name}</span>
+                                                        </div>
+                                                        <span className="plan-price-tag">₹{tier.price}</span>
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </Form.Select>
+                                        </div>
                                     </Form.Group>
 
-                                    {/* Quantity */}
                                     <Form.Group className="mb-4">
-                                        <Form.Label>Quantity</Form.Label>
+                                        <Form.Label className="small fw-bold text-muted">Quantity</Form.Label>
                                         <Form.Control
                                             type="number"
                                             min="1"
                                             max="10"
+                                            className="rounded-3 border-light shadow-sm"
                                             value={quantity}
                                             onChange={(e) => setQuantity(e.target.value)}
                                         />
                                     </Form.Group>
 
-                                    {/* Total Price */}
-                                    <div
-                                        className="rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center amount-summary-box"
-                                    >
-                                        <span className="amount-summary-label">
-                                            Total Amount
-                                        </span>
-                                        <span
-                                            className="fw-black total-price-gradient-text"
-                                        >
-                                            ₹{totalPrice}
-                                        </span>
+                                    <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-3">
+                                        <span className="fw-bold text-muted">Total</span>
+                                        <span className="h4 fw-bold text-pink mb-0">₹{computedTotalPrice}</span>
                                     </div>
 
-                                    {/* Book Button */}
                                     {user && (user.role === 'staff' || user.role === 'organizer') ? (
-                                        <div className="text-center p-3 rounded-4 bg-amber-500/10 border border-amber-500/20">
-                                            <p className="small text-amber-500 fw-bold m-0 uppercase tracking-widest">
-                                                Ticket Reservation Restricted
+                                        <div className="text-center p-3 rounded-4 bg-danger bg-opacity-10 border border-danger border-opacity-20">
+                                            <p className="small text-danger fw-bold m-0 uppercase tracking-widest">
+                                                Restricted
                                             </p>
-                                            <p className="tiny-text text-soft m-0 mt-1">
-                                                Staff & Organizer accounts cannot purchase tickets. Please use an Attendee account.
+                                            <p className="tiny-text text-muted m-0 mt-1" style={{ fontSize: '0.7rem' }}>
+                                                Staff & Organizers cannot book events.
                                             </p>
                                         </div>
                                     ) : (
-                                        <Button
-                                            variant="primary"
-                                            size="lg"
-                                            className="w-100 d-flex align-items-center justify-content-center gap-2 btn rounded-pill fw-medium px-4 py-2"
+                                        <button
+                                            className="btn btn-pink w-100"
                                             onClick={handleBooking}
-                                            disabled={bookingLoading || allSoldOut}
+                                            disabled={allSoldOut}
                                         >
-                                            {bookingLoading ? (
-                                                <><Spinner size="sm" /> Processing...</>
-                                            ) : allSoldOut ? (
-                                                'Sold Out'
-                                            ) : (
-                                                <><FaShoppingCart /> Book Now</>
-                                            )}
-                                        </Button>
+                                            {allSoldOut ? 'Sold Out' : 'Book Now'}
+                                        </button>
                                     )}
 
-                                    {/* Trust badge */}
                                     <div className="text-center mt-3">
-                                        <small className="d-flex align-items-center justify-content-center gap-2 text-soft fw-bold x-small">
-                                            <FaCheckCircle size={12} className="text-success" />
-                                            Secure & encrypted checkout
+                                        <small className="d-flex align-items-center justify-content-center gap-2 text-muted fw-bold" style={{ fontSize: '0.75rem' }}>
+                                            <FaCheckCircle className="text-success" />
+                                            100% Secure Checkout
                                         </small>
                                     </div>
-                                </Card.Body>
-                            </Card>
+                                </motion.div>
 
-                            {/* Guarantee Box */}
-                            <div
-                                className="mt-3 rounded-3 p-3 d-flex align-items-center gap-3 guarantee-badge-box"
-                            >
-                                <FaShieldAlt size={20} className="text-primary-light flex-shrink-0" />
-                                <div>
-                                    <div className="fw-semibold text-bright small">
-                                        Verified Event
-                                    </div>
-                                    <div className="text-soft x-small">
-                                        Approved by GrowthUtsav admin team
+                                <div className="mt-4 p-3 rounded-4 bg-white shadow-sm border border-light d-flex align-items-center gap-3">
+                                    <FaShieldAlt size={24} className="text-pink" />
+                                    <div>
+                                        <div className="fw-bold small">GrowthUtsav Verified</div>
+                                        <div className="text-muted extra-small" style={{ fontSize: '0.7rem' }}>Official Event Partner</div>
                                     </div>
                                 </div>
                             </div>
+                        </Col>
+                    </Row>
+
+                    {/* EXTRA SECTION: Related Events */}
+                    {relatedEvents.length > 0 && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="related-section mt-5 pt-5"
+                        >
+                            <h2 className="related-title">You Might Also Love</h2>
+                            <Row className="g-4">
+                                {relatedEvents.map(related => (
+                                    <Col key={related._id} md={4}>
+                                        <EventCard event={related} />
+                                    </Col>
+                                ))}
+                            </Row>
                         </motion.div>
-                    </Col>
-                </Row>
-            </Container>
+                    )}
+                </Container>
+            </section>
         </div>
     );
 };

@@ -1,0 +1,227 @@
+/* ═══════════ PREMIUM EVENT PASS DESIGN (STRIPE/APPLE LEVEL) ═══════════ */
+
+/* Ticket Container */
+.premium-ticket-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  padding: 40px 20px !important;
+  background: #fff5f8 !important; /* Matches cutouts */
+  min-height: 100vh !important;
+}
+
+.ticket-pass-card {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  min-height: 320px !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  
+  /* PREMIUM WHITE-GOLD-PINK GRADIENT */
+  background: linear-gradient(135deg, 
+    #ffffff 0%, 
+    #fffbf0 45%, 
+    #fff0f6 100%
+  ) !important;
+  
+  color: #1a1a1a !important; /* Elegant Black */
+  box-shadow: 
+    0 20px 50px rgba(173, 20, 87, 0.1),
+    0 10px 20px rgba(0,0,0,0.05) !important;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  border: 1px solid rgba(212, 175, 55, 0.2) !important; /* Subtle Gold Border */
+}
+
+.ticket-pass-card:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 0 30px 60px rgba(173, 20, 87, 0.15) !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+}
+
+/* Left Section: Event Details */
+.ticket-pass-left {
+  flex: 1 !important;
+  padding: 40px !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+/* Right Section: QR & Price */
+.ticket-pass-right {
+  width: 250px !important;
+  padding: 40px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(212, 175, 55, 0.05) !important; /* Very subtle gold tint */
+  border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
+  position: relative !important;
+}
+
+/* Perforation Divider */
+.ticket-pass-divider {
+  position: absolute !important;
+  left: -1px !important;
+  top: 40px !important;
+  bottom: 40px !important;
+  width: 2px !important;
+  border-left: 2px dashed rgba(0, 0, 0, 0.1) !important;
+  z-index: 10 !important;
+}
+
+/* Perforation Cutouts */
+.ticket-pass-card::before,
+.ticket-pass-card::after {
+  content: "" !important;
+  position: absolute !important;
+  width: 36px !important;
+  height: 36px !important;
+  background: #fff5f8 !important; /* Page background color to look like holes */
+  border-radius: 50% !important;
+  left: calc(100% - 250px - 18px) !important; 
+  z-index: 20 !important;
+}
+
+.ticket-pass-card::before {
+  top: -18px !important;
+  box-shadow: inset 0 -4px 6px rgba(0,0,0,0.05) !important;
+}
+
+.ticket-pass-card::after {
+  bottom: -18px !important;
+  box-shadow: inset 0 4px 6px rgba(0,0,0,0.05) !important;
+}
+
+/* Typography */
+.pass-category {
+  font-size: 0.75rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.2em !important;
+  color: #ec407a !important; /* Premium Pink */
+  margin-bottom: 12px !important;
+}
+
+.pass-title {
+  font-size: 2.2rem !important;
+  font-weight: 900 !important;
+  margin-bottom: 24px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.04em !important;
+  color: #1a1a1a !important;
+}
+
+.pass-info-row {
+  display: flex !important;
+  gap: 24px !important;
+  margin-bottom: 24px !important;
+}
+
+.pass-info-item {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.pass-info-label {
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  color: rgba(0, 0, 0, 0.4) !important;
+  letter-spacing: 0.1em !important;
+  margin-bottom: 4px !important;
+}
+
+.pass-info-value {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #1a1a1a !important;
+}
+
+/* QR Code Section */
+.pass-qr-wrapper {
+  background: white !important;
+  padding: 12px !important;
+  border-radius: 16px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+
+.pass-qr-image {
+  width: 140px !important;
+  height: 140px !important;
+  display: block !important;
+}
+
+.pass-badge {
+  background: linear-gradient(135deg, #ec407a, #d81b60) !important;
+  color: white !important;
+  padding: 8px 20px !important;
+  border-radius: 99px !important;
+  font-size: 0.7rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  box-shadow: 0 4px 15px rgba(236, 64, 122, 0.3) !important;
+}
+
+/* Logo placement (Gold Accent) */
+.pass-logo {
+  position: absolute !important;
+  top: 40px !important;
+  right: 40px !important;
+  opacity: 0.08 !important;
+  font-size: 5rem !important;
+  pointer-events: none !important;
+  color: #D4AF37 !important; /* Gold */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .ticket-pass-card {
+    flex-direction: column !important;
+    max-width: 400px !important;
+  }
+  
+  .ticket-pass-right {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 30px !important;
+  }
+  
+  .ticket-pass-divider {
+    display: none !important;
+  }
+  
+  .ticket-pass-card::before,
+  .ticket-pass-card::after {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  
+  .ticket-pass-card::before {
+    top: auto !important;
+    bottom: calc(250px - 18px) !important; /* Position between sections */
+    transform: translateX(-50%) rotate(90deg) !important; /* Not really rotating circles but for symmetry */
+  }
+
+  /* Adjust holes for mobile vertical layout */
+  .ticket-pass-card::before {
+      top: auto !important;
+      bottom: 236px !important;
+      left: -18px !important;
+  }
+  .ticket-pass-card::after {
+      top: auto !important;
+      bottom: 236px !important;
+      right: -18px !important;
+      left: auto !important;
+  }
+}

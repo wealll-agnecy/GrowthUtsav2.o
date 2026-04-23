@@ -36,6 +36,19 @@
     margin-bottom: 1rem;
 }
 
+.events-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+}
+
+/* Ensure no fixed height container interferes */
+.events-listing-row {
+    min-height: auto;
+}
+
 @keyframes spin-slow {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }

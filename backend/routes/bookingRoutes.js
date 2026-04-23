@@ -16,6 +16,8 @@ router.post('/demo-checkout', protect, authorize('attendee', 'admin'), demoBooki
 router.post('/checkout', protect, authorize('attendee', 'admin'), checkout);
 router.post('/create-order', protect, authorize('attendee', 'admin'), checkout);
 router.post('/verify', protect, authorize('attendee', 'admin'), verifyPayment);
+router.post('/:id/installment', protect, authorize('attendee', 'admin'), require('../controllers/bookingController').initiateInstallment);
+router.post('/verify-installment', protect, authorize('attendee', 'admin'), require('../controllers/bookingController').verifyInstallment);
 router.get('/mybookings', protect, getMyBookings);
 
 module.exports = router;

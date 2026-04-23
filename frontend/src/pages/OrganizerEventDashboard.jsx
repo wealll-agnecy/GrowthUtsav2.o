@@ -6,7 +6,7 @@ import { Container, Row, Col, Button, Badge, Card, Spinner, Alert, Tabs, Tab, Pr
 import {
     FaArrowLeft, FaCheck, FaTrash, FaEdit, FaTicketAlt,
     FaUsers, FaWallet, FaSatellite, FaBolt, FaExclamationTriangle,
-    FaCloudDownloadAlt, FaSyncAlt, FaGavel, FaCheckCircle
+    FaCloudDownloadAlt, FaSyncAlt, FaGavel, FaCheckCircle, FaMapMarkerAlt
 } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import AttendeeTable from '../components/analytics/AttendeeTable';
@@ -137,132 +137,118 @@ const OrganizerEventDashboard = () => {
     // Limited dashboard for unapproved events
     if (event.status !== 'approved' && event.status !== 'live' && event.status !== 'completed') {
         return (
-            <div className="dashboard-content pb-5">
+            <div className="dashboard-page">
                 <Container fluid className="px-md-5">
-                    <div className="mb-5 d-flex flex-column pt-4">
-                        <h1 className="fw-black m-0 tracking-tighter text-white" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}>
-                            {event.title}
-                        </h1>
-                        <Badge bg={event.status === 'rejected' ? 'danger' : 'warning'} text={event.status === 'warning' ? 'dark' : 'white'} className="mt-3 align-self-start px-3 py-2 rounded-pill fw-black text-uppercase tracking-widest shadow-sm">
-                            {event.status === 'rejected' ? 'Rejected' : 'Waiting for admin approval'}
-                        </Badge>
+                    <div className="dashboard-header mb-5">
+                        <h1 className="dashboard-title-main">{event.title}</h1>
+                        <div className="mt-3">
+                            <span className={`status-badge ${event.status === 'rejected' ? 'bg-danger text-white' : 'badge-pink'}`}>
+                                {event.status.toUpperCase()}
+                            </span>
+                        </div>
                     </div>
 
-                    <Card className="border-0 shadow-2xl rounded-5 overflow-hidden glass-panel border-white/10 p-5 text-center">
-                        <div className="display-1 mb-4 opacity-50 text-warning">⏳</div>
-                        <h3 className="fw-black text-white text-uppercase tracking-widest mb-3">Limited Dashboard</h3>
-                        <p className="text-white-50 fs-5 mb-4">This event is currently {event.status}. Full analytics, attendee details, and management features will be unlocked once approved by an administrator.</p>
+                    <div className="dashboard-card p-5 text-center shadow-sm">
+                        <div className="display-1 mb-4 opacity-10">⏳</div>
+                        <h3 className="dashboard-title-main mb-3" style={{ fontSize: '1.5rem' }}>Limited Dashboard Access</h3>
+                        <p className="dashboard-subtext fs-5 mb-4 px-lg-5">This event node is currently in <strong>{event.status}</strong> mode. Full analytics, attendee details, and management features will be unlocked once approved by an administrator.</p>
                         <div className="d-flex justify-content-center gap-3">
-                            <Button as={Link} to={`/organizer/edit-event/${id}`} variant="outline-light" className="rounded-pill btn fw-medium px-4 py-2">EDIT EVENT</Button>
-                            <Button variant="outline-danger" className="rounded-pill btn fw-medium px-4 py-2" onClick={handleDelete}>DELETE EVENT</Button>
+                            <Button as={Link} to={`/organizer/edit-event/${id}`} className="btn btn-pink px-4 py-2">EDIT EVENT</Button>
+                            <Button className="btn btn-outline-pink rounded-pill px-4 py-2 fw-bold" onClick={handleDelete}>DELETE EVENT</Button>
                         </div>
-                    </Card>
+                    </div>
                 </Container>
             </div>
         );
     }
 
     return (
-        <div className="dashboard-content pb-5">
+        <div className="dashboard-page">
             <Container fluid className="px-md-5">
                 {/* ─── Navigation & Header ─── */}
-                <div className="mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 pt-4">
+                <div className="dashboard-header d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
                     <div className="flex-grow-1">
-                        <div className="d-flex align-items-center gap-3 mb-3">
-                            <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 text-uppercase tracking-widest fw-black small shadow-2xl">
-                                <FaSatellite className="me-2" /> Global Protocol: {id.slice(-6).toUpperCase()}
-                            </Badge>
-                            <Badge bg={event.status === 'live' ? 'success' : 'warning'} className="px-3 py-2 rounded-pill fw-black text-uppercase tracking-widest shadow-sm">
-                                {event.status}
-                            </Badge>
+                        <div className="d-flex align-items-center gap-3 mb-2">
+                            <span className="status-badge">NODE: {id.slice(-6).toUpperCase()}</span>
+                            <span className={`status-badge ${event.status === 'live' ? 'badge-pink' : ''}`}>
+                                {event.status.toUpperCase()}
+                            </span>
                         </div>
-                        <h1 className="fw-black m-0 tracking-tighter text-white" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1 }}>
-                            {event.title} <span className="gradient-text">Dashboard</span>
-                        </h1>
+                        <h1 className="dashboard-title-main">{event.title}</h1>
+                        <p className="dashboard-subtext">Operational intelligence and guest telemetry dashboard.</p>
                     </div>
                     <div className="d-flex flex-wrap gap-2 w-100 w-md-auto">
                         <Button
                             as={Link}
                             to={`/organizer/edit-event/${id}`}
-                            variant="outline-light"
-                            className="flex-grow-1 flex-md-grow-0 px-md-4 d-flex align-items-center justify-content-center gap-2 hover-bg-white hover-text-dark transition-all btn rounded-pill fw-medium px-4 py-2"
+                            className="btn btn-outline-pink flex-grow-1 flex-md-grow-0 px-md-4 d-flex align-items-center justify-content-center gap-2"
                         >
-                            <FaEdit size={12} /> <span className="d-none d-sm-inline">EDIT NODE</span><span className="d-sm-none">EDIT</span>
+                            <FaEdit size={12} /> EDIT NODE
                         </Button>
                         {event.status === 'approved' && (
                             <Button
-                                variant="primary"
-                                className="flex-grow-1 flex-md-grow-0 px-md-5 d-flex align-items-center justify-content-center gap-2 btn rounded-pill fw-medium px-4 py-2"
+                                className="btn btn-pink flex-grow-1 flex-md-grow-0 px-md-5 d-flex align-items-center justify-content-center gap-2 rounded-pill fw-bold"
                                 onClick={() => handleStatusUpdate('live')}
                                 disabled={actionLoading}
                             >
-                                <FaBolt /> <span className="d-none d-sm-inline">GO LIVE</span><span className="d-sm-none">LIVE</span>
+                                <FaBolt /> GO LIVE
                             </Button>
                         )}
                         {event.status === 'live' && (
                             <Button
-                                variant="success"
-                                className="flex-grow-1 flex-md-grow-0 px-md-5 d-flex align-items-center justify-content-center gap-2 btn rounded-pill fw-medium px-4 py-2"
+                                className="flex-grow-1 flex-md-grow-0 px-md-5 d-flex align-items-center justify-content-center gap-2 rounded-pill fw-bold text-white"
+                                style={{ background: '#10b981', border: 'none' }}
                                 onClick={() => handleStatusUpdate('completed')}
                                 disabled={actionLoading}
                             >
-                                <FaCheck /> <span className="d-none d-sm-inline">MARK COMPLETED</span><span className="d-sm-none">FINISH</span>
+                                <FaCheck /> MARK COMPLETED
                             </Button>
                         )}
                     </div>
-
                 </div>
 
                 {/* ─── Immersive Dashboard ─── */}
-                <Card className="border-0 shadow-2xl rounded-5 overflow-hidden glass-panel border-white/10">
+                <div className="dashboard-card shadow-sm p-0 overflow-hidden">
                     <Tabs
                         activeKey={activeTab}
                         onSelect={(k) => setActiveTab(k)}
-                        className="custom-dashboard-tabs border-0 bg-white/5 p-2 backdrop-blur-xl"
+                        className="custom-dashboard-tabs border-0 bg-light p-2"
                     >
                         <Tab eventKey="overview" title="OVERVIEW" className="p-4 p-md-5">
                             <Row className="g-5 mb-5 align-items-center">
                                 <Col lg={5}>
-                                    <div className="position-relative rounded-5 overflow-hidden shadow-2xl border border-white/10 perspective-1000 mb-4 mb-lg-0" style={{ height: '300px' }}>
-                                        <img src={event.bannerImage && event.bannerImage !== 'no-photo.jpg' ? event.bannerImage : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'} className="w-100 h-100 object-fit-cover transition-all duration-700 hover-scale-110" />
-                                        <div className="position-absolute bottom-0 start-0 w-100 p-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}>
-                                            <div className="small fw-black text-white-50 text-uppercase tracking-widest mb-1">Location</div>
-                                            <div className="h5 fw-black text-white m-0 d-flex align-items-center gap-2"><FaSatellite className="text-primary" /> {event.venue}</div>
+                                    <div className="position-relative rounded-4 overflow-hidden shadow-sm border" style={{ height: '300px' }}>
+                                        <img src={event.bannerImage && event.bannerImage !== 'no-photo.jpg' ? event.bannerImage : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'} className="w-100 h-100 object-fit-cover" alt="Banner" />
+                                        <div className="position-absolute bottom-0 start-0 w-100 p-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
+                                            <div className="small fw-bold text-white-50 text-uppercase tracking-widest mb-1" style={{ fontSize: '0.65rem' }}>Location</div>
+                                            <div className="h5 fw-bold text-white m-0 d-flex align-items-center gap-2"><FaMapMarkerAlt className="text-pink" /> {event.venue}</div>
                                         </div>
                                     </div>
-
                                 </Col>
                                 <Col lg={7}>
-                                    <Row className="g-4">
-                                        <Col md={6}>
-                                            <div className="p-4 rounded-5 glass-panel border-white/10 d-flex flex-column justify-content-center shadow-inner h-100">
-                                                <div className="text-white-50 small fw-black tracking-widest uppercase mb-2">Aggregate Revenue</div>
-                                                <div className="h1 fw-black text-primary m-0 gradient-text">₹{totalRevenue.toLocaleString()}</div>
-                                                <div className="mt-3 d-flex align-items-center gap-2">
-                                                    <Badge bg="success-subtle" text="success" className="rounded-pill px-2 py-1 small fw-black">+12%</Badge>
-                                                    <span className="text-white-50 small fw-bold opacity-60">Node performance increase</span>
-                                                </div>
+                                    <div className="stats-grid-saas mb-4">
+                                        <div className="dashboard-card shadow-sm border-slate-100 p-4 h-100">
+                                            <span className="card-title-sm">Aggregate Revenue</span>
+                                            <h3 className="card-value-lg text-pink">₹{totalRevenue.toLocaleString()}</h3>
+                                            <div className="mt-2 text-success small fw-bold">+12.4% Performance</div>
+                                        </div>
+                                        <div className="dashboard-card shadow-sm border-slate-100 p-4 h-100">
+                                            <div className="d-flex justify-content-between mb-2">
+                                                <span className="card-title-sm">Capacity</span>
+                                                <span className="fw-bold text-pink">{progress}%</span>
                                             </div>
-                                        </Col>
-                                        <Col md={6}>
-                                            <div className="p-4 rounded-5 glass-panel border-white/10 d-flex flex-column justify-content-center shadow-inner h-100">
-                                                <div className="d-flex justify-content-between mb-2">
-                                                    <div className="text-white-50 small fw-black tracking-widest uppercase">Capacity Saturation</div>
-                                                    <div className="text-primary-light fw-black">{progress}%</div>
-                                                </div>
-                                                <ProgressBar now={progress} variant={progress > 80 ? 'success' : 'primary'} className="rounded-pill bg-white/5 shadow-inner" style={{ height: '12px' }} />
-                                                <div className="mt-3 text-white-50 small fw-black tracking-widest uppercase opacity-60">
-                                                    {totalSold} / {totalCapacity} TICKETS DEPLOYED
-                                                </div>
+                                            <ProgressBar now={progress} variant="pink" className="rounded-pill bg-slate-100" style={{ height: '8px' }} />
+                                            <div className="mt-3 text-slate small fw-bold opacity-60">
+                                                {totalSold} / {totalCapacity} Units
                                             </div>
-                                        </Col>
-                                    </Row>
-                                    <div className="mt-5 p-4 rounded-5 bg-white/5 border border-white/5 shadow-2xl">
+                                        </div>
+                                    </div>
+                                    <div className="p-4 rounded-4 bg-light border border-slate-200">
                                         <div className="d-flex align-items-center gap-4">
-                                            <div className="bg-primary/20 p-3 rounded-circle text-primary shadow-lg"><FaUsers size={24} /></div>
+                                            <div className="bg-white p-3 rounded-circle shadow-sm text-pink"><FaBolt size={24} /></div>
                                             <div>
-                                                <div className="text-white-50 small fw-black tracking-widest uppercase mb-1">Event Telemetry</div>
-                                                <div className="text-white fw-medium">Scheduled for {event?.date ? new Date(event.date).toLocaleDateString() : 'TBD'} at {event?.time || 'TBD'}. Category: <span className="text-primary fw-black uppercase">{event?.category || 'Legacy'}</span></div>
+                                                <span className="card-title-sm" style={{ fontSize: '0.7rem' }}>Event Telemetry</span>
+                                                <p className="dashboard-subtext m-0">Scheduled for <strong>{event?.date ? new Date(event.date).toLocaleDateString() : 'TBD'}</strong>. Primary Sector: <strong>{event?.category || 'General'}</strong></p>
                                             </div>
                                         </div>
                                     </div>
@@ -273,10 +259,10 @@ const OrganizerEventDashboard = () => {
                         <Tab eventKey="attendees" title="ATTENDEES" className="p-4 p-md-5">
                             <div className="mb-5 d-flex justify-content-between align-items-center flex-wrap gap-4">
                                 <div>
-                                    <h4 className="fw-black text-white uppercase tracking-widest m-0">Attendee Registry</h4>
-                                    <p className="text-white-50 small mb-0 fw-medium opacity-60 uppercase tracking-tighter">Real-time Guest telemetry for this deployment node</p>
+                                    <h4 className="dashboard-title-main" style={{ fontSize: '1.5rem' }}>Attendee Registry</h4>
+                                    <p className="dashboard-subtext">Real-time Guest telemetry for this deployment node</p>
                                 </div>
-                                <Button variant="success" className="rounded-pill d-flex align-items-center gap-3 btn fw-medium px-4 py-2" onClick={exportToCSV} disabled={attendees.length === 0}>
+                                <Button className="btn btn-outline-pink d-flex align-items-center gap-3 border-success text-success hover-bg-success hover-text-white transition-all shadow-none" onClick={exportToCSV} disabled={attendees.length === 0}>
                                     <FaCloudDownloadAlt /> ARCHIVE CSV
                                 </Button>
                             </div>
@@ -285,26 +271,26 @@ const OrganizerEventDashboard = () => {
 
                         <Tab eventKey="tickets" title="TICKETS" className="p-4 p-md-5">
                             <div className="mb-5">
-                                <h4 className="fw-black text-white uppercase tracking-widest mb-4">Pricing Configuration</h4>
-                                <div className="table-responsive rounded-5 glass-panel border-white/5 overflow-hidden shadow-2xl">
-                                    <Table hover variant="dark" className="m-0 align-middle bg-transparent">
-                                        <thead className="bg-white/5 border-bottom border-white/10">
-                                            <tr className="small text-uppercase fw-black text-white-50 tracking-widest">
-                                                <th className="px-5 py-4">Tier Name</th>
+                                <h4 className="dashboard-title-main mb-4" style={{ fontSize: '1.5rem' }}>Pricing Configuration</h4>
+                                <div className="table-responsive rounded-4 border overflow-hidden shadow-sm">
+                                    <Table hover className="m-0 align-middle">
+                                        <thead className="bg-light">
+                                            <tr className="small text-uppercase fw-bold text-slate tracking-widest">
+                                                <th className="px-4 py-4">Tier Name</th>
                                                 <th className="py-4">Unit Price (₹)</th>
                                                 <th className="py-4">Max Capacity</th>
                                                 <th className="py-4">Sold Count</th>
-                                                <th className="text-end px-5 py-4">Protocol Status</th>
+                                                <th className="text-end px-4 py-4">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="border-0">
+                                        <tbody>
                                             {(event?.ticketTypes || []).map((tier, idx) => (
-                                                <tr key={idx} className="border-bottom border-white/5 hover-bg-white/5 transition-all">
-                                                    <td className="px-5 py-4 fw-black text-white fs-5">{tier.name}</td>
+                                                <tr key={idx} className="border-bottom border-slate-100">
+                                                    <td className="px-4 py-4 fw-bold">{tier.name}</td>
                                                     <td className="py-4">
                                                         <Form.Control
                                                             type="number"
-                                                            className="bg-white/5 border-white/10 text-white fw-bold rounded-4 shadow-none w-auto py-2 px-3 focus-border-primary"
+                                                            className="bg-light border-slate-200 fw-bold rounded-3 shadow-none w-auto py-2 px-3"
                                                             value={tier.price}
                                                             onChange={(e) => handleTicketUpdate(e, idx, 'price', e.target.value)}
                                                         />
@@ -312,14 +298,14 @@ const OrganizerEventDashboard = () => {
                                                     <td className="py-4">
                                                         <Form.Control
                                                             type="number"
-                                                            className="bg-white/5 border-white/10 text-white fw-bold rounded-4 shadow-none w-auto py-2 px-3 focus-border-primary"
+                                                            className="bg-light border-slate-200 fw-bold rounded-3 shadow-none w-auto py-2 px-3"
                                                             value={tier.quantity}
                                                             onChange={(e) => handleTicketUpdate(e, idx, 'quantity', e.target.value)}
                                                         />
                                                     </td>
-                                                    <td className="py-4 fw-black text-primary-light fs-5">{tier.sold}</td>
-                                                    <td className="text-end px-5 py-4">
-                                                        <Badge bg="primary-subtle" text="primary" className="fw-black text-uppercase px-3 py-2 border border-primary/20">SYNCED</Badge>
+                                                    <td className="py-4 fw-bold text-pink">{tier.sold}</td>
+                                                    <td className="text-end px-4 py-4">
+                                                        <span className="status-badge badge-pink">SYNCED</span>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -330,15 +316,12 @@ const OrganizerEventDashboard = () => {
                         </Tab>
 
                         <Tab eventKey="analytics" title="ANALYTICS" className="p-4 p-md-5">
-                            <Row className="g-5">
+                            <Row className="g-4">
                                 <Col lg={8}>
-                                    <div className="glass-panel p-5 rounded-5 border-white/5 shadow-inner h-100">
+                                    <div className="dashboard-card border-slate-100 p-4 h-100">
                                         <div className="d-flex justify-content-between align-items-center mb-5">
-                                            <h5 className="fw-black text-white uppercase tracking-widest m-0">Revenue Propagation</h5>
-                                            <div className="d-flex gap-2">
-                                                <Badge bg="primary" className="p-2 rounded-circle"></Badge>
-                                                <span className="text-white-50 small fw-black tracking-widest uppercase">Live Telemetry</span>
-                                            </div>
+                                            <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Revenue Propagation</h5>
+                                            <span className="status-badge badge-pink">Live Telemetry</span>
                                         </div>
                                         <RevenueChart data={[
                                             { name: 'Deploy', revenue: 0 },
@@ -349,7 +332,7 @@ const OrganizerEventDashboard = () => {
                                     </div>
                                 </Col>
                                 <Col lg={4}>
-                                    <div className="glass-panel p-5 rounded-5 border-white/5 shadow-inner h-100">
+                                    <div className="dashboard-card border-slate-100 p-4 h-100">
                                         <TicketDistributionChart data={[
                                             { name: 'DEPLOYED', value: totalSold },
                                             { name: 'VACANT', value: totalCapacity - totalSold },
@@ -360,32 +343,32 @@ const OrganizerEventDashboard = () => {
                         </Tab>
 
                         <Tab eventKey="actions" title="GOVERNANCE" className="p-4 p-md-5">
-                            <h4 className="fw-black text-white uppercase tracking-widest mb-5">Danger Sector</h4>
+                            <h4 className="dashboard-title-main mb-5" style={{ fontSize: '1.5rem' }}>Danger Sector</h4>
                             <Row className="g-4">
                                 <Col md={6}>
-                                    <div className="p-5 rounded-5 glass-panel border-danger/20 shadow-2xl h-100 d-flex flex-column gap-4 align-items-start hover-glow-red transition-all">
-                                        <div className="bg-danger/20 p-4 rounded-circle text-danger shadow-lg"><FaTrash size={32} /></div>
+                                    <div className="dashboard-card border-danger/20 p-5 h-100 d-flex flex-column gap-4 align-items-start shadow-sm">
+                                        <div className="bg-danger/10 p-4 rounded-circle text-danger"><FaTrash size={32} /></div>
                                         <div>
-                                            <h4 className="fw-black text-white m-0">PURGE PROTOCOL</h4>
-                                            <p className="text-white-50 mt-2 mb-0 fw-medium">Permanently delete this event. This action is irreversible and will wipe all guest data and analytics from the master node.</p>
+                                            <h4 className="dashboard-title-main m-0" style={{ fontSize: '1.25rem' }}>PURGE PROTOCOL</h4>
+                                            <p className="dashboard-subtext mt-2 mb-0">Permanently delete this event. This action is irreversible and will wipe all guest data and analytics from the master node.</p>
                                         </div>
-                                        <Button variant="outline-danger" className="rounded-pill mt-auto btn fw-medium px-4 py-2" onClick={handleDelete}>EXECUTE PURGE</Button>
+                                        <Button className="btn btn-outline-pink rounded-pill mt-auto fw-bold px-4 py-2" onClick={handleDelete}>EXECUTE PURGE</Button>
                                     </div>
                                 </Col>
                                 <Col md={6}>
-                                    <div className="p-5 rounded-5 glass-panel border-white/5 shadow-2xl h-100 d-flex flex-column gap-4 align-items-start hover-glow-primary transition-all">
-                                        <div className="bg-white/10 p-4 rounded-circle text-white shadow-lg"><FaCloudDownloadAlt size={32} /></div>
+                                    <div className="dashboard-card border-slate-100 p-5 h-100 d-flex flex-column gap-4 align-items-start shadow-sm">
+                                        <div className="bg-slate-100 p-4 rounded-circle text-slate"><FaCloudDownloadAlt size={32} /></div>
                                         <div>
-                                            <h4 className="fw-black text-white m-0">DATA BACKUP</h4>
-                                            <p className="text-white-50 mt-2 mb-0 fw-medium">Export a full guest manifest in portable CSV format for secure offline processing and external auditing.</p>
+                                            <h4 className="dashboard-title-main m-0" style={{ fontSize: '1.25rem' }}>DATA BACKUP</h4>
+                                            <p className="dashboard-subtext mt-2 mb-0">Export a full guest manifest in portable CSV format for secure offline processing and external auditing.</p>
                                         </div>
-                                        <Button variant="outline-light" className="rounded-pill mt-auto btn fw-medium px-4 py-2" onClick={exportToCSV}>EXPORT ARCHIVE</Button>
+                                        <Button className="btn btn-pink rounded-pill mt-auto fw-bold px-4 py-2" onClick={exportToCSV}>EXPORT ARCHIVE</Button>
                                     </div>
                                 </Col>
                             </Row>
                         </Tab>
                     </Tabs>
-                </Card>
+                </div>
             </Container>
         </div>
     );

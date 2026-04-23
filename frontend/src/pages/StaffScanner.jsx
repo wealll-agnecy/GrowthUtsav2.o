@@ -106,7 +106,7 @@ const StaffScanner = () => {
         <div className="bg-black vh-100 vw-100 overflow-hidden d-flex flex-column">
             {/* Header Hub */}
             <div className="p-3 d-flex justify-content-between align-items-center bg-dark/50 backdrop-blur z-3">
-                <Link to="/staff/dashboard" className="btn btn-outline-light rounded-pill px-4 py-2 small fw-bold tracking-widest text-uppercase border-white/20">
+                <Link to="/staff/dashboard" className="btn btn-outline-pink rounded-pill px-4 py-2 small fw-bold tracking-widest text-uppercase">
                     <FaBackward className="me-2" /> Exit Terminal
                 </Link>
                 <div className="d-flex align-items-center gap-3">
@@ -180,6 +180,17 @@ const StaffScanner = () => {
                                                         <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Deployment Location</div>
                                                         <div className="fw-bold fs-4">{scanResult.ticket.eventName}</div>
                                                     </div>
+                                                    <div>
+                                                        <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Validity</div>
+                                                        <div className="fw-bold fs-5">
+                                                            VALID FOR: {scanResult.ticket.selectedDays?.length > 0 ? `${scanResult.ticket.selectedDays.length} Days` : '1 Day'}
+                                                        </div>
+                                                        <div className="fw-bold fs-6 opacity-75 mt-1">
+                                                            {scanResult.ticket.selectedDays?.length > 0 
+                                                                ? `DATES: ${scanResult.ticket.selectedDays.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })).join(', ')}`
+                                                                : `DATE: ${new Date(scanResult.ticket.selectedDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                                                        </div>
+                                                    </div>
                                                     <div className="d-flex justify-content-between">
                                                         <div>
                                                             <div className="x-small fw-black uppercase tracking-widest opacity-60 mb-1">Access Tier</div>
@@ -199,10 +210,8 @@ const StaffScanner = () => {
                                         <div className="mt-5 pt-4">
                                             <div className="text-white-50 small fw-bold tracking-widest uppercase mb-3 opacity-60">System will auto-reset in 5 seconds</div>
                                             <Button 
-                                                variant="light" 
-                                                size="lg" 
                                                 onClick={resetScanner}
-                                                className="rounded-pill btn fw-medium px-4 py-2"
+                                                className="btn btn-pink rounded-pill fw-medium px-4 py-2"
                                             >
                                                 Manual Reset
                                             </Button>

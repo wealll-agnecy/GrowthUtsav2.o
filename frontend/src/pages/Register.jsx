@@ -153,7 +153,7 @@ const Register = () => {
                                         <Form.Control id="phone" type="text" className="premium-auth-input" placeholder="+91 00000 00000" value={formData.phone} onChange={handleChange} required />
                                     </div>
                                     <div className="premium-input-group">
-                                        <label>Security Key</label>
+                                        <label>CREATE PASSWORD</label>
                                         <div className="position-relative">
                                             <Form.Control id="password" type={showPassword ? "text" : "password"} className="premium-auth-input password-input" placeholder="Create a strong password" value={formData.password} onChange={handleChange} required minLength="6" />
                                             <button type="button" className="btn position-absolute end-0 top-50 translate-middle-y border-0 shadow-none password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
@@ -200,7 +200,7 @@ const Register = () => {
                                                     {orgDetails.logoPreview ? (
                                                         <div className="position-relative w-100 h-100 d-flex align-items-center justify-content-center">
                                                             <img src={orgDetails.logoPreview} className="img-fluid rounded-3" style={{ maxHeight: '140px' }} alt="Brand" />
-                                                            <button type="button" className="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle" onClick={(e) => { e.stopPropagation(); removeLogo(); }}><FaTimes /></button>
+                                                            <button type="button" className="btn btn-sm btn-pink position-absolute top-0 end-0 rounded-circle" onClick={(e) => { e.stopPropagation(); removeLogo(); }}><FaTimes /></button>
                                                         </div>
                                                     ) : (
                                                         <div className="text-center">
@@ -219,13 +219,13 @@ const Register = () => {
 
                         <div className="d-flex gap-2 mt-4">
                             {step === 2 && (
-                                <button type="button" className="btn btn-outline-secondary rounded-3 px-4" onClick={() => setStep(1)}>
+                                <button type="button" className="btn btn-outline-pink rounded-3 px-4" onClick={() => setStep(1)}>
                                     <FaArrowLeft />
                                 </button>
                             )}
                             <button
                                 type="submit"
-                                className="btn-beauty-primary"
+                                className="btn btn-pink"
                                 disabled={loading}
                             >
                                 {loading ? <Spinner size="sm" /> : step === 1 && isOrganizer ? 'Next: Business Setup' : 'Activate Account'}

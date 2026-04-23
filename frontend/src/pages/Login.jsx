@@ -77,7 +77,7 @@ const Login = () => {
 
                     <Form onSubmit={handleSubmit}>
                         <div className="premium-input-group">
-                            <label>Identity / Email</label>
+                            <label>Email</label>
                             <Form.Control
                                 type="text"
                                 className="premium-auth-input"
@@ -89,7 +89,8 @@ const Login = () => {
                         </div>
 
                         <div className="premium-input-group">
-                            <label>Security Key</label>
+                            <label>Password
+                            </label>
                             <div className="position-relative">
                                 <Form.Control
                                     type={showPassword ? "text" : "password"}
@@ -111,12 +112,12 @@ const Login = () => {
 
                         <div className="d-flex justify-content-between mb-4 small">
                             <Form.Check type="checkbox" label="Remember me" className="text-muted" />
-                            <Link to="/forgot-password" title="Forgot Password?" className="text-decoration-none text-pink">Forgot Key?</Link>
+                            <Link to="/forgot-password" title="Forgot Password?" className="text-decoration-none text-pink">Forgot Password?</Link>
                         </div>
 
                         <button
                             type="submit"
-                            className="btn-beauty-primary"
+                            className="btn btn-pink"
                             disabled={loading}
                         >
                             {loading ? <Spinner size="sm" /> : 'Sign In To Portal'}
@@ -124,7 +125,7 @@ const Login = () => {
                     </Form>
 
                     <div className="auth-footer">
-                        <p>New to GrowthUtsav? <Link to={`/register?role=${roleParam}`}>Initialize Account</Link></p>
+                        <p>New to GrowthUtsav? <Link to={`/register?role=${roleParam}`}>Register</Link></p>
                     </div>
 
                     <div className="text-center mt-3">

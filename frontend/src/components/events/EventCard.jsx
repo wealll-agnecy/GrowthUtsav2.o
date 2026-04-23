@@ -15,6 +15,8 @@ const EventCard = ({ event }) => {
     const minPrice = ticketPrices.length > 0 ? Math.min(...ticketPrices) : 0;
     const hasTickets = ticketPrices.length > 0;
 
+    const ticketsLeft = event?.ticketTypes?.reduce((acc, tier) => acc + (tier.quantity - (tier.sold || 0)), 0) || 10;
+
     const bannerUrl = (event?.bannerImage && event?.bannerImage !== 'no-photo.jpg' && !event?.bannerImage.startsWith('http'))
         ? `http://localhost:5000/uploads/${event.bannerImage}`
         : (event?.bannerImage && event?.bannerImage.startsWith('http'))
@@ -34,6 +36,11 @@ const EventCard = ({ event }) => {
                     alt={event?.title || 'Bridal Makeup'}
                     loading="lazy"
                 />
+                {ticketsLeft > 0 && (
+                    <div className="ticket-badge">
+                        Hurry, {ticketsLeft} tickets left
+                    </div>
+                )}
             </div>
 
             <div className="card-body">
@@ -48,7 +55,7 @@ const EventCard = ({ event }) => {
                 <div className="card-bottom">
                     <span className="price">₹{minPrice}</span>
                     <button 
-                        className="btn-book"
+                        className="btn btn-pink btn-sm"
                         onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/events/${event?._id}`);

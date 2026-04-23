@@ -16,7 +16,7 @@
 .hero-title {
   font-size: 3.5rem;
   font-weight: 700;
-  color: #3f3f46;
+  color: #1a1a1a;
   line-height: 1.1;
   letter-spacing: -0.02em;
   text-shadow: 0 2px 10px rgba(255, 255, 255, 0.8);
@@ -25,8 +25,20 @@
 .hero-subtitle {
   margin-top: 20px;
   font-size: 1.25rem;
-  color: #71717a;
+  color: #333333;
   max-width: 500px;
+  min-height: 3.5em; /* Prevent layout shift during typing */
+}
+
+.typewriter-text {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.6;
+}
+
+.Typewriter__cursor {
+  color: #ec4899;
+  font-weight: bold;
 }
 
 /* BUTTONS */

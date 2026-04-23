@@ -88,7 +88,7 @@ const LogisticsDashboard = () => {
                     <h3 className="fw-black mb-3 text-uppercase">ACCESS DENIED</h3>
                     <p className="fs-5 opacity-75">{error}</p>
                 </Alert>
-                <Button as={Link} to="/organizer/dashboard" variant="primary" className="rounded-pill mt-4 btn fw-medium px-4 py-2">REVERT TO CONSOLE</Button>
+                <Button as={Link} to="/organizer/dashboard" className="btn btn-pink rounded-pill mt-4 fw-medium px-4 py-2">REVERT TO CONSOLE</Button>
             </Container>
         </div>
     );
@@ -199,7 +199,7 @@ const LogisticsDashboard = () => {
                                                             <option value="Cancelled">Cancelled</option>
                                                         </Form.Select>
                                                     </Form.Group>
-                                                    <Button type="submit" variant="primary" className="w-100 rounded-pill btn fw-medium px-4 py-2">DEPLOY VENDOR</Button>
+                                                    <Button type="submit" className="btn btn-pink w-100 rounded-pill fw-medium px-4 py-2">DEPLOY VENDOR</Button>
                                                 </Form>
                                             </div>
                                         </Col>
@@ -309,7 +309,7 @@ const LogisticsDashboard = () => {
                                                             <option value="Returned">Returned</option>
                                                         </Form.Select>
                                                     </Form.Group>
-                                                    <Button type="submit" variant="secondary" className="w-100 rounded-pill bg-secondary text-white btn fw-medium px-4 py-2">REGISTER ASSET</Button>
+                                                    <Button type="submit" className="btn btn-outline-pink w-100 rounded-pill fw-medium px-4 py-2">REGISTER ASSET</Button>
                                                 </Form>
                                             </div>
                                         </Col>

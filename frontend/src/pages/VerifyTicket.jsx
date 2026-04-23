@@ -106,6 +106,19 @@ const VerifyTicket = () => {
                                     </div>
                                 </Col>
                                 <Col xs={12}>
+                                    <div className="p-4 bg-white/5 rounded-4 border border-white/5 shadow-inner">
+                                        <span className="text-white-50 small fw-black uppercase tracking-widest mb-2 d-block opacity-50">Validity</span>
+                                        <div className="text-white fw-bold d-flex flex-column gap-1">
+                                            <div className="fs-5">VALID FOR: {ticket.selectedDays?.length > 0 ? `${ticket.selectedDays.length} Days` : '1 Day'}</div>
+                                            <div className="small opacity-75 mt-1">
+                                                {ticket.selectedDays?.length > 0 
+                                                    ? `DATES: ${ticket.selectedDays.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })).join(', ')}`
+                                                    : `DATE: ${new Date(ticket.selectedDate || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Col>
+                                <Col xs={12}>
                                     <div className="p-4 bg-white/5 rounded-4 border border-white/5">
                                         <span className="text-white-50 small fw-black uppercase tracking-widest mb-2 d-block opacity-50">Booking Synchronization</span>
                                         <div className="text-white fw-bold d-flex align-items-center gap-3">

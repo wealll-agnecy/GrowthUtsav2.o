@@ -36,6 +36,12 @@ const TicketSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    selectedDate: {
+        type: Date
+    },
+    selectedDays: [{
+        type: Date
+    }],
     ticketPrice: {
         type: Number,
         required: true

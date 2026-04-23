@@ -85,7 +85,7 @@ const EventListing = () => {
                                 {hasFilters && (
                                     <button
                                         onClick={clearFilters}
-                                        className="btn btn-link p-0 text-danger tracking-tighter text-decoration-none rounded-pill fw-medium px-4 py-2"
+                                        className="btn btn-outline-pink btn-sm p-0 text-danger tracking-tighter text-decoration-none rounded-pill fw-medium px-4 py-2"
                                     >
                                         Reset
                                     </button>
@@ -158,9 +158,8 @@ const EventListing = () => {
                                             Try adjusting your filters or search terms.
                                         </p>
                                         <Button
-                                            variant="primary"
                                             onClick={clearFilters}
-                                            className="px-4 btn rounded-pill fw-medium py-2"
+                                            className="btn btn-pink px-4 rounded-pill fw-medium py-2"
                                         >
                                             Clear Filters
                                         </Button>
@@ -169,7 +168,7 @@ const EventListing = () => {
                                     <motion.div
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
-                                        className="flexible-grid"
+                                        className="events-container"
                                     >
 
                                         {events.map((event, i) => (

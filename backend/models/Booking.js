@@ -15,6 +15,12 @@ const BookingSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    selectedDate: {
+        type: Date
+    },
+    selectedDays: [{
+        type: Date
+    }],
     quantity: {
         type: Number,
         required: true,
@@ -31,9 +37,20 @@ const BookingSchema = new mongoose.Schema({
     }],
     paymentStatus: {
         type: String,
-        enum: ['pending', 'completed', 'failed'],
+        enum: ['pending', 'partial', 'completed', 'failed'],
         default: 'pending'
     },
+    amountPaid: {
+        type: Number,
+        default: 0
+    },
+    payments: [{
+        amount: Number,
+        paymentId: String,
+        orderId: String,
+        method: String,
+        date: { type: Date, default: Date.now }
+    }],
     orderId: {
         type: String,
         required: true

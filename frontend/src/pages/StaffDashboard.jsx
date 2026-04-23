@@ -181,7 +181,7 @@ const StaffDashboard = () => {
                                                     as={Link}
                                                     to="/staff/scanner"
                                                     state={{ eventId: event._id, eventTitle: event.title }}
-                                                    className="px-4 py-2 btn rounded-pill fw-medium"
+                                                    className="btn btn-pink px-4 py-2 rounded-pill fw-medium"
                                                 >
                                                     ENGAGE <FaArrowRight className="ms-1" />
                                                 </Button>
@@ -226,7 +226,7 @@ const StaffDashboard = () => {
                                             as={Link}
                                             to="/staff/scanner"
                                             state={{ eventId: event._id, eventTitle: event.title }}
-                                            className="rounded-pill py-2 btn fw-medium px-4"
+                                            className="btn btn-outline-pink rounded-pill py-2 fw-medium px-4"
                                             style={{ fontSize: '0.65rem' }}
                                         >
                                             SELECT

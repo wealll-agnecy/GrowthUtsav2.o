@@ -101,6 +101,41 @@
   opacity: 1;
 }
 
+/* CHECKBOX CUSTOMIZATION */
+.form-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding-left: 0 !important;
+}
+
+.form-check-input {
+  width: 15px !important;
+  height: 15px !important;
+  margin-top: 0 !important;
+  cursor: pointer !important;
+  border: 1px solid var(--border) !important;
+  background-color: var(--bg-card) !important;
+  border-radius: 4px !important;
+  transition: all 0.2s ease !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2) !important;
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1) !important;
+  border-color: var(--accent) !important;
+}
+
+.form-check-label {
+  cursor: pointer !important;
+  padding-top: 1px;
+}
+
 /* BUTTONS */
 .btn-beauty-primary {
   width: 100%;
@@ -114,6 +149,16 @@
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
   box-shadow: 0 10px 20px -5px rgba(236, 72, 153, 0.3);
   margin-top: 10px;
+}
+
+.btn-beauty-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 15px 30px -10px rgba(236, 72, 153, 0.5);
+}
+
+.btn-beauty-primary:active {
+  transform: translateY(0);
 }
 
 .auth-footer p {

@@ -1,0 +1,159 @@
+/* ═══════════ MY BOOKINGS PREMIUM UI (STRIPE/APPLE STYLE) ═══════════ */
+
+/* Page wrapper */
+.mybooking-wrapper {
+  padding: 40px 24px !important;
+  background: linear-gradient(135deg, #fff5f8 0%, #ffe4ec 100%) !important;
+  min-height: calc(100vh - 70px);
+}
+
+/* Header Section */
+.mybooking-header h1 {
+  font-size: clamp(2rem, 5vw, 3rem) !important;
+  font-weight: 800 !important;
+  color: #111 !important;
+  letter-spacing: -0.03em !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Glass card */
+.booking-card-premium {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  padding: 0 !important; /* Managed by grid internal padding */
+  margin-bottom: 24px !important;
+  overflow: hidden !important;
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.04),
+    0 4px 8px rgba(0,0,0,0.02) !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Hover effect */
+.booking-card-premium:hover {
+  transform: translateY(-6px) scale(1.01) !important;
+  box-shadow: 
+    0 30px 60px rgba(173, 20, 87, 0.1),
+    0 12px 24px rgba(0,0,0,0.05) !important;
+  border-color: rgba(236, 64, 122, 0.3) !important;
+}
+
+/* Title */
+.booking-title {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #ad1457 !important;
+  margin-bottom: 12px !important;
+  line-height: 1.2 !important;
+}
+
+/* Booking details text */
+.booking-info {
+  color: #4b5563 !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Status badge */
+.booking-status {
+  padding: 6px 14px !important;
+  border-radius: 99px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Status colors */
+.status-confirmed, .badge-confirmed {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.status-pending, .badge-pending {
+  background: #fef9c3 !important;
+  color: #854d0e !important;
+}
+
+.status-cancelled, .badge-cancelled {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+/* Buttons */
+.booking-btn {
+  padding: 10px 20px !important;
+  border-radius: 14px !important;
+  border: none !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Primary button - Premium Pink Gradient */
+.btn-premium-action {
+  background: linear-gradient(135deg, #ec407a 0%, #d81b60 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(216, 27, 96, 0.2) !important;
+}
+
+.btn-premium-action:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(216, 27, 96, 0.3) !important;
+  filter: brightness(1.1) !important;
+}
+
+/* Secondary button */
+.btn-premium-secondary {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #374151 !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.btn-premium-secondary:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #111827 !important;
+}
+
+/* Empty state */
+.no-booking-container {
+  text-align: center !important;
+  padding: 80px 40px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 32px !important;
+  border: 2px dashed rgba(173, 20, 87, 0.1) !important;
+}
+
+.no-booking-icon {
+  font-size: 64px !important;
+  margin-bottom: 24px !important;
+  opacity: 0.5 !important;
+}
+
+.no-booking-title {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: #374151 !important;
+  margin-bottom: 12px !important;
+}
+
+.no-booking-text {
+  color: #6b7280 !important;
+  font-size: 1rem !important;
+  max-width: 400px !important;
+  margin: 0 auto 32px !important;
+}

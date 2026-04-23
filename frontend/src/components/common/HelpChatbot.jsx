@@ -156,6 +156,8 @@ const HelpChatbot = () => {
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
 
+    const [isHovered, setIsHovered] = useState(false);
+
     useEffect(() => {
         if (isOpen) {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -194,20 +196,55 @@ const HelpChatbot = () => {
             {/* ── Floating Button ─────────────────────────────── */}
             <AnimatePresence>
                 {!isOpen && (
-                    <motion.button
-                        key="fab"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                        className="chatbot-fab"
-                        onClick={() => setIsOpen(true)}
-                        aria-label="Open Help Chatbot"
-                        id="help-chatbot-fab"
-                    >
-                        <FaCommentDots size={24} />
-                        <span className="chatbot-fab-label">Help</span>
-                    </motion.button>
+                    <div style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        {/* Hover Popup */}
+                        <AnimatePresence>
+                            {isHovered && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, x: 20, scale: 0.8 }}
+                                    animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                                    className="chatbot-hover-popup"
+                                    style={{
+                                        background: 'white',
+                                        padding: '10px 18px',
+                                        borderRadius: '16px 16px 4px 16px',
+                                        boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                                        marginBottom: '15px',
+                                        fontSize: '0.85rem',
+                                        fontWeight: '600',
+                                        color: '#333',
+                                        border: '1px solid rgba(0,0,0,0.05)',
+                                        whiteSpace: 'nowrap',
+                                        pointerEvents: 'none'
+                                    }}
+                                >
+                                    <span style={{ color: '#AD1457' }}>Laila:</span> Hi I'm Laila from GU, How can i help you today?
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <motion.button
+                            key="fab"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                            className="chatbot-fab"
+                            onClick={() => {
+                                setIsOpen(true);
+                                setIsHovered(false);
+                            }}
+                            onMouseEnter={() => setIsHovered(true)}
+                            onMouseLeave={() => setIsHovered(false)}
+                            aria-label="Open Help Chatbot"
+                            id="help-chatbot-fab"
+                            style={{ position: 'relative', bottom: 'auto', right: 'auto' }}
+                        >
+                            <FaCommentDots size={24} />
+                            <span className="chatbot-fab-label">Help</span>
+                        </motion.button>
+                    </div>
                 )}
             </AnimatePresence>
 

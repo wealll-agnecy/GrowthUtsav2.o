@@ -50,6 +50,23 @@ const EventSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    isMultiDay: {
+        type: Boolean,
+        default: false
+    },
+    multiDayPlan: [
+        {
+            date: { type: Date, required: true },
+            plans: [
+                {
+                    name: { type: String, required: true }, // Silver, Gold, Platinum
+                    price: { type: Number, required: true },
+                    quantity: { type: Number, default: 100 },
+                    sold: { type: Number, default: 0 }
+                }
+            ]
+        }
+    ],
     createdAt: {
         type: Date,
         default: Date.now

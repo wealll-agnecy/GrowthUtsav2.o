@@ -17,11 +17,20 @@ const CheckoutFlow = () => {
     
     // Mission State Control
     const [step, setStep] = useState(1); // 1: Cart, 2: Details, 3: Payment/Processing, 4: Success
+    
+    // 🚀 REAL-TIME PRICE STATE
+    const [quantity, setQuantity] = useState(state?.quantity || 1);
+    const [ticketType, setTicketType] = useState(state?.ticketType);
+    const [price, setPrice] = useState(state?.totalPrice / (state?.quantity || 1) || 0);
+    const platformFee = 50;
+
     const [attendeeDetails, setAttendeeDetails] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [sdkLoaded, setSdkLoaded] = useState(false);
     const [ticketId, setTicketId] = useState(null);
+    const [isPartialPayment, setIsPartialPayment] = useState(false);
+    const [partialAmount, setPartialAmount] = useState('');
     
     // Deployment Audit (Debugging)
     const logMission = (tag, data) => {
@@ -57,21 +66,57 @@ const CheckoutFlow = () => {
         if (!state || !state.event) {
             logMission('INITIALIZATION', 'INVALID_STATE_REDIRECT');
             navigate('/events');
-        } else if (attendeeDetails.length === 0) {
-            logMission('INITIALIZATION', 'ESTABLISHING_ATTENDEE_PROTOCOLS');
-            const initialDetails = Array.from({ length: state.quantity }, () => ({
-                name: '', email: '', phone: ''
-            }));
-            if (user) {
-                initialDetails[0].name = user.name || '';
-                initialDetails[0].email = user.email || '';
+        } else {
+            // Initial or update attendee protocols based on quantity
+            if (attendeeDetails.length !== quantity) {
+                logMission('INITIALIZATION', 'ADJUSTING_ATTENDEE_PROTOCOLS');
+                setAttendeeDetails(prev => {
+                    if (prev.length === 0) {
+                        const initialDetails = Array.from({ length: quantity }, () => ({
+                            name: '', email: '', phone: ''
+                        }));
+                        if (user) {
+                            initialDetails[0].name = user.name || '';
+                            initialDetails[0].email = user.email || '';
+                        }
+                        return initialDetails;
+                    }
+                    if (prev.length < quantity) {
+                        const extra = Array.from({ length: quantity - prev.length }, () => ({
+                            name: '', email: '', phone: ''
+                        }));
+                        return [...prev, ...extra];
+                    }
+                    return prev.slice(0, quantity);
+                });
             }
-            setAttendeeDetails(initialDetails);
         }
-    }, [state, navigate, user, attendeeDetails.length]);
+    }, [state, navigate, user, quantity, attendeeDetails.length]);
 
     if (!state || !state.event) return null;
-    const { event, ticketType, quantity, totalPrice } = state;
+    const { event, selectedDate, selectedDays } = state;
+
+    // Derived Logic
+    const subtotal = price * quantity;
+    const totalAmount = subtotal + platformFee;
+
+    const handlePlanChange = (e) => {
+        const newPlanName = e.target.value;
+        setTicketType(newPlanName);
+
+        let newPrice = 0;
+        if (event.isMultiDay) {
+            selectedDays.forEach(date => {
+                const day = event.multiDayPlan.find(d => d.date === date);
+                const plan = day?.plans.find(p => p.name === newPlanName);
+                newPrice += plan?.price || 0;
+            });
+        } else {
+            const ticket = event.ticketTypes.find(t => t.name === newPlanName);
+            newPrice = ticket?.price || 0;
+        }
+        setPrice(newPrice);
+    };
 
     const handleAttendeeChange = (index, field, value) => {
         const newDetails = [...attendeeDetails];
@@ -121,8 +166,11 @@ const CheckoutFlow = () => {
             const orderRes = await bookingApi.checkout({
                 eventId: event._id,
                 ticketType,
+                selectedDate,
+                selectedDays,
                 quantity,
-                attendeeDetails
+                attendeeDetails,
+                partialAmount: isPartialPayment ? parseFloat(partialAmount) : undefined
             });
 
             logMission('API_RESPONSE', orderRes.data);
@@ -207,7 +255,13 @@ const CheckoutFlow = () => {
         setLoading(true);
         try {
             const res = await bookingApi.demoCheckout({
-                eventId: event._id, ticketType, quantity, attendeeDetails
+                eventId: event._id, 
+                ticketType, 
+                selectedDate,
+                selectedDays,
+                quantity, 
+                attendeeDetails,
+                partialAmount: isPartialPayment ? parseFloat(partialAmount) : undefined
             });
             logMission('DEMO_RESPONSE', res.data);
             if (res.data.success) {
@@ -225,119 +279,194 @@ const CheckoutFlow = () => {
     };
 
     return (
-        <div className="page-wrapper min-vh-100 pb-5 pt-navbar-custom">
-            <Container className="pt-4">
-                {/* ─── Breadcrumb Progress ─── */}
-                <div className="d-flex justify-content-center mb-4 mb-md-5">
-                    <div className="d-flex align-items-center gap-1 gap-md-4 glass-panel px-3 px-md-4 py-2 py-md-3 rounded-pill shadow-lg border-white/10 w-fit-content overflow-hidden">
-                        {[1, 2, 3].map((s) => (
-                            <React.Fragment key={s}>
-                                <Badge 
-                                    bg={step >= s ? 'primary' : 'transparent'} 
-                                    className={`rounded-pill px-2 px-md-3 py-2 checkout-breadcrumb-badge ${step >= s ? 'shadow-glow' : 'border border-white/20 text-white-50'}`} 
-                                >
-                                    {s === 1 && <><FaShoppingCart className="me-2" /> CART</>}
-                                    {s === 2 && <><FaUserFriends className="me-2" /> DETAILS</>}
-                                    {s === 3 && <><FaCreditCard className="me-2" /> {step === 4 ? 'SYNCED' : 'PAY'}</>}
-                                </Badge>
-                                {s < 3 && <div className={`d-none d-sm-block checkout-progress-line ${step > s ? 'bg-primary' : 'bg-white-10'}`} />}
-                            </React.Fragment>
-                        ))}
+        <div className="checkout-page-wrapper py-5">
+            <Container>
+                {/* ─── Professional Stepper ─── */}
+                <div className="modern-stepper">
+                    <div className={`step-item ${step >= 1 ? 'active' : ''}`}>
+                        <FaShoppingCart /> CART
+                    </div>
+                    <div className="step-divider" />
+                    <div className={`step-item ${step >= 2 ? 'active' : ''}`}>
+                        <FaUserFriends /> DETAILS
+                    </div>
+                    <div className="step-divider" />
+                    <div className={`step-item ${step >= 3 ? 'active' : ''}`}>
+                        <FaCreditCard /> PAYMENT
                     </div>
                 </div>
 
                 <AnimatePresence mode="wait">
-                    {/* STEP 1: CART */}
                     {step === 1 && (
-                        <motion.div key="cart" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -30 }}>
-                            <Card className="glass-card border-white/10 shadow-2xl rounded-5 overflow-hidden mx-auto checkout-payload-card">
-                                <Card.Header className="bg-primary p-4 border-0">
-                                    <h4 className="fw-black text-white m-0 d-flex align-items-center gap-2"><FaShoppingCart /> Mission Payload</h4>
-                                </Card.Header>
-                                <Card.Body className="p-4 p-md-5 bg-dark">
-                                    <div className="bg-white/5 p-4 rounded-4 border border-white/10 mb-5">
-                                        <div className="text-white-50 small fw-black uppercase tracking-widest mb-1">Target Node</div>
-                                        <div className="text-white fw-black h3 mb-4">{event.title}</div>
-                                        <div className="d-flex justify-content-between border-top border-white/10 pt-4">
-                                            <div>
-                                                <div className="text-white-50 small fw-bold uppercase tracking-widest mb-1">Units</div>
-                                                <div className="text-white fw-black h4 m-0">{quantity} × {ticketType}</div>
-                                            </div>
-                                            <div className="text-end">
-                                                <div className="text-white-50 small fw-bold uppercase tracking-widest mb-1">Resonance</div>
-                                                <div className="text-primary fw-black h4 m-0 gradient-text">₹{totalPrice}</div>
-                                            </div>
-                                        </div>
+                        <motion.div key="cart" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -30 }} className="row justify-content-center">
+                            <div className="col-lg-10">
+                                <Card className="checkout-premium-card">
+                                    <div className="checkout-header-section">
+                                        <h2>{event.title}</h2>
+                                        <p>{ticketType} Plan Selection</p>
                                     </div>
-                                    <div className="d-flex justify-content-between align-items-center gap-3">
-                                        <Link to={`/events/${event._id}`} className="btn-back">
-                                            <FaArrowLeft /> ABORT MISSION
-                                        </Link>
-                                        <Button variant="primary" className="btn rounded-pill fw-medium px-4 py-2" onClick={() => setStep(2)}>
-                                            PROCEED TO SCAN
-                                        </Button>
-                                    </div>
-                                </Card.Body>
+                                    <Card.Body className="checkout-body-content">
+                                        <Row className="g-5">
+                                            {/* Left Panel: Selection */}
+                                            <Col md={7}>
+                                                <div className="mb-4">
+                                                    <Form.Label className="small fw-bold text-muted uppercase mb-2">Select Your Plan</Form.Label>
+                                                    <Form.Select 
+                                                        className="premium-input premium-select"
+                                                        value={ticketType}
+                                                        onChange={handlePlanChange}
+                                                    >
+                                                        {event.isMultiDay 
+                                                            ? event.multiDayPlan[0].plans.map(p => <option key={p.name} value={p.name}>{p.name}</option>)
+                                                            : event.ticketTypes.map(t => <option key={t.name} value={t.name}>{t.name}</option>)
+                                                        }
+                                                    </Form.Select>
+                                                </div>
+                                                
+                                                <div className="mb-4">
+                                                    <Form.Label className="small fw-bold text-muted uppercase mb-2">Number of Tickets</Form.Label>
+                                                    <div className="quantity-control">
+                                                        <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+                                                        <span className="qty-value">{quantity}</span>
+                                                        <button className="qty-btn" onClick={() => setQuantity(Math.min(10, quantity + 1))}>+</button>
+                                                    </div>
+                                                </div>
 
-                            </Card>
+                                                <div className="mt-5 pt-4 border-top">
+                                                    <Link to={`/events/${event._id}`} className="text-muted text-decoration-none small fw-bold d-flex align-items-center gap-2">
+                                                        <FaArrowLeft /> Cancel and return to event
+                                                    </Link>
+                                                </div>
+                                            </Col>
+
+                                            {/* Right Panel: Summary */}
+                                            <Col md={5}>
+                                                <div className="price-breakdown">
+                                                    <h5 className="fw-bold mb-4">Order Summary</h5>
+                                                    <div className="price-row">
+                                                        <span>Subtotal ({quantity} × {ticketType})</span>
+                                                        <span>₹{subtotal}</span>
+                                                    </div>
+                                                    <div className="price-row">
+                                                        <span>Platform Fee</span>
+                                                        <span>₹{platformFee}</span>
+                                                    </div>
+                                                    <div className="price-row total">
+                                                        <span>Total Amount</span>
+                                                        <span>₹{totalAmount}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-4 p-3 rounded-4 border border-pink-100 bg-pink-50/20">
+                                                    <Form.Check 
+                                                        type="checkbox"
+                                                        id="partial-payment-check"
+                                                        label="Pay in Installments?"
+                                                        className="fw-bold text-pink small"
+                                                        checked={isPartialPayment}
+                                                        onChange={(e) => {
+                                                            setIsPartialPayment(e.target.checked);
+                                                            if (e.target.checked) setPartialAmount(Math.ceil(totalAmount / 2).toString());
+                                                        }}
+                                                    />
+                                                    {isPartialPayment && (
+                                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mt-3 overflow-hidden">
+                                                            <Form.Label className="tiny-text uppercase text-muted fw-bold">Initial Payment Amount (₹)</Form.Label>
+                                                            <Form.Control 
+                                                                type="number"
+                                                                className="premium-input-sm"
+                                                                value={partialAmount}
+                                                                onChange={(e) => setPartialAmount(e.target.value)}
+                                                                max={totalAmount - 1}
+                                                                min="1"
+                                                            />
+                                                            <p className="tiny-text text-muted mt-1">Pay ₹{totalAmount - (parseFloat(partialAmount) || 0)} later to get your entry clearance.</p>
+                                                        </motion.div>
+                                                    )}
+                                                </div>
+                                                
+                                                <Button 
+                                                    className="btn btn-pink mt-4" 
+                                                    onClick={() => setStep(2)}
+                                                >
+                                                    Proceed to Details <FaArrowLeft style={{ transform: 'rotate(180deg)' }} />
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                    </Card.Body>
+                                </Card>
+                            </div>
                         </motion.div>
                     )}
 
-                    {/* STEP 2: DETAILS */}
                     {step === 2 && (
                         <motion.div key="details" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                             <Row className="justify-content-center">
-                                <Col lg={9}>
-                                    <Card className="glass-card border-white/10 shadow-2xl rounded-5 overflow-hidden">
-                                        <Card.Header className="bg-primary p-4 border-0">
-                                            <h4 className="fw-black text-white m-0 d-flex align-items-center gap-2"><FaUserFriends /> Identity Protocols</h4>
-                                        </Card.Header>
-                                        <Card.Body className="p-4 p-md-5 bg-dark">
+                                <Col lg={10}>
+                                    <Card className="checkout-premium-card">
+                                        <div className="checkout-header-section">
+                                            <h2>Attendee Details</h2>
+                                            <p>Complete information for all {quantity} tickets</p>
+                                        </div>
+                                        <Card.Body className="checkout-body-content">
                                             {error && (
-                                                <Alert variant="danger" className="glass-panel text-danger border-danger/20 rounded-4 d-flex align-items-center gap-3 mb-5 py-3">
-                                                    <FaShieldAlt className="animate-pulse" /> <strong>Protocol Warning:</strong> {error}
+                                                <Alert variant="danger" className="rounded-4 border-0 bg-danger bg-opacity-10 text-danger mb-4">
+                                                    <FaShieldAlt className="me-2" /> {error}
                                                 </Alert>
                                             )}
 
                                             <Row className="g-4">
                                                 {attendeeDetails.map((att, index) => (
                                                     <Col key={index} md={quantity > 1 ? 6 : 12}>
-                                                        <div className="bg-white/5 p-4 rounded-4 border border-white/10 h-100">
-                                                            <div className="d-flex align-items-center gap-2 mb-4">
-                                                                <Badge bg="primary" className="rounded-circle attendee-sector-badge">{index + 1}</Badge>
-                                                                <span className="text-white fw-black small uppercase tracking-widest">Sector {index + 1}</span>
-                                                            </div>
+                                                        <div className="attendee-card">
+                                                            <div className="sector-tag">Ticket #{index + 1}</div>
                                                             <Form.Group className="mb-3">
-                                                                <Form.Label className="text-white-50 small fw-black uppercase tracking-widest sector-label-static">Identity Signature</Form.Label>
-                                                                <Form.Control className="bg-black/40 border-white/10 text-white rounded-3 fs-6" placeholder="Full Name" value={att.name} onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)} />
+                                                                <Form.Label className="small fw-bold text-muted uppercase">Full Name</Form.Label>
+                                                                <Form.Control 
+                                                                    className="premium-input" 
+                                                                    placeholder="Enter attendee name" 
+                                                                    value={att.name} 
+                                                                    onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)} 
+                                                                />
                                                             </Form.Group>
                                                             <Form.Group className="mb-3">
-                                                                <Form.Label className="text-white-50 small fw-black uppercase tracking-widest sector-label-static">Communication Node</Form.Label>
-                                                                <Form.Control type="email" className="bg-black/40 border-white/10 text-white rounded-3 fs-6" placeholder="Email" value={att.email} onChange={(e) => handleAttendeeChange(index, 'email', e.target.value)} />
+                                                                <Form.Label className="small fw-bold text-muted uppercase">Email Address</Form.Label>
+                                                                <Form.Control 
+                                                                    type="email" 
+                                                                    className="premium-input" 
+                                                                    placeholder="email@example.com" 
+                                                                    value={att.email} 
+                                                                    onChange={(e) => handleAttendeeChange(index, 'email', e.target.value)} 
+                                                                />
                                                             </Form.Group>
                                                             <Form.Group>
-                                                                <Form.Label className="text-white-50 small fw-black uppercase tracking-widest sector-label-static">Signal Frequency</Form.Label>
-                                                                <Form.Control type="tel" className="bg-black/40 border-white/10 text-white rounded-3 fs-6" placeholder="Phone" value={att.phone} onChange={(e) => handleAttendeeChange(index, 'phone', e.target.value)} />
+                                                                <Form.Label className="small fw-bold text-muted uppercase">Phone Number</Form.Label>
+                                                                <Form.Control 
+                                                                    type="tel" 
+                                                                    className="premium-input" 
+                                                                    placeholder="+91 00000 00000" 
+                                                                    value={att.phone} 
+                                                                    onChange={(e) => handleAttendeeChange(index, 'phone', e.target.value)} 
+                                                                />
                                                             </Form.Group>
                                                         </div>
                                                     </Col>
                                                 ))}
                                             </Row>
 
-                                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4 mt-5 pt-4 border-top border-white/10">
-                                                <button className="btn rounded-pill fw-medium px-4 py-2 btn-primary" onClick={() => setStep(1)}>
-                                                    <FaArrowLeft /> RECALIBRATE
+                                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4 mt-5 pt-4 border-top">
+                                                <button className="btn btn-link text-muted text-decoration-none fw-bold" onClick={() => setStep(1)}>
+                                                    <FaArrowLeft /> Back to selection
                                                 </button>
                                                 <div className="d-flex flex-column flex-sm-row gap-3 w-100 w-md-auto">
-                                                    <Button variant="outline-primary" className="btn-outline-primary btn rounded-pill fw-medium px-4 py-2" onClick={handleDemoPayment}>
-                                                        BYPASS SYNC
+                                                    <Button className="btn btn-outline-pink rounded-pill fw-bold px-4" onClick={handleDemoPayment}>
+                                                        Bypass for Demo
                                                     </Button>
-                                                    <Button variant="primary" className="d-flex align-items-center justify-content-center gap-3 btn rounded-pill fw-medium px-4 py-2" onClick={initiatePaymentFlow}>
-                                                        INITIALIZE PAY {loading && <FaSync className="fa-spin" />}
+                                                    <Button className="btn btn-pink px-5" onClick={initiatePaymentFlow}>
+                                                        {loading ? <FaSync className="fa-spin" /> : 'Secure Payment →'}
                                                     </Button>
                                                 </div>
                                             </div>
-
                                         </Card.Body>
                                     </Card>
                                 </Col>
@@ -345,33 +474,30 @@ const CheckoutFlow = () => {
                         </motion.div>
                     )}
 
-                    {/* STEP 3: PROCESSING */}
                     {step === 3 && (
                         <motion.div key="processing" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-5">
                             <div className="mb-5 position-relative d-inline-block">
-                                <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }} transition={{ repeat: Infinity, duration: 2 }} className="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle processing-glow-effect" />
-                                <Spinner animation="border" variant="primary" className="position-relative processing-spinner-large" />
+                                <Spinner animation="border" variant="primary" className="processing-spinner-large" />
                             </div>
-                            <h2 className="text-white fw-black uppercase tracking-widest mb-3">SYNCHRONIZING PORTAL</h2>
-                            <p className="text-white-50 opacity-60 fw-bold uppercase tracking-widest small">SECURE HANDSHAKE IN PROGRESS • DO NOT DISCONNECT</p>
+                            <h2 className="fw-bold mb-3">Processing Payment...</h2>
+                            <p className="text-muted fw-medium">Please do not refresh the page or close your browser.</p>
                         </motion.div>
                     )}
 
-                    {/* STEP 4: SUCCESS */}
                     {step === 4 && (
                         <motion.div key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-5">
-                            <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 3 }} className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success/20 mb-5 border border-success/30 shadow-glow success-icon-container">
-                                <FaCheckCircle size={60} className="text-success shadow-glow" />
-                            </motion.div>
-                            <h1 className="text-white fw-black uppercase tracking-tightest display-4 mb-3">CLEARANCE GRANTED</h1>
-                            <p className="text-white-50 fs-5 mb-5 mx-auto max-w-600">Identity verification complete. Digital pass synchronized to your mission hub.</p>
+                            <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 mb-4 p-4">
+                                <FaCheckCircle size={60} className="text-success" />
+                            </div>
+                            <h1 className="fw-bold display-5 mb-3">Payment Successful!</h1>
+                            <p className="text-muted fs-5 mb-5 mx-auto" style={{ maxWidth: '600px' }}>Your booking is confirmed. Your digital pass has been sent to your email and is available in your dashboard.</p>
                             
                             <div className="d-flex flex-column flex-sm-row justify-content-center gap-4">
-                                <Button as={Link} to={ticketId ? `/ticket/${ticketId}` : "/my-bookings"} variant="primary" className="rounded-pill btn fw-medium px-4 py-2">
-                                    {ticketId ? "VIEW & DOWNLOAD PASS" : "VIEW PASS HUB"}
+                                <Button as={Link} to={ticketId ? `/ticket/${ticketId}` : "/my-bookings"} className="btn btn-pink px-5">
+                                    {ticketId ? "View Digital Pass" : "Go to Dashboard"}
                                 </Button>
-                                <Button as={Link} to="/events" variant="link" className="text-white text-decoration-none p-4 btn rounded-pill fw-medium px-4 py-2">
-                                    DEPLOY NEW MISSION
+                                <Button as={Link} to="/events" className="btn btn-outline-pink rounded-pill fw-bold px-4">
+                                    Book Another Event
                                 </Button>
                             </div>
                         </motion.div>
