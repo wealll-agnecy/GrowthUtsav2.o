@@ -99,7 +99,7 @@ const BookFlipShowcase = ({ events }) => {
                         key={`page-${vid.id}`}
                         className="book-page"
                         onClick={() => toggleFlip(index)}
-                        style={{ zIndex: isFlipped ? index : 30 - index }}
+                        style={{ zIndex: isFlipped ? index : 30 - index, willChange: 'transform' }}
                         animate={{
                             rotateY: isFlipped ? -165 : 0,
                             x: isFlipped ? -30 : 0,
@@ -154,7 +154,7 @@ const Home = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const res = await eventApi.getEvents();
+                const res = await eventApi.getEvents({ limit: 8 });
                 if (res?.data?.success) {
                     setEvents(res.data.data || []);
                 }
@@ -218,7 +218,7 @@ const Home = () => {
                                 className="d-flex flex-column flex-sm-row gap-4 justify-content-center justify-content-lg-start"
                             >
                                 <button className="btn btn-pink" onClick={() => navigate('/events')}>Host Events</button>
-                                <button className="btn btn-outline-pink" onClick={() => navigate('/events')}>Explore Events</button>
+                                <button className="btn btn-pink" onClick={() => navigate('/events')}>Explore Events</button>
                             </motion.div>
                         </Col>
                         <Col lg={5} className="d-none d-lg-block">
@@ -228,7 +228,7 @@ const Home = () => {
                                 className="hero-visual"
                             >
                                 <div className="hero-main-img-container">
-                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Beauty" className="hero-main-img" />
+                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Beauty" className="hero-main-img" loading="eager" />
                                     <div className="hero-img-overlay"></div>
                                 </div>
                             </motion.div>
@@ -327,7 +327,7 @@ const Home = () => {
                                     transition={{ delay: i * 0.1 }}
                                     className="past-event-card"
                                 >
-                                    <img src={event.img} alt={event.name} className="past-event-img" />
+                                    <img src={event.img} alt={event.name} className="past-event-img" loading="lazy" />
                                     <div className="past-event-overlay">
                                         <div className="past-event-tag">
                                             <FaCheckCircle className="me-1" /> Successful
@@ -361,7 +361,7 @@ const Home = () => {
                                     <FaQuoteLeft className="text-primary opacity-20 mb-3" size={30} />
                                     <p className="testimonial-quote">"{t.quote}"</p>
                                     <div className="testimonial-author">
-                                        <img src={t.img} alt={t.author} className="author-img" />
+                                        <img src={t.img} alt={t.author} className="author-img" loading="lazy" />
                                         <span className="author-name">{t.author}</span>
                                     </div>
                                 </div>

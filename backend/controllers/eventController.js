@@ -67,20 +67,33 @@ exports.getEvents = async (req, res, next) => {
         console.log('🔍 [GET EVENTS]: Querying with:', reqQuery);
         query = Event.find(reqQuery).populate('organizer', 'name email');
 
-        // Sort
-        if (req.query.sort) {
-            const sortBy = req.query.sort.split(',').join(' ');
-            query = query.sort(sortBy);
-        } else {
-            query = query.sort('-createdAt');
-        }
+        // Pagination
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 100; // Default to 100 for safety
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const total = await Event.countDocuments(reqQuery);
+
+        query = query.skip(startIndex).limit(limit);
 
         const events = await query;
+
+        // Pagination result
+        const pagination = {};
+        if (endIndex < total) {
+            pagination.next = { page: page + 1, limit };
+        }
+        if (startIndex > 0) {
+            pagination.prev = { page: page - 1, limit };
+        }
+
         console.log(`✅ [GET EVENTS]: Found ${events.length} events matching query.`);
 
         res.status(200).json({
             success: true,
             count: events.length,
+            total,
+            pagination,
             data: events
         });
     } catch (err) {
@@ -97,7 +110,7 @@ exports.getEvents = async (req, res, next) => {
 // @access  Public
 exports.getEvent = async (req, res, next) => {
     try {
-        const event = await Event.findById(req.params.id).populate('organizer', 'name email _id');
+        const event = await Event.findById(req.params.id).populate('organizer', 'name email _id avatar phone address organizationDetails');
 
         if (!event) {
             return res.status(404).json({

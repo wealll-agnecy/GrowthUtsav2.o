@@ -56,6 +56,7 @@ const UserSchema = new mongoose.Schema({
         phone: String,
         website: String,
         logo: String,
+        address: String,
         selectedEventTypes: [String]
     },
     phone: {
@@ -63,6 +64,13 @@ const UserSchema = new mongoose.Schema({
         unique: true,
         sparse: true,
         match: [/^\+?[1-9]\d{1,14}$/, 'Please add a valid phone number']
+    },
+    address: {
+        type: String
+    },
+    avatar: {
+        type: String,
+        default: 'no-avatar.jpg'
     },
     servicePlan: {
         type: mongoose.Schema.ObjectId,

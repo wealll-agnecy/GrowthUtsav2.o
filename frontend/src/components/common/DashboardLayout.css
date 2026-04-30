@@ -127,7 +127,7 @@
     left: 0 !important;
     width: 280px;
     height: 100vh !important;
-    z-index: 9999 !important; /* Sidebar on top of everything */
+    z-index: 1030 !important; /* Fixed below modal backdrops (1040) */
     overflow-y: auto !important;
     background: #ffffff !important;
     transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -218,7 +218,7 @@ body.dashboard-active .navbar-premium {
 
 .dashboard-mobile-header {
     z-index: 1040;
-    top: 0;
+    top: 72px !important; /* Sit below the fixed global navbar */
     background: #ffffff !important;
     border-bottom: 2px solid #fef3c7 !important;
 }
@@ -258,7 +258,7 @@ body.dashboard-active .navbar-premium {
     justify-content: center !important;
     border: 2px solid #ffffff !important;
     box-shadow: 0 2px 8px rgba(255, 77, 77, 0.5) !important;
-    z-index: 9999 !important;
+    z-index: 10 !important;
     pointer-events: none;
 }
 

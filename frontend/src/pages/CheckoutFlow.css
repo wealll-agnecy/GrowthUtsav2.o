@@ -1,223 +1,297 @@
 :root {
-    --checkout-bg-start: #f3f4ff;
-    --checkout-bg-end: #fdfbff;
-    --checkout-primary: #6366f1;
-    --checkout-secondary: #a855f7;
-    --checkout-text-main: #1e293b;
-    --checkout-text-muted: #64748b;
-    --checkout-card-bg: #ffffff;
-    --checkout-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+    --primary: #ee749f;
+    --primary-glow: rgba(238, 116, 159, 0.4);
+    --secondary: #6366f1;
+    --accent: #a855f7;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --text-main: #1a1a2e;
+    --text-soft: #4a5568;
+    --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
 }
 
 .checkout-page-wrapper {
-    background: linear-gradient(135deg, var(--checkout-bg-start), var(--checkout-bg-end));
     min-height: 100vh;
-    font-family: 'Inter', sans-serif;
-    color: var(--checkout-text-main);
+    padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+    background: #f8faff;
+    font-family: 'Outfit', sans-serif;
 }
 
-/* Stepper Styles */
+/* ═══════════ PREMIUM BACKGROUND ═══════════ */
+.checkout-bg-decoration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: floatingOrb 20s infinite alternate ease-in-out;
+}
+
+.orb-1 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, var(--primary-glow), transparent);
+    top: -10%;
+    right: -5%;
+}
+
+.orb-2 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent);
+    bottom: -5%;
+    left: -5%;
+}
+
+@keyframes floatingOrb {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, 50px) scale(1.1); }
+}
+
+.checkout-container-relative {
+    position: relative;
+    z-index: 1;
+}
+
+/* ═══════════ MODERN STEPPER ═══════════ */
 .modern-stepper {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
+    gap: 12px;
+    margin-bottom: 50px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 10px;
+    border-radius: 100px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
 }
 
 .step-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.2rem;
-    border-radius: 50px;
-    font-weight: 600;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-weight: 700;
     font-size: 0.85rem;
-    transition: all 0.3s ease;
-    border: 1.5px solid #e2e8f0;
-    color: var(--checkout-text-muted);
-    background: white;
+    color: var(--text-soft);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    letter-spacing: 1px;
 }
 
 .step-item.active {
-    background: linear-gradient(to right, var(--checkout-primary), var(--checkout-secondary));
-    color: white;
-    border-color: transparent;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    background: #fff;
+    color: var(--primary);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transform: scale(1.05);
+}
+
+.step-item.completed {
+    color: #10b981;
 }
 
 .step-divider {
-    width: 30px;
+    width: 20px;
     height: 2px;
-    background: #e2e8f0;
+    background: rgba(0,0,0,0.05);
 }
 
-/* Card Styles */
+/* ═══════════ GLASS CARD ═══════════ */
 .checkout-premium-card {
-    background: var(--checkout-card-bg);
-    border-radius: 24px;
-    border: none;
-    box-shadow: var(--checkout-shadow);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    box-shadow: var(--card-shadow);
     overflow: hidden;
+    transition: transform 0.3s ease;
 }
 
 .checkout-header-section {
-    padding: 2rem 2.5rem;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 40px 50px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+    border-bottom: 1px solid rgba(0,0,0,0.03);
 }
 
 .checkout-header-section h2 {
     font-weight: 800;
-    margin: 0;
-    color: var(--checkout-text-main);
-    font-size: 1.5rem;
-}
-
-.checkout-header-section p {
-    color: var(--checkout-text-muted);
-    margin: 0.25rem 0 0;
-    font-weight: 500;
+    font-size: 2rem;
+    letter-spacing: -0.5px;
+    color: var(--text-main);
+    margin-bottom: 8px;
 }
 
 .checkout-body-content {
-    padding: 2.5rem;
+    padding: 50px;
 }
 
-/* Quantity Control */
+/* ═══════════ CART VIEW ═══════════ */
+.event-mini-preview {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding: 20px;
+    background: #fff;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.mini-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 16px;
+    object-fit: cover;
+}
+
 .quantity-control {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    background: #f8fafc;
-    padding: 0.5rem;
-    border-radius: 12px;
+    gap: 20px;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 16px;
     width: fit-content;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .qty-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     border: none;
-    background: white;
-    color: var(--checkout-primary);
+    background: #f8faff;
+    color: var(--text-main);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-weight: 700;
     transition: all 0.2s;
 }
 
-.qty-btn:hover {
-    background: var(--checkout-primary);
-    color: white;
+.qty-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: #fff;
+    transform: scale(1.1);
 }
 
-.qty-value {
-    font-weight: 700;
-    min-width: 20px;
-    text-align: center;
-}
-
-/* Price Breakdown */
 .price-breakdown {
-    background: #f8fafc;
-    padding: 1.5rem;
-    border-radius: 16px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 24px;
+    position: sticky;
+    top: 20px;
+    border: 1px solid rgba(0,0,0,0.02);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.03);
 }
 
 .price-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 0.75rem;
-    font-size: 0.95rem;
-    color: var(--checkout-text-muted);
+    margin-bottom: 16px;
+    color: var(--text-soft);
+    font-weight: 500;
 }
 
 .price-row.total {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1.5px dashed #e2e8f0;
-    color: var(--checkout-text-main);
-    font-weight: 800;
-    font-size: 1.25rem;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 2px dashed #f1f5f9;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text-main);
 }
 
-/* Premium Button */
-.btn-secure-pay {
-    background: linear-gradient(to right, var(--checkout-primary), var(--checkout-secondary));
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 50px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
-    width: 100%;
-}
-
-.btn-secure-pay:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
-    color: white;
-}
-
-.btn-secure-pay:active {
-    transform: translateY(0) scale(0.98);
-}
-
-/* Form Controls */
+/* ═══════════ INPUTS ═══════════ */
 .premium-input {
-    background: #f8fafc !important;
-    border: 1.5px solid #e2e8f0 !important;
-    padding: 0.75rem 1rem !important;
-    border-radius: 12px !important;
-    color: var(--checkout-text-main) !important;
-    font-weight: 500 !important;
+    background: rgba(255,255,255,0.8) !important;
+    border: 2px solid transparent !important;
+    padding: 16px 20px !important;
+    border-radius: 16px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
 }
 
 .premium-input:focus {
-    border-color: var(--checkout-primary) !important;
-    background: white !important;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1) !important;
-}
-
-.premium-select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1.25rem;
+    border-color: var(--primary) !important;
+    box-shadow: 0 10px 25px var(--primary-glow) !important;
+    background: #fff !important;
+    transform: translateY(-2px);
 }
 
 .attendee-card {
-    background: white;
-    border: 1px solid #f1f5f9;
-    padding: 1.5rem;
-    border-radius: 16px;
-    margin-bottom: 1.5rem;
-    transition: all 0.2s;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--glass-border);
+    padding: 30px;
+    border-radius: 24px;
+    transition: all 0.3s;
 }
 
 .attendee-card:hover {
-    border-color: var(--checkout-primary);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    background: #fff;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.04);
+    transform: translateY(-5px);
 }
 
 .sector-tag {
-    font-size: 0.7rem;
-    font-weight: 800;
+    font-size: 0.75rem;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--checkout-primary);
-    background: rgba(99, 102, 241, 0.1);
-    padding: 0.25rem 0.6rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
+    color: var(--primary);
+    background: var(--primary-glow);
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* ═══════════ SUCCESS ═══════════ */
+.success-glow-wrap {
+    position: relative;
     display: inline-block;
+}
+
+.success-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: var(--primary-glow);
+    filter: blur(50px);
+    border-radius: 50%;
+    z-index: -1;
+}
+
+@media (max-width: 768px) {
+    .checkout-body-content {
+        padding: 25px;
+    }
+    .modern-stepper {
+        gap: 5px;
+        padding: 5px;
+    }
+    .step-item {
+        padding: 10px 15px;
+        font-size: 0.7rem;
+    }
+    .checkout-header-section {
+        padding: 30px;
+    }
 }

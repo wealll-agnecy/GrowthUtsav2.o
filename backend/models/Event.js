@@ -75,12 +75,16 @@ const EventSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    startDate: {
-        type: Date
-    },
     endDate: {
         type: Date
     }
 });
+
+// Optimization Indexes
+EventSchema.index({ status: 1 });
+EventSchema.index({ date: 1 });
+EventSchema.index({ organizer: 1 });
+EventSchema.index({ isLive: 1 });
+EventSchema.index({ category: 1 });
 
 module.exports = mongoose.model('Event', EventSchema);

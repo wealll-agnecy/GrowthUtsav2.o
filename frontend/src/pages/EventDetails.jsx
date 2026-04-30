@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import * as eventApi from '../api/eventApi';
 import { useAuth } from '../context/AuthContext';
-import { Container, Row, Col, Form, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Spinner, Alert, Badge } from 'react-bootstrap';
 import {
     FaMapMarkerAlt, FaCalendarAlt, FaClock, FaCheckCircle,
-    FaShoppingCart, FaArrowLeft, FaShieldAlt, FaTicketAlt
+    FaShoppingCart, FaArrowLeft, FaShieldAlt, FaTicketAlt,
+    FaPhone, FaUserCircle
 } from 'react-icons/fa';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import EventCard from '../components/events/EventCard';
 import './EventDetails.css';
@@ -172,7 +174,13 @@ const EventDetails = () => {
         <div className="event-details-page">
             {/* 1. HERO SECTION */}
             <section className="event-hero">
-                <img src={bannerUrl} alt={event.title} className="hero-img" />
+                <img 
+                    src={bannerUrl} 
+                    alt={event.title} 
+                    className="hero-img" 
+                    loading="eager" 
+                    decoding="async" 
+                />
                 <div className="hero-overlay"></div>
 
                 <div className="hero-content">
@@ -223,15 +231,30 @@ const EventDetails = () => {
                                 </div>
 
                                 <div className="event-content-card mt-4">
-                                    <h3>Event Schedule</h3>
-                                    <div className="d-flex flex-wrap gap-4">
-                                        <div className="d-flex align-items-center gap-2">
-                                            <FaClock className="text-pink" />
-                                            <span><strong>Time:</strong> {event.time}</span>
+                                    <h5 className="fw-black uppercase tracking-widest small mb-4 opacity-50">Host Infrastructure</h5>
+                                    <div className="d-flex align-items-center gap-4 p-3 bg-white/2 rounded-4 border border-white/5">
+                                        <div className="host-avatar-wrapper shadow-glow">
+                                            {event.organizer?.avatar && event.organizer.avatar !== 'no-avatar.jpg' ? (
+                                                <img 
+                                                    src={event.organizer.avatar.startsWith('http') ? event.organizer.avatar : `${axios.defaults.baseURL}${event.organizer.avatar}`} 
+                                                    alt="Host" 
+                                                    className="rounded-circle border border-3 border-pink shadow"
+                                                    style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                                                />
+                                            ) : (
+                                                <div className="bg-pink bg-opacity-10 rounded-circle border border-3 border-pink d-flex align-items-center justify-content-center shadow-lg" style={{ width: '80px', height: '80px' }}>
+                                                    <FaUserCircle size={60} className="text-pink opacity-50" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="d-flex align-items-center gap-2">
-                                            <FaCalendarAlt className="text-pink" />
-                                            <span><strong>Date:</strong> {formattedDate}</span>
+                                        <div className="host-info flex-grow-1">
+                                            <h4 className="fw-black m-0 tracking-tighter text-white d-flex align-items-center gap-2">
+                                                {event.organizer?.name || 'Authorized Host'}
+                                                <Badge bg="pink-subtle" className="text-pink px-2 py-1 rounded-pill small uppercase tracking-tighter" style={{ fontSize: '10px' }}>Verified</Badge>
+                                            </h4>
+                                        </div>
+                                        <div className="d-none d-md-block">
+                                            <Link to="/contact-us" className="btn btn-outline-pink btn-sm rounded-pill px-4 fw-bold">Inquiry</Link>
                                         </div>
                                     </div>
                                 </div>

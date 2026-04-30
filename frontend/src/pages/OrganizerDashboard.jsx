@@ -229,9 +229,6 @@ const OrganizerDashboard = () => {
                                                         <Button as={Link} to={`/organizer/edit-event/${ev._id}`} className="btn btn-outline-pink shadow-none p-2">
                                                             <FaEdit />
                                                         </Button>
-                                                        <Button className="btn btn-pink shadow-none p-2" onClick={() => handleDeleteEvent(ev._id)}>
-                                                            <FaTrash />
-                                                        </Button>
                                                     </div>
                                                 </td>
                                             </tr>

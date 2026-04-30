@@ -6,7 +6,8 @@
 .dashboard-page {
   min-height: 100vh;
   padding: 0 20px;
-  color: #000000 !important;
+  color: var(--text-primary) !important;
+  background-color: var(--bg-main);
 }
 
 .dashboard-container {
@@ -25,23 +26,23 @@
   align-items: center;
   padding: 12px;
   border-radius: 12px;
-  background: #fff;
+  background: var(--bg-card);
   margin-bottom: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-  border: 1px solid #f1f5f9;
+  box-shadow: var(--premium-shadow);
+  border: 1px solid var(--border);
 }
 
 .live-event-info h6 {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .live-event-info p {
   margin: 2px 0;
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -97,12 +98,12 @@
 
 /* CARDS */
 .dashboard-card {
-  background: #ffffff;
+  background: var(--bg-card);
   padding: 24px;
   border-radius: 16px;
-  border: 1px solid var(--primary-dark);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+  box-shadow: var(--premium-shadow);
+  transition: var(--transition-premium);
   height: 100%;
 }
 
@@ -152,10 +153,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
+  background: var(--bg-card);
   padding: 16px 20px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   transition: all 0.2s ease;
 }
 

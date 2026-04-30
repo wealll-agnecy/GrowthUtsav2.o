@@ -1,21 +1,88 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import * as ticketApi from '../api/ticketApi';
+import * as bookingApi from '../api/bookingApi';
 import { Container, Row, Col, Button, Alert, Badge, Spinner } from 'react-bootstrap';
 import {
-    FaDownload, FaShieldAlt, FaIdCard
+    FaDownload, FaShieldAlt, FaIdCard, FaCreditCard, FaCheckCircle, FaEnvelope, FaRocket
 } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import confetti from 'canvas-confetti';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 import '../css/premium-ticket.css';
 
 const TicketView = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
     const [ticket, setTicket] = useState(null);
     const [qrCode, setQrCode] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [paying, setPaying] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    // Check for success query param
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get('success') === 'true') {
+            setShowSuccess(true);
+            // Trigger confetti
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+    }, [location]);
+
+    const handlePayInstallment = async () => {
+        const bookingId = ticket?.booking?._id || ticket?.booking;
+        if (!bookingId) return;
+
+        const total = ticket?.totalAmount || ticket?.booking?.totalAmount || 0;
+        const paid = ticket?.amountPaid || ticket?.booking?.amountPaid || 0;
+        const remaining = total - paid;
+        
+        if (remaining <= 0) return;
+
+        try {
+            setPaying(true);
+            await bookingApi.initiateInstallment(bookingId, remaining);
+            
+            // Demo bypass (Instant Verification)
+            const verifyRes = await bookingApi.verifyInstallment({
+                bookingId: bookingId,
+                amount: remaining
+            });
+            
+            if (verifyRes.data.success) {
+                // Refresh with success trigger
+                navigate(`/digital-pass/${id}?success=true`, { replace: true });
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error("Installment failed:", err);
+            setError("Payment verification failed. Please contact support.");
+        } finally {
+            setPaying(false);
+        }
+    };
 
     useEffect(() => {
         const fetchTicket = async () => {
@@ -37,28 +104,20 @@ const TicketView = () => {
         if (!element) return;
 
         try {
-            // Capture the element using high scale for quality
             const canvas = await html2canvas(element, {
                 scale: 3, 
                 useCORS: true,
-                backgroundColor: "#fff5f8", // Matches the page background
+                backgroundColor: "#fff5f8",
                 logging: false,
             });
 
             const imgData = canvas.toDataURL("image/png");
-            
-            // Initialize PDF in Portrait mode, mm units, A4 size
             const pdf = new jsPDF("p", "mm", "a4");
-            
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-            
-            // Calculate image dimensions to fit the PDF width with margins
             const margin = 10;
             const imgWidth = pdfWidth - (margin * 2);
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            // Center vertically if there's enough space
             const yPos = (pdfHeight - imgHeight) / 2 > margin ? (pdfHeight - imgHeight) / 2 : margin;
 
             pdf.addImage(imgData, "PNG", margin, yPos, imgWidth, imgHeight);
@@ -87,6 +146,7 @@ const TicketView = () => {
                         <FaShieldAlt size={50} className="mb-4 opacity-50" />
                         <h3 className="fw-black mb-3 text-uppercase tracking-widest">ACCESS DENIED</h3>
                         <p className="fs-5 opacity-75">{error}</p>
+                        <Button variant="outline-danger" className="mt-3" onClick={() => navigate('/my-bookings')}>Return to Bookings</Button>
                     </Alert>
                 </Container>
             </div>
@@ -97,6 +157,59 @@ const TicketView = () => {
 
     return (
         <div className="premium-ticket-container pb-5">
+            <AnimatePresence>
+                {showSuccess && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="success-celebration-overlay"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.8, opacity: 0, y: 50 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            transition={{ type: 'spring', damping: 15, stiffness: 100 }}
+                            className="success-glass-card"
+                        >
+                            <div className="success-lighting" />
+                            <div className="celebration-glow" style={{ top: '-10%', left: '-10%' }} />
+                            <div className="celebration-glow" style={{ bottom: '-10%', right: '-10%', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, transparent 70%)' }} />
+                            
+                            <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.3, type: 'spring' }}
+                                className="success-icon-wrapper"
+                            >
+                                <FaCheckCircle size={60} />
+                            </motion.div>
+
+                            <h1 className="success-title">Payment Completed!</h1>
+                            <p className="success-desc">
+                                Congratulations! Your full payment has been verified successfully. 
+                                Your ticket has been sent to your email.
+                            </p>
+
+                            <div className="d-flex flex-column gap-3">
+                                <div className="d-flex align-items-center justify-content-center gap-3 text-success fw-bold small uppercase tracking-widest">
+                                    <FaEnvelope /> Ticket Dispatched to Email
+                                </div>
+                                <Button 
+                                    className="futuristic-btn mt-4"
+                                    onClick={() => {
+                                        setShowSuccess(false);
+                                        // Clean URL
+                                        navigate(`/digital-pass/${id}`, { replace: true });
+                                    }}
+                                >
+                                    <FaRocket className="me-2" /> View My Digital Pass
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <Container fluid className="px-md-5">
                 {/* ─── Back + Header ─── */}
                 <motion.div initial={{ opacity: 0, y: -15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="mb-5 mt-4">
@@ -113,15 +226,16 @@ const TicketView = () => {
                             </p>
                         </div>
                         <div className="d-flex gap-3">
-                            {(ticket?.booking?.amountPaid >= ticket?.booking?.totalAmount) ? (
-                                <Button
-                                    variant="primary"
-                                    onClick={downloadTicketPDF}
-                                    className="rounded-pill px-4 py-2 btn fw-medium"
-                                    style={{ background: 'linear-gradient(135deg, #ec407a, #d81b60)', border: 'none' }}
-                                >
-                                    <FaDownload className="me-2" /> Export PDF
-                                </Button>
+                            {((ticket?.amountPaid || ticket?.booking?.amountPaid || 0) >= (ticket?.totalAmount || ticket?.booking?.totalAmount || 0)) ? (
+                                <>
+                                    <Button
+                                        variant="primary"
+                                        onClick={downloadTicketPDF}
+                                        className="btn btn-pink"
+                                    >
+                                        <FaDownload className="me-2" /> Export PDF
+                                    </Button>
+                                </>
                             ) : (
                                 <Badge bg="danger" className="rounded-pill px-4 py-2 d-flex align-items-center gap-2">
                                     <FaShieldAlt /> Payment Incomplete
@@ -140,12 +254,22 @@ const TicketView = () => {
                             transition={{ delay: 0.2, type: 'spring', damping: 20 }}
                             className="d-flex flex-column align-items-center"
                         >
-                            {ticket?.booking?.amountPaid < ticket?.booking?.totalAmount && (
-                                <Alert variant="warning" className="w-100 mb-4 rounded-4 border-warning/20 bg-warning/10 text-warning fw-bold d-flex align-items-center gap-3">
-                                    <FaShieldAlt />
-                                    <div>
-                                        ACCESS DENIED: Please pay the remaining balance of ₹{ticket.booking.totalAmount - ticket.booking.amountPaid} for entry clearance.
+                            {(ticket?.amountPaid || ticket?.booking?.amountPaid || 0) < (ticket?.totalAmount || ticket?.booking?.totalAmount || 0) && (
+                                <Alert variant="warning" className="w-100 mb-4 rounded-4 border-warning/20 bg-warning/10 text-warning fw-bold d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 p-4 shadow-lg">
+                                    <div className="d-flex align-items-center gap-3">
+                                        <FaShieldAlt className="fs-4 flex-shrink-0" />
+                                        <div>
+                                            ACCESS DENIED: Please pay the remaining balance of ₹{(ticket?.totalAmount || ticket?.booking?.totalAmount || 0) - (ticket?.amountPaid || ticket?.booking?.amountPaid || 0)} for entry clearance.
+                                        </div>
                                     </div>
+                                    <Button 
+                                        className="btn btn-pink"
+                                        onClick={handlePayInstallment}
+                                        disabled={paying}
+                                    >
+                                        {paying ? <Spinner size="sm" className="me-2" /> : <FaCreditCard className="me-2" />}
+                                        {paying ? 'Processing...' : 'Pay Remaining'}
+                                    </Button>
                                 </Alert>
                             )}
                             <div id="ticket-to-download" className="ticket-pass-card">
@@ -213,13 +337,13 @@ const TicketView = () => {
 
                                     <div className="text-center">
                                         <div className="pass-info-label mb-1">Pass Value</div>
-                                        <div className="h4 fw-black text-white m-0">₹{ticket?.booking?.totalAmount || 0}</div>
-                                        <div className="mt-2 small fw-bold" style={{ color: ticket?.booking?.amountPaid >= ticket?.booking?.totalAmount ? '#4caf50' : '#ff9800' }}>
-                                            Paid: ₹{ticket?.booking?.amountPaid || 0}
+                                        <div className="h4 fw-black text-white m-0">₹{ticket?.totalAmount || ticket?.booking?.totalAmount || 0}</div>
+                                        <div className="mt-2 small fw-bold" style={{ color: (ticket?.amountPaid || ticket?.booking?.amountPaid || 0) >= (ticket?.totalAmount || ticket?.booking?.totalAmount || 0) ? '#4caf50' : '#ff9800' }}>
+                                            Paid: ₹{ticket?.amountPaid || ticket?.booking?.amountPaid || 0}
                                         </div>
                                         <div className="mt-3">
-                                            <Badge bg={ticket?.booking?.amountPaid >= ticket?.booking?.totalAmount ? 'success' : 'warning'} className="pass-badge">
-                                                {ticket?.booking?.amountPaid >= ticket?.booking?.totalAmount ? 'Fully Paid' : 'Partial Payment'}
+                                            <Badge bg={(ticket?.amountPaid || ticket?.booking?.amountPaid || 0) >= (ticket?.totalAmount || ticket?.booking?.totalAmount || 0) ? 'success' : 'warning'} className="pass-badge">
+                                                {(ticket?.amountPaid || ticket?.booking?.amountPaid || 0) >= (ticket?.totalAmount || ticket?.booking?.totalAmount || 0) ? 'Fully Paid' : 'Partial Payment'}
                                             </Badge>
                                         </div>
                                     </div>
@@ -237,8 +361,8 @@ const TicketView = () => {
                                 <FaIdCard size={20} className="text-white" />
                             </div>
                             <div className='bt-1'>
-                                <h6 className="fw-black text-dark mb-1 uppercase tracking-widest" style={{ color: '#ffffffff' }}>Entry Protocol</h6>
-                                <p className="mb-0 small fw-medium opacity-80" style={{ color: '#ffffffff' }}>Present this credential at the deployment base. Physical ID synchronization may be required for sector clearance.</p>
+                                <h6 className="fw-black text-dark mb-1 uppercase tracking-widest" style={{ color: '#000000' }}>Entry Protocol</h6>
+                                <p className="mb-0 small fw-medium opacity-80" style={{ color: '#000000' }}>Present this credential at the deployment base. Physical ID synchronization may be required for sector clearance.</p>
                             </div>
                         </motion.div>
                     </Col>

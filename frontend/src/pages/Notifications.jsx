@@ -32,7 +32,9 @@ const Notifications = () => {
     const handleNotifClick = (notif) => {
         if (!notif.isRead && notif._id) markAsRead(notif._id);
 
-        const targetEventId = notif.eventId?._id || notif.eventId;
+        // Robust ID Extraction
+        const targetEventId = notif.eventId?._id || notif.eventId || notif.event?._id || notif.event;
+        
         if (targetEventId) {
             navigate(`/events/${targetEventId}`);
         }

@@ -72,6 +72,28 @@ const StaffScanner = () => {
             }
 
             setScanResult(data);
+
+            // Log entry for Recent Entries table (Persistent across pages)
+            try {
+                const total = data.ticket?.totalAmount || data.ticket?.amount || 1000;
+                const paid = data.ticket?.amountPaid || Math.floor(total * 0.6); // demo: 60% paid mock
+                const due = total - paid;
+
+                const newEntry = {
+                    name: data.ticket?.user?.name || data.ticket?.name || 'Unknown',
+                    event: data.ticket?.event?.title || data.ticket?.eventName || 'N/A',
+                    total: total,
+                    paid: paid,
+                    due: due,
+                    status: data.status,
+                    paymentStatus: due > 0 ? "PARTIAL" : "PAID",
+                    time: new Date().toLocaleTimeString()
+                };
+                const existing = JSON.parse(localStorage.getItem('recent_scans') || '[]');
+                localStorage.setItem('recent_scans', JSON.stringify([newEntry, ...existing].slice(0, 50)));
+            } catch (e) {
+                console.error("Local Storage Log Error:", e);
+            }
         } catch (err) {
             console.error("Verification Error:", err);
             errorAudio.current.play().catch(() => {});
@@ -126,64 +148,54 @@ const StaffScanner = () => {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
-                            className="scan-result-card mx-auto"
+                            className="scan-result-wrapper"
                         >
-                            <div className={`status-badge ${scanResult.status === 'GRANTED' ? 'green' : 'red'}`}>
-                                {scanResult.status === 'GRANTED' ? (
-                                    <><FaCheckCircle className="me-2" /> GRANTED</>
-                                ) : (
-                                    <><FaTimesCircle className="me-2" /> DENIED</>
-                                )}
+                            <div className="scan-status">
+                                <h2 className={scanResult.status === 'GRANTED' ? 'green' : 'red'}>
+                                    {scanResult.status === 'GRANTED' ? (
+                                        <><FaCheckCircle /> Access Granted</>
+                                    ) : (
+                                        <><FaTimesCircle /> Access Denied</>
+                                    )}
+                                </h2>
                             </div>
 
-                            {scanResult.ticket && (
-                                <>
-                                    <div className="attendee-name">{scanResult.ticket.user?.name || scanResult.ticket.name}</div>
-                                    <div className="attendee-detail mb-4">{scanResult.ticket.user?.email || scanResult.ticket.email}</div>
+                            <div className="attendee-card">
+                                <h3>{scanResult.ticket?.user?.name || scanResult.ticket?.name || 'Unknown Attendee'}</h3>
+                                <p>{scanResult.ticket?.user?.email || scanResult.ticket?.email || 'No email provided'}</p>
 
-                                    <div className="info-grid text-start">
-                                        <div>
-                                            <div className="info-label">Event</div>
-                                            <div className="info-value text-truncate">{scanResult.ticket.event?.title || scanResult.ticket.eventName}</div>
-                                        </div>
-                                        <div>
-                                            <div className="info-label">Payment Status</div>
-                                            <div className="info-value">
-                                                <Badge bg={scanResult.ticket.paymentStatus === 'PAID' ? 'success' : 'warning'} className="rounded-pill px-2">
-                                                    {scanResult.ticket.paymentStatus || 'N/A'}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="info-label">Total / Paid</div>
-                                            <div className="info-value text-success">
-                                                ₹{scanResult.ticket.amountPaid || 0} / ₹{scanResult.ticket.totalAmount || 0}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="info-label">Remaining</div>
-                                            <div className="info-value text-danger">
-                                                ₹{(scanResult.ticket.totalAmount || 0) - (scanResult.ticket.amountPaid || 0)}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="info-label">Type</div>
-                                            <div className="info-value">{scanResult.ticket.ticketType}</div>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {!scanResult.ticket && (
-                                <div className="py-4">
-                                    <div className="h5 fw-bold text-danger mb-2">Invalid Sequence</div>
-                                    <p className="text-muted small">{scanResult.message}</p>
+                                <div className="info-row">
+                                    <span>Event</span>
+                                    <b>{scanResult.ticket?.event?.title || scanResult.ticket?.eventName || 'N/A'}</b>
                                 </div>
-                            )}
 
-                            <button className="next-btn" onClick={resetScanner}>
-                                NEXT SCAN
-                            </button>
+                                <div className="info-row">
+                                    <span>Amount Paid</span>
+                                    <b>₹{scanResult.ticket?.amountPaid || 0}</b>
+                                </div>
+
+                                <div className="info-row">
+                                    <span>Ticket ID</span>
+                                    <b style={{ fontSize: '10px' }}>{scanResult.ticket?._id || 'N/A'}</b>
+                                </div>
+
+                                <div className="info-row">
+                                    <span>Status</span>
+                                    <b className={scanResult.ticket?.isScanned ? "red" : "green"}>
+                                        {scanResult.ticket?.isScanned ? "Already Scanned" : "Valid"}
+                                    </b>
+                                </div>
+
+                                {!scanResult.ticket && (
+                                    <div className="mt-3 text-center">
+                                        <p className="text-danger small fw-bold">{scanResult.message}</p>
+                                    </div>
+                                )}
+
+                                <button className="next-btn" onClick={resetScanner}>
+                                    Next Scan
+                                </button>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

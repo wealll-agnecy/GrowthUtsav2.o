@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Form, Modal, 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaUserTie, FaCheckCircle, FaTimesCircle, FaSearch, FaEnvelope,
-    FaBuilding, FaLightbulb, FaPhone, FaGlobe, FaClock, FaUsers, FaEye, FaTrash, FaCheck, FaTimes
+    FaBuilding, FaLightbulb, FaPhone, FaGlobe, FaClock, FaUsers, FaEye, FaTrash, FaCheck, FaTimes, FaUserCircle
 } from 'react-icons/fa';
 import * as adminApi from '../api/adminApi';
 import '../css/admin-pages.css';
@@ -207,45 +207,117 @@ const AdminOrganizerRequests = () => {
                 </Tab.Container>
             </Container>
 
-            {/* Details Modal */}
-            <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg">
-                <Modal.Header closeButton className="border-0 pb-0">
-                    <Modal.Title className="fw-bold">Application Details</Modal.Title>
+            {/* Premium Details Modal */}
+            <Modal 
+                show={showModal} 
+                onHide={() => setShowModal(false)} 
+                centered 
+                size="lg"
+                className="premium-modal"
+                contentClassName="glass-modal-content"
+            >
+                <Modal.Header className="modal-header-premium border-0">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="modal-icon-header">
+                            <FaUserTie />
+                        </div>
+                        <div>
+                            <Modal.Title className="fw-black tracking-tight h4 m-0">Application Intel</Modal.Title>
+                            <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Verification Protocol Active</p>
+                        </div>
+                    </div>
+                    <button className="btn-close-premium" onClick={() => setShowModal(false)}><FaTimes /></button>
                 </Modal.Header>
-                <Modal.Body className="p-4">
+                
+                <Modal.Body className="p-4 pt-2">
                     {selectedOrg && (
                         <div className="row g-4">
+                            {/* Personal Segment */}
                             <div className="col-md-6">
-                                <label className="card-title-sm">Personal Info</label>
-                                <div className="p-3 bg-light rounded-3">
-                                    <div className="mb-2"><small className="text-muted d-block uppercase tiny-text">Name</small><strong>{selectedOrg.name}</strong></div>
-                                    <div className="mb-2"><small className="text-muted d-block uppercase tiny-text">Email</small><strong>{selectedOrg.email}</strong></div>
-                                    <div><small className="text-muted d-block uppercase tiny-text">Phone</small><strong>{selectedOrg.phone || 'N/A'}</strong></div>
+                                <div className="detail-section-card">
+                                    <div className="section-header-mini">
+                                        <FaUserCircle className="me-2 text-pink" /> 
+                                        <span>Identity Profile</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Full Name</label>
+                                        <div className="value">{selectedOrg.name}</div>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Email Address</label>
+                                        <div className="value">{selectedOrg.email}</div>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Contact Node</label>
+                                        <div className="value">{selectedOrg.phone || 'Protocol Hidden'}</div>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Org Segment */}
                             <div className="col-md-6">
-                                <label className="card-title-sm">Organization</label>
-                                <div className="p-3 bg-light rounded-3">
-                                    <div className="mb-2"><small className="text-muted d-block uppercase tiny-text">Company</small><strong>{selectedOrg.organizationDetails?.companyName || 'N/A'}</strong></div>
-                                    <div><small className="text-muted d-block uppercase tiny-text">Website</small><a href={selectedOrg.organizationDetails?.website} target="_blank" className="text-info">{selectedOrg.organizationDetails?.website || 'N/A'}</a></div>
+                                <div className="detail-section-card">
+                                    <div className="section-header-mini">
+                                        <FaBuilding className="me-2 text-pink" /> 
+                                        <span>Organizational Node</span>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Company Entity</label>
+                                        <div className="value">{selectedOrg.organizationDetails?.companyName || 'Individual Operator'}</div>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Digital Hub</label>
+                                        <div className="value">
+                                            {selectedOrg.organizationDetails?.website ? (
+                                                <a href={selectedOrg.organizationDetails.website} target="_blank" rel="noreferrer" className="text-pink text-decoration-none d-flex align-items-center gap-1">
+                                                    Visit Website <FaGlobe size={10} />
+                                                </a>
+                                            ) : 'No Web Presence'}
+                                        </div>
+                                    </div>
+                                    <div className="detail-item">
+                                        <label>Requested Role</label>
+                                        <div className="value text-capitalize">{selectedOrg.role || 'Organizer'}</div>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Mission Segment */}
                             <div className="col-12">
-                                <label className="card-title-sm">Intent & Goals</label>
-                                <div className="p-3 bg-light rounded-3">
-                                    <p className="mb-0 small">{selectedOrg.organizationDetails?.eventIntent || 'No intent provided.'}</p>
+                                <div className="detail-section-card mission-card">
+                                    <div className="section-header-mini">
+                                        <FaLightbulb className="me-2 text-pink" /> 
+                                        <span>Event Intent & Strategic Goals</span>
+                                    </div>
+                                    <div className="intent-box mt-3">
+                                        <p className="m-0">{selectedOrg.organizationDetails?.eventIntent || 'No specific mission parameters provided for this application node.'}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
                 </Modal.Body>
-                <Modal.Footer className="border-0">
-                    <Button className="btn btn-outline-pink rounded-8" onClick={() => setShowModal(false)}>Close</Button>
+                
+                <Modal.Footer className="border-0 modal-footer-premium px-4 pb-4">
+                    <Button variant="link" className="text-muted text-decoration-none fw-bold me-auto" onClick={() => setShowModal(false)}>
+                        Dismiss
+                    </Button>
+                    
                     {activeTab === 'pending' && selectedOrg && (
-                        <>
-                            <Button className="btn btn-outline-pink rounded-8" onClick={() => handleAction(selectedOrg._id, 'reject')}>Reject</Button>
-                            <Button className="btn btn-pink rounded-8" onClick={() => handleAction(selectedOrg._id, 'approve')}>Approve Application</Button>
-                        </>
+                        <div className="d-flex gap-3">
+                            <Button 
+                                className="btn btn-outline-danger rounded-pill px-4 fw-bold shadow-sm"
+                                onClick={() => handleAction(selectedOrg._id, 'reject')}
+                            >
+                                <FaTimesCircle className="me-2" /> Decline
+                            </Button>
+                            <Button 
+                                className="btn btn-pink rounded-pill px-4 fw-black shadow-glow"
+                                onClick={() => handleAction(selectedOrg._id, 'approve')}
+                            >
+                                <FaCheckCircle className="me-2" /> Approve Node
+                            </Button>
+                        </div>
                     )}
                 </Modal.Footer>
             </Modal>

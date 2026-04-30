@@ -21,6 +21,8 @@ const Home = lazy(() => import('./pages/Home'));
 const EventListing = lazy(() => import('./pages/EventListing'));
 const EventDetails = lazy(() => import('./pages/EventDetails'));
 const MyBookings = lazy(() => import('./pages/MyBookings'));
+const Profile = lazy(() => import('./pages/Profile'));
+const AttendeeDashboard = lazy(() => import('./pages/AttendeeDashboard'));
 const ContactUs = lazy(() => import('./pages/ContactUs'));
 const AdminEnquiries = lazy(() => import('./pages/AdminEnquiries'));
 const AdminEnquiryDetails = lazy(() => import('./pages/AdminEnquiryDetails'));
@@ -100,6 +102,7 @@ const AppContent = () => {
                             <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
                             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
                             <Route path="/tickets/:id" element={<ProtectedRoute><TicketView /></ProtectedRoute>} />
+                            <Route path="/digital-pass/:id" element={<ProtectedRoute><TicketView /></ProtectedRoute>} />
                             <Route path="/checkout" element={<ProtectedRoute><CheckoutFlow /></ProtectedRoute>} />
                             <Route path="/contact-us" element={<ContactUs />} />
                             <Route path="/login" element={<Login />} />
@@ -113,8 +116,8 @@ const AppContent = () => {
                             <Route path="/admin" element={<AdminSecretLogin />} />
                             <Route path="/admin-login" element={<AdminSecretLogin />} />
 
-                            <Route path="/attendee/dashboard" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
-                            <Route path="/profile" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+                            <Route path="/attendee/dashboard" element={<ProtectedRoute roles={['user', 'admin']}><DashboardWrapper role="attendee"><AttendeeDashboard /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
                             {/* Organizer Dashboard Routes */}
                             <Route path="/organizer/dashboard" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerDashboard /></DashboardWrapper></ProtectedRoute>} />

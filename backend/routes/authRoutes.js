@@ -7,7 +7,8 @@ const {
     getMe,
     forgotPassword,
     resetPassword,
-    updateFcmToken
+    updateFcmToken,
+    updateDetails
 } = require('../controllers/authController');
 
 const router = express.Router();
@@ -22,6 +23,7 @@ router.post('/admin-login', adminLogin);
 router.get('/logout', logout);
 router.get('/me', protect, getMe);
 router.patch('/fcm-token', protect, updateFcmToken);
+router.put('/updatedetails', protect, upload.single('avatar'), updateDetails);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 

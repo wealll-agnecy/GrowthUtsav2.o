@@ -1,7 +1,7 @@
 .scanner-page {
   padding: 20px;
   min-height: 100vh;
-  background: #f8f9fa;
+  background: var(--bg-main);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -10,7 +10,7 @@
 .scanner-title {
   font-size: 24px;
   font-weight: 900;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-bottom: 24px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -25,8 +25,8 @@
   background: #000;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 15px 35px rgba(255, 77, 141, 0.15);
-  border: 4px solid #fff;
+  box-shadow: var(--premium-shadow);
+  border: 4px solid var(--bg-card);
 }
 
 /* Add overlay frame */
@@ -77,86 +77,134 @@
 .bottom-right { bottom: 20px; right: 20px; border-left: 0; border-top: 0; border-bottom-right-radius: 12px; }
 
 /* Result Card UI */
-.scan-result-card {
-  margin-top: 30px;
+.scan-result-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  max-width: 500px;
-  background: #fff;
-  padding: 32px;
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  padding: 0;
+  margin-top: 20px;
+}
+
+.scan-status {
+  width: 100%;
+  max-width: 420px;
   text-align: center;
-  border: 1px solid rgba(0,0,0,0.05);
 }
 
-.status-badge {
-    font-size: 28px;
-    font-weight: 900;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+.scan-status h2 {
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.green { color: #00b894; }
-.red { color: #ff4d4d; }
-
-.attendee-name {
-    font-size: 22px;
-    font-weight: 800;
-    color: #1a1a1a;
-    margin-bottom: 5px;
+.scan-status .green {
+  background: #e6fff5;
+  color: #00b894;
 }
 
-.attendee-detail {
-    font-size: 15px;
-    color: #666;
-    margin-bottom: 20px;
+.scan-status .red {
+  background: #ffe6e6;
+  color: #ff4d4d;
 }
 
-.info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    text-align: left;
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 16px;
-    margin-bottom: 25px;
+.attendee-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-card);
+  padding: 28px;
+  border-radius: 24px;
+  box-shadow: var(--premium-shadow);
+  text-align: left;
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
 }
 
-.info-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
+.attendee-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #ff4d8d, #ff7eb3);
 }
 
-.info-value {
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
+.attendee-card h3 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.attendee-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 10px;
+}
+
+.info-row span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-row b {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.info-row b.green {
+  color: #00b894;
+}
+
+.info-row b.red {
+  color: #ff4d4d;
 }
 
 .next-btn {
   width: 100%;
-  background: #ff4d8d;
-  color: #fff;
+  margin-top: 20px;
+  background: linear-gradient(135deg, #ff4d8d, #ff7eb3);
   border: none;
+  color: #fff;
   padding: 16px;
+  border-radius: 14px;
   font-size: 16px;
   font-weight: 700;
-  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 8px 20px rgba(255, 77, 141, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .next-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: 0 12px 25px rgba(255, 77, 141, 0.35);
 }
 
@@ -169,5 +217,5 @@
   .scanner-title { font-size: 20px; }
   .scanner-box { border-radius: 20px; }
   .scanner-box::after { inset: 30px; }
-  .scan-result-card { padding: 24px; }
+  .attendee-card { padding: 24px; }
 }

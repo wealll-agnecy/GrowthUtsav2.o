@@ -6,7 +6,7 @@
   flex-direction: column !important;
   align-items: center !important;
   padding: 40px 20px !important;
-  background: #fff5f8 !important; /* Matches cutouts */
+  background: var(--bg-main) !important; 
   min-height: 100vh !important;
 }
 
@@ -20,19 +20,21 @@
   border-radius: 24px !important;
   overflow: hidden !important;
   
-  /* PREMIUM WHITE-GOLD-PINK GRADIENT */
+  /* PREMIUM ADAPTIVE GRADIENT */
   background: linear-gradient(135deg, 
-    #ffffff 0%, 
-    #fffbf0 45%, 
-    #fff0f6 100%
+    var(--bg-card) 0%, 
+    var(--bg-surface) 100%
   ) !important;
   
-  color: #1a1a1a !important; /* Elegant Black */
-  box-shadow: 
-    0 20px 50px rgba(173, 20, 87, 0.1),
-    0 10px 20px rgba(0,0,0,0.05) !important;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important; /* Subtle Gold Border */
+  color: var(--text-primary) !important;
+  box-shadow: var(--premium-shadow) !important;
+  transition: var(--transition-premium) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.dark-mode .ticket-pass-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  border-color: rgba(212, 175, 55, 0.3) !important;
 }
 
 .ticket-pass-card:hover {
@@ -59,8 +61,8 @@
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  background: rgba(212, 175, 55, 0.05) !important; /* Very subtle gold tint */
-  border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
+  background: rgba(212, 175, 55, 0.05) !important; 
+  border-left: 1px solid var(--border) !important;
   position: relative !important;
 }
 
@@ -82,7 +84,7 @@
   position: absolute !important;
   width: 36px !important;
   height: 36px !important;
-  background: #fff5f8 !important; /* Page background color to look like holes */
+  background: var(--bg-main) !important; /* Matches cutouts */
   border-radius: 50% !important;
   left: calc(100% - 250px - 18px) !important; 
   z-index: 20 !important;
@@ -140,17 +142,17 @@
 .pass-info-value {
   font-size: 1rem !important;
   font-weight: 700 !important;
-  color: #1a1a1a !important;
+  color: var(--text-primary) !important;
 }
 
 /* QR Code Section */
 .pass-qr-wrapper {
-  background: white !important;
+  background: white !important; /* QR always needs white background for scanning */
   padding: 12px !important;
   border-radius: 16px !important;
   margin-bottom: 20px !important;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+  border: 1px solid var(--border) !important;
 }
 
 .pass-qr-image {
@@ -224,4 +226,81 @@
       right: -18px !important;
       left: auto !important;
   }
+}
+
+/* ═══════════ SUCCESS OVERLAY ═══════════ */
+.success-celebration-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(255, 245, 248, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+.success-glass-card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(25px) !important;
+    border: 1px solid rgba(236, 64, 122, 0.2) !important;
+    border-radius: 40px !important;
+    padding: 60px !important;
+    text-align: center !important;
+    max-width: 650px !important;
+    width: 90% !important;
+    box-shadow: 0 40px 100px rgba(173, 20, 87, 0.15) !important;
+    position: relative !important;
+}
+
+.success-icon-wrapper {
+    width: 120px !important;
+    height: 120px !important;
+    background: linear-gradient(135deg, #ec407a, #d81b60) !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 30px !important;
+    box-shadow: 0 20px 40px rgba(236, 64, 122, 0.4) !important;
+    color: white !important;
+}
+
+.success-title {
+    font-size: 2.5rem !important;
+    font-weight: 900 !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 20px !important;
+    letter-spacing: -0.02em !important;
+}
+
+.success-desc {
+    font-size: 1.1rem !important;
+    color: rgba(0, 0, 0, 0.6) !important;
+    line-height: 1.6 !important;
+    margin-bottom: 40px !important;
+}
+
+.success-lighting {
+    position: absolute !important;
+    top: -50% !important;
+    left: -50% !important;
+    width: 200% !important;
+    height: 200% !important;
+    background: radial-gradient(circle at center, rgba(236, 64, 122, 0.1) 0%, transparent 70%) !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+}
+
+.celebration-glow {
+    position: absolute !important;
+    width: 300px !important;
+    height: 300px !important;
+    background: radial-gradient(circle, rgba(236, 64, 122, 0.2) 0%, transparent 70%) !important;
+    filter: blur(60px) !important;
+    pointer-events: none !important;
 }

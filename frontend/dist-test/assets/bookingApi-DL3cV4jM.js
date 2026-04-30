@@ -1,0 +1,1 @@
+import{k as n}from"./index-B6mI4i6j.js";const s="/api/v1/bookings",i=async t=>await n.post(`${s}/demo-book`,t),e=async()=>await n.get(`${s}/mybookings`),r=async(t,a)=>await n.post(`${s}/${t}/installment`,{amount:a}),c=async t=>await n.post(`${s}/verify-installment`,t);export{i as c,e as g,r as i,c as v};

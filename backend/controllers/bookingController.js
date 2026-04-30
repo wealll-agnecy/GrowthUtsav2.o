@@ -7,26 +7,23 @@ const { createTicketAfterPayment } = require('./ticketController');
 const { sendBookingConfirmation } = require('../services/emailService');
 const { generateTicketPDF } = require('../services/pdfService');
 
-// Safe Razorpay init
-let razorpay = null;
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-    razorpay = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID,
-        key_secret: process.env.RAZORPAY_KEY_SECRET
-    });
-}
+// Safe Demo Order Generation (Razorpay removed)
+const generateDemoOrder = (amount) => ({
+    id: "demo_" + Date.now(),
+    amount: amount * 100,
+    currency: 'INR'
+});
 
 // @desc    Initiate Checkout
 // @route   POST /api/v1/bookings/checkout
 exports.checkout = async (req, res) => {
     try {
-        const { eventId, ticketType, quantity, attendeeDetails, partialAmount } = req.body;
+        const { eventId, ticketType, quantity, attendeeDetails, partialAmount, contactEmail } = req.body;
         if (!eventId || !ticketType || !quantity) return res.status(400).json({ success: false, message: "Missing fields" });
 
         const event = await Event.findById(eventId);
         if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
-        let tier;
         let totalAmount = 0;
         let selectedDatesArray = [];
 
@@ -49,23 +46,13 @@ exports.checkout = async (req, res) => {
                 totalAmount += dayTier.price * parseInt(quantity);
             }
         } else {
-            tier = event.ticketTypes.find(t => t.name === ticketType);
+            const tier = event.ticketTypes.find(t => t.name === ticketType);
             if (!tier) return res.status(400).json({ success: false, message: "Invalid ticket type" });
             totalAmount = tier.price * parseInt(quantity);
         }
 
-        let order;
         const paymentAmount = partialAmount ? parseFloat(partialAmount) : totalAmount;
-
-        if (razorpay) {
-            order = await razorpay.orders.create({
-                amount: Math.round(paymentAmount * 100),
-                currency: 'INR',
-                receipt: `rcpt_${Date.now()}`
-            });
-        } else {
-            order = { id: "demo_" + Date.now(), amount: paymentAmount * 100, currency: 'INR' };
-        }
+        const order = generateDemoOrder(paymentAmount);
 
         const bookingData = {
             user: req.user.id,
@@ -77,6 +64,7 @@ exports.checkout = async (req, res) => {
             totalAmount,
             orderId: order.id,
             paymentStatus: 'pending',
+            contactEmail: contactEmail || req.user.email,
             attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }]
         };
 
@@ -91,17 +79,13 @@ exports.checkout = async (req, res) => {
 // @route   POST /api/v1/bookings/verify
 exports.verifyPayment = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = req.body;
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId, amount } = req.body;
         const booking = await Booking.findById(bookingId).populate('event');
         if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
 
-        // Signature check simplified for brevity here, assume authentic for demo
-        const paidNow = booking.totalAmount; // This is the old way, but let's fix it
-        
-        // We need to know how much was paid in this specific order
-        // For verifyPayment (initial checkout), we'll assume full unless partialAmount was passed
-        // But better to just check the order amount if possible or pass it back
-        const amountFromOrder = req.body.amount || booking.totalAmount; 
+        // If amount is not passed, we fallback to totalAmount (assume full payment)
+        // However, if it's a partial payment flow, the frontend SHOULD pass the amount.
+        const amountFromOrder = amount || booking.totalAmount; 
 
         booking.amountPaid = (booking.amountPaid || 0) + parseFloat(amountFromOrder);
         booking.paymentStatus = booking.amountPaid >= booking.totalAmount ? 'completed' : 'partial';
@@ -113,32 +97,37 @@ exports.verifyPayment = async (req, res) => {
             date: new Date()
         });
 
+        console.log(`✅ [PAYMENT] Verified! Amount: ${amountFromOrder}, Booking: ${bookingId}`);
         await booking.save();
 
+        console.log(`📄 [PDF] Generating ticket for booking ${booking._id}...`);
         const ticket = await createTicketAfterPayment(booking._id, booking.event._id, req.user.id);
-        
+        console.log(`✅ [PDF] Ticket generated successfully: ${ticket._id}`);
+
         // Save ticket link
         booking.ticketId = ticket._id;
         await booking.save();
 
-        // Ensure Ticket Financials are synced (redundant but safe)
-        const Ticket = require('../models/Ticket');
-        await Ticket.findByIdAndUpdate(ticket._id, {
-            amountPaid: booking.amountPaid,
-            totalAmount: booking.totalAmount,
-            paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL'
-        });
-        
         // AUTO EMAIL with PDF
-        try {
-            const pdfBuffer = await generateTicketPDF(ticket._id);
-            await sendBookingConfirmation(req.user, booking.event, pdfBuffer, {
-                ticketType: booking.ticketType,
-                quantity: booking.quantity,
-                totalAmount: booking.totalAmount
-            });
-        } catch (emailErr) {
-            console.error("Email/PDF background error:", emailErr.message);
+        if (booking.paymentStatus === 'completed') {
+            try {
+                console.log(`📩 [EMAIL] Preparing to dispatch ticket to: ${booking.contactEmail || req.user.email}`);
+                const pdfBuffer = await generateTicketPDF(ticket._id);
+                await sendBookingConfirmation(
+                    { name: req.user.name, email: booking.contactEmail || req.user.email },
+                    booking.event,
+                    pdfBuffer,
+                    { 
+                        ticketType: booking.ticketType, 
+                        quantity: booking.quantity, 
+                        totalAmount: booking.totalAmount, 
+                        ticketId: ticket._id 
+                    }
+                );
+                console.log(`✅ [EMAIL] Dispatch complete for booking ${booking._id}`);
+            } catch (emailErr) {
+                console.error("❌ [EMAIL ERROR] Dispatch Failed:", emailErr.message);
+            }
         }
 
         // Queue Event Reminders
@@ -155,7 +144,7 @@ exports.verifyPayment = async (req, res) => {
 // @route   POST /api/v1/bookings/demo-book
 exports.demoBooking = async (req, res) => {
     try {
-        const { eventId, ticketType, quantity, attendeeDetails } = req.body;
+        const { eventId, ticketType, quantity, attendeeDetails, partialAmount, contactEmail } = req.body;
         const event = await Event.findById(eventId);
         if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
@@ -190,6 +179,8 @@ exports.demoBooking = async (req, res) => {
             tiersToUpdate.push(tier);
         }
 
+        const paid = (partialAmount && !isNaN(parseFloat(partialAmount))) ? parseFloat(partialAmount) : totalAmount;
+
         const booking = await Booking.create({
             user: req.user.id,
             event: eventId,
@@ -198,9 +189,11 @@ exports.demoBooking = async (req, res) => {
             selectedDays: selectedDatesArray,
             quantity: parseInt(quantity),
             totalAmount,
+            amountPaid: paid,
             orderId: "DEMO_ORDER_" + Date.now(),
             paymentId: "DEMO_PAY_" + Date.now(),
-            paymentStatus: 'completed',
+            paymentStatus: paid >= totalAmount ? 'completed' : 'partial',
+            contactEmail: contactEmail || req.user.email,
             attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }]
         });
 
@@ -217,18 +210,23 @@ exports.demoBooking = async (req, res) => {
         await booking.save();
 
         // AUTO EMAIL with PDF
-        try {
-            console.log("📧 Generating Ticket PDF for Email...");
-            const pdfBuffer = await generateTicketPDF(ticket._id);
-            console.log("📧 Sending Confirmation Email...");
-            await sendBookingConfirmation(req.user, event, pdfBuffer, {
-                ticketType: booking.ticketType,
-                quantity: booking.quantity,
-                totalAmount: booking.totalAmount
-            });
-            console.log("✅ Email sent successfully");
-        } catch (emailErr) {
-            console.error("Email/PDF background error:", emailErr.message);
+        if (booking.paymentStatus === 'completed') {
+            try {
+                const pdfBuffer = await generateTicketPDF(ticket._id);
+                await sendBookingConfirmation(
+                    { name: req.user.name, email: booking.contactEmail || req.user.email },
+                    event,
+                    pdfBuffer,
+                    { 
+                        ticketType: booking.ticketType, 
+                        quantity: booking.quantity, 
+                        totalAmount: booking.totalAmount, 
+                        ticketId: ticket._id 
+                    }
+                );
+            } catch (emailErr) {
+                console.error("Email/PDF background error:", emailErr.message);
+            }
         }
 
         // Queue Event Reminders
@@ -269,16 +267,7 @@ exports.initiateInstallment = async (req, res) => {
         const remaining = booking.totalAmount - booking.amountPaid;
         if (amount > remaining) return res.status(400).json({ success: false, message: `Amount exceeds remaining balance of ${remaining}` });
 
-        let order;
-        if (razorpay) {
-            order = await razorpay.orders.create({
-                amount: Math.round(amount * 100),
-                currency: 'INR',
-                receipt: `rcpt_inst_${Date.now()}`
-            });
-        } else {
-            order = { id: "demo_inst_" + Date.now(), amount: amount * 100, currency: 'INR' };
-        }
+        const order = generateDemoOrder(amount);
 
         res.status(200).json({ success: true, order, bookingId: booking._id });
     } catch (err) {
@@ -304,18 +293,92 @@ exports.verifyInstallment = async (req, res) => {
             date: new Date()
         });
 
+        console.log(`✅ [PAYMENT] Installment Verified! Amount: ${amount}, Booking: ${bookingId}`);
         await booking.save();
 
         // Sync Ticket Financials
         if (booking.ticketId) {
+            console.log(`📄 [PDF] Regenerating ticket for booking ${booking._id} (Installment update)...`);
             const Ticket = require('../models/Ticket');
-            await Ticket.findByIdAndUpdate(booking.ticketId, {
+            const ticket = await Ticket.findByIdAndUpdate(booking.ticketId, {
                 amountPaid: booking.amountPaid,
                 paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL'
-            });
+            }, { new: true });
+
+            // Send email if payment is now complete
+            if (booking.paymentStatus === 'completed') {
+                try {
+                    const pdfBuffer = await generateTicketPDF(booking.ticketId);
+                    await sendBookingConfirmation(
+                        { name: req.user.name, email: booking.contactEmail || req.user.email },
+                        booking.event,
+                        pdfBuffer,
+                        { 
+                            ticketType: booking.ticketType, 
+                            quantity: booking.quantity, 
+                            totalAmount: booking.totalAmount, 
+                            ticketId: booking.ticketId 
+                        }
+                    );
+                } catch (emailErr) {
+                    console.error("Installment Completion Email Error:", emailErr.message);
+                }
+            }
         }
 
-        res.status(200).json({ success: true, message: "Payment updated", amountPaid: booking.amountPaid });
+        res.status(200).json({ 
+            success: true, 
+            message: "Payment updated", 
+            amountPaid: booking.amountPaid,
+            ticketId: booking.ticketId 
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Resend Ticket Email
+// @route   POST /api/v1/bookings/resend-ticket/:id
+exports.resendTicketEmail = async (req, res) => {
+    try {
+        let booking = await Booking.findById(req.params.id).populate('event');
+        
+        // Fallback: If not found, check if the ID provided is actually a Ticket ID
+        if (!booking) {
+            const ticket = await require('../models/Ticket').findById(req.params.id).populate({
+                path: 'booking',
+                populate: { path: 'event' }
+            });
+            if (ticket && ticket.booking) {
+                booking = ticket.booking;
+            }
+        }
+
+        if (!booking) return res.status(404).json({ success: false, message: "Booking or Ticket reference not found" });
+
+        if (booking.paymentStatus !== 'completed') {
+            return res.status(400).json({ success: false, message: "Payment not completed yet" });
+        }
+
+        if (!booking.ticketId) {
+            return res.status(400).json({ success: false, message: "No ticket record found for this booking." });
+        }
+
+        console.log(`📄 [RESEND] Regenerating PDF for Ticket: ${booking.ticketId}`);
+        const pdfBuffer = await generateTicketPDF(booking.ticketId);
+        await sendBookingConfirmation(
+            { name: req.user.name, email: booking.contactEmail || req.user.email },
+            booking.event,
+            pdfBuffer,
+            { 
+                ticketType: booking.ticketType, 
+                quantity: booking.quantity, 
+                totalAmount: booking.totalAmount, 
+                ticketId: booking.ticketId 
+            }
+        );
+
+        res.status(200).json({ success: true, message: "Ticket resent successfully to " + (booking.contactEmail || req.user.email) });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

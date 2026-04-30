@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import * as bookingApi from '../api/bookingApi';
 import { Container, Row, Col, Card, Badge, Alert, Button } from 'react-bootstrap';
-import { FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaRocket, FaClock, FaShieldAlt } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { 
+    FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaRocket, 
+    FaClock, FaShieldAlt, FaWallet, FaSync, FaArrowRight, FaTimes, FaArrowLeft, FaCheckCircle 
+} from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Modal, Form, ProgressBar } from 'react-bootstrap';
-import { FaWallet, FaSync } from 'react-icons/fa';
+import { Modal, Form, ProgressBar, Spinner } from 'react-bootstrap';
 import '../css/mybookings.css';
-
-const RAZORPAY_SDK_URL = 'https://checkout.razorpay.com/v1/checkout.js';
 
 const MyBookings = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -21,22 +22,8 @@ const MyBookings = () => {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [installmentAmount, setInstallmentAmount] = useState('');
     const [isPaying, setIsPaying] = useState(false);
-    const [sdkLoaded, setSdkLoaded] = useState(false);
 
     useEffect(() => {
-        const loadRazorpay = () => {
-            if (window.Razorpay) {
-                setSdkLoaded(true);
-                return;
-            }
-            const script = document.createElement('script');
-            script.src = RAZORPAY_SDK_URL;
-            script.async = true;
-            script.onload = () => setSdkLoaded(true);
-            document.body.appendChild(script);
-        };
-        loadRazorpay();
-
         const fetchBookings = async () => {
             try {
                 const res = await bookingApi.getMyBookings();
@@ -49,18 +36,6 @@ const MyBookings = () => {
         };
         fetchBookings();
     }, []);
-
-    if (loading) {
-        return (
-            <div
-                className="d-flex flex-column align-items-center justify-content-center"
-                style={{ minHeight: '80vh', paddingTop: 'var(--navbar-height)' }}
-            >
-                <FaTicketAlt size={40} className="text-primary-light mb-3" />
-                <p className="text-soft fw-black">Loading your bookings...</p>
-            </div>
-        );
-    }
 
     const handlePayInstallment = async (e) => {
         e.preventDefault();
@@ -75,48 +50,21 @@ const MyBookings = () => {
 
         setIsPaying(true);
         try {
-            const res = await bookingApi.initiateInstallment(selectedBooking._id, installmentAmount);
-            const { order } = res.data;
-
-            if (!order || !order.id) {
-                // Demo Mode or Error
-                if (res.data.success && !order) {
-                    await bookingApi.verifyInstallment({ bookingId: selectedBooking._id, amount: installmentAmount });
-                    toast.success('Payment updated (Demo Mode)');
+            await bookingApi.initiateInstallment(selectedBooking._id, installmentAmount);
+            const verifyRes = await bookingApi.verifyInstallment({ 
+                bookingId: selectedBooking._id, 
+                amount: installmentAmount 
+            });
+            
+            if (verifyRes.data.success) {
+                if (parseFloat(installmentAmount) >= remaining || verifyRes.data.ticketId) {
+                    // Redirect to digital pass with success animation trigger
+                    navigate(`/digital-pass/${verifyRes.data.ticketId || selectedBooking.ticketId}?success=true`);
+                } else {
+                    toast.success('Payment updated successfully!');
                     window.location.reload();
-                    return;
                 }
-                throw new Error('Order creation failed');
             }
-
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-                amount: order.amount,
-                currency: order.currency,
-                name: 'GrowthUtsav',
-                description: `Installment for ${selectedBooking.event.title}`,
-                order_id: order.id,
-                handler: async function (response) {
-                    try {
-                        const verifyRes = await bookingApi.verifyInstallment({
-                            ...response,
-                            bookingId: selectedBooking._id,
-                            amount: installmentAmount
-                        });
-                        if (verifyRes.data.success) {
-                            toast.success('Installment Paid Successfully!');
-                            window.location.reload();
-                        }
-                    } catch (err) {
-                        toast.error('Verification failed');
-                    }
-                },
-                prefill: { name: user?.name, email: user?.email },
-                theme: { color: '#ec407a' }
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.open();
         } catch (err) {
             toast.error(err.response?.data?.message || err.message);
         } finally {
@@ -130,6 +78,18 @@ const MyBookings = () => {
         if (!img || img === 'no-photo.jpg') return 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800';
         return img;
     };
+
+    if (loading) {
+        return (
+            <div
+                className="d-flex flex-column align-items-center justify-content-center"
+                style={{ minHeight: '80vh', paddingTop: 'var(--navbar-height)' }}
+            >
+                <FaTicketAlt size={40} className="text-primary-light mb-3" />
+                <p className="text-soft fw-black">Loading your bookings...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="mybooking-wrapper">
@@ -255,8 +215,8 @@ const MyBookings = () => {
                                                         </button>
                                                     )}
                                                     {booking.ticketId && (
-                                                        <Link to={`/tickets/${booking.ticketId}`} className="view-ticket-btn">
-                                                            View Ticket
+                                                        <Link to={`/digital-pass/${booking.ticketId}`} className="view-ticket-btn">
+                                                            View Digital Pass
                                                         </Link>
                                                     )}
                                                 </div>
@@ -270,54 +230,69 @@ const MyBookings = () => {
                 </AnimatePresence>
             </Container>
 
-            {/* Installment Modal */}
-            <Modal show={showInstallmentModal} onHide={() => setShowInstallmentModal(false)} centered className="installment-modal">
-                <Modal.Header closeButton className="border-0 pb-0">
-                    <Modal.Title className="fw-black uppercase tracking-widest small">Payment Protocol</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="pt-4">
-                    <div className="mb-4 text-center">
-                        <div className="bg-primary-subtle d-inline-block p-3 rounded-circle mb-3">
-                            <FaWallet size={30} className="text-primary" />
-                        </div>
-                        <h4 className="fw-black">Complete Your Payment</h4>
-                        <p className="text-muted small">You are paying for <span className="fw-bold text-dark">{selectedBooking?.event?.title}</span></p>
-                    </div>
-
-                    <div className="glass-panel p-3 rounded-4 mb-4 d-flex justify-content-between align-items-center">
-                        <div>
-                            <div className="tiny-text uppercase text-muted fw-bold">Remaining Due</div>
-                            <div className="h4 fw-black m-0 text-danger">₹{selectedBooking ? selectedBooking.totalAmount - selectedBooking.amountPaid : 0}</div>
-                        </div>
-                        <div className="text-end">
-                            <div className="tiny-text uppercase text-muted fw-bold">Total Value</div>
-                            <div className="h5 fw-bold m-0 text-dark">₹{selectedBooking?.totalAmount}</div>
-                        </div>
-                    </div>
-
-                    <Form onSubmit={handlePayInstallment}>
-                        <Form.Group className="mb-4">
-                            <Form.Label className="small fw-bold text-muted uppercase">Amount to Pay (₹)</Form.Label>
-                            <Form.Control
-                                type="number"
-                                className="premium-input text-center fs-4 fw-black"
-                                value={installmentAmount}
-                                onChange={(e) => setInstallmentAmount(e.target.value)}
-                                max={selectedBooking ? selectedBooking.totalAmount - selectedBooking.amountPaid : 0}
-                                min="1"
-                                required
-                            />
-                        </Form.Group>
-                        <Button
-                            type="submit"
-                            className="btn btn-pink w-100 py-3 rounded-4 fw-black uppercase tracking-widest"
-                            disabled={isPaying || !sdkLoaded}
+            {/* ─── Installment Modal ─── */}
+            <AnimatePresence>
+                {showInstallmentModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="crm-overlay-v2"
+                        onClick={() => setShowInstallmentModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="white-crm-modal-box"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            {isPaying ? <><FaSync className="fa-spin me-2" /> Processing...</> : `Confirm Payment →`}
-                        </Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
+                            <div className="modal-content">
+                                <div className="force-card text-start">
+                                    <button className="btn btn-light mb-3" onClick={() => setShowInstallmentModal(false)}>
+                                        ← Back
+                                    </button>
+
+                                    <h4 style={{ fontWeight: 600 }}>{user?.name}</h4>
+                                    <span className="badge bg-success">SECURE NODE</span>
+                                    <p style={{ color: 'gray', fontSize: '12px' }}>
+                                        {selectedBooking?.createdAt ? new Date(selectedBooking.createdAt).toLocaleString() : ''}
+                                    </p>
+
+                                    <hr />
+
+                                    <h6 style={{ color: 'gray' }}>TRANSACTION DETAILS</h6>
+                                    <p><b>Event:</b> {selectedBooking?.event?.title}</p>
+                                    <p><b>Remaining Balance:</b> ₹{selectedBooking?.totalAmount - (selectedBooking?.amountPaid || 0)}</p>
+
+                                    <h6 style={{ marginTop: '20px', color: 'gray' }}>AUTHORIZE PAYMENT</h6>
+                                    <div className="force-message">
+                                        <div className="mt-3 pt-3 border-top">
+                                            <div className="input-group mb-3">
+                                                <span className="input-group-text bg-white">₹</span>
+                                                <input 
+                                                    type="number"
+                                                    className="form-control fw-bold"
+                                                    placeholder="Enter Amount"
+                                                    value={installmentAmount}
+                                                    onChange={(e) => setInstallmentAmount(e.target.value)}
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <button 
+                                                className="btn btn-dark w-100 py-3 fw-bold"
+                                                onClick={handlePayInstallment}
+                                                disabled={isPaying || !installmentAmount || installmentAmount <= 0}
+                                            >
+                                                {isPaying ? 'PROCESSING...' : 'AUTHORIZE PAYMENT'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

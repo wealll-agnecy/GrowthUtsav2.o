@@ -1,24 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert, Badge, Spinner } from 'react-bootstrap';
-import { FaShoppingCart, FaUserFriends, FaCreditCard, FaCheckCircle, FaArrowLeft, FaShieldAlt, FaSync } from 'react-icons/fa';
+import { FaShoppingCart, FaUserFriends, FaCreditCard, FaCheckCircle, FaArrowLeft, FaShieldAlt, FaSync, FaEnvelopeOpenText, FaRocket } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import * as bookingApi from '../api/bookingApi';
 import toast from 'react-hot-toast';
 import './CheckoutFlow.css';
 
-const RAZORPAY_SDK_URL = 'https://checkout.razorpay.com/v1/checkout.js';
-
 const CheckoutFlow = () => {
     const { state } = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
     
-    // Mission State Control
-    const [step, setStep] = useState(1); // 1: Cart, 2: Details, 3: Payment/Processing, 4: Success
-    
-    // 🚀 REAL-TIME PRICE STATE
+    const [step, setStep] = useState(1);
     const [quantity, setQuantity] = useState(state?.quantity || 1);
     const [ticketType, setTicketType] = useState(state?.ticketType);
     const [price, setPrice] = useState(state?.totalPrice / (state?.quantity || 1) || 0);
@@ -27,49 +22,16 @@ const CheckoutFlow = () => {
     const [attendeeDetails, setAttendeeDetails] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [sdkLoaded, setSdkLoaded] = useState(false);
     const [ticketId, setTicketId] = useState(null);
     const [isPartialPayment, setIsPartialPayment] = useState(false);
     const [partialAmount, setPartialAmount] = useState('');
+    const [contactEmail, setContactEmail] = useState(user?.email || '');
     
-    // Deployment Audit (Debugging)
-    const logMission = (tag, data) => {
-        console.log(`[CHECKOUT_LOG][${tag}]:`, data);
-    };
-
-    // Load Razorpay Identity Signature (SDK)
-    useEffect(() => {
-        const loadRazorpay = () => {
-            if (window.Razorpay) {
-                logMission('SDK_STATUS', 'ALREADY_LOADED');
-                setSdkLoaded(true);
-                return;
-            }
-            logMission('SDK_STATUS', 'INITIATING_LOAD');
-            const script = document.createElement('script');
-            script.src = RAZORPAY_SDK_URL;
-            script.async = true;
-            script.onload = () => {
-                logMission('SDK_STATUS', 'LOAD_SUCCESS');
-                setSdkLoaded(true);
-            };
-            script.onerror = () => {
-                logMission('SDK_STATUS', 'LOAD_FAILURE');
-                setError('Razorpay SDK failed to synchronize. Interface breach detected.');
-            };
-            document.body.appendChild(script);
-        };
-        loadRazorpay();
-    }, []);
-
     useEffect(() => {
         if (!state || !state.event) {
-            logMission('INITIALIZATION', 'INVALID_STATE_REDIRECT');
             navigate('/events');
         } else {
-            // Initial or update attendee protocols based on quantity
             if (attendeeDetails.length !== quantity) {
-                logMission('INITIALIZATION', 'ADJUSTING_ATTENDEE_PROTOCOLS');
                 setAttendeeDetails(prev => {
                     if (prev.length === 0) {
                         const initialDetails = Array.from({ length: quantity }, () => ({
@@ -96,7 +58,6 @@ const CheckoutFlow = () => {
     if (!state || !state.event) return null;
     const { event, selectedDate, selectedDays } = state;
 
-    // Derived Logic
     const subtotal = price * quantity;
     const totalAmount = subtotal + platformFee;
 
@@ -125,153 +86,45 @@ const CheckoutFlow = () => {
     };
 
     const validateForms = () => {
-        logMission('VALIDATION', 'INITIATING_FIELD_SCRUB');
         for (let i = 0; i < attendeeDetails.length; i++) {
             const att = attendeeDetails[i];
             if (!att.name.trim() || !att.email.trim() || !att.phone.trim()) {
-                const msg = `Sector #${i + 1} Identity Fragment Missing`;
-                setError(msg);
-                toast.error(msg);
-                return false;
-            }
-            if (!/^\S+@\S+\.\S+$/.test(att.email)) {
-                setError(`Sector #${i + 1} Protocol Mapping Failure (Email)`);
+                toast.error(`Attendee #${i + 1} info missing`);
                 return false;
             }
         }
-        setError(null);
+        if (!contactEmail.trim()) {
+            toast.error('Please provide a confirmation email');
+            return false;
+        }
         return true;
     };
 
     const initiatePaymentFlow = async () => {
-        logMission('PAYMENT_INIT', 'RESONANCE_START');
         if (!validateForms()) return;
-        
-        if (!sdkLoaded || !window.Razorpay) {
-            logMission('PAYMENT_INIT', 'SDK_NOT_SYNCED_RELOADING');
-            setError('Razorpay SDK not synced. Recalibrating...');
-            // Manual retry of script load
-            const script = document.createElement('script');
-            script.src = RAZORPAY_SDK_URL;
-            script.onload = () => { setSdkLoaded(true); initiatePaymentFlow(); };
-            document.body.appendChild(script);
-            return;
-        }
-
         setStep(3);
         setLoading(true);
 
         try {
-            logMission('API_REQUEST', 'CHECKOUT_ORDER_CREATE');
-            const orderRes = await bookingApi.checkout({
+            const res = await bookingApi.checkout({
                 eventId: event._id,
                 ticketType,
                 selectedDate,
                 selectedDays,
                 quantity,
                 attendeeDetails,
+                contactEmail,
                 partialAmount: isPartialPayment ? parseFloat(partialAmount) : undefined
             });
 
-            logMission('API_RESPONSE', orderRes.data);
-            
-            // ✅ IF DEMO MODE (INSTANT SUCCESS)
-            if (orderRes.data.success && orderRes.data.bookingId && !orderRes.data.order) {
-                logMission('CHECKOUT_FLOW', 'INSTANT_SUCCESS_DETECTED');
-                setTicketId(orderRes.data.ticketId);
-                setStep(4);
-                toast.success('Identity Verification Complete (Demo Mode)');
-                return;
-            }
-
-            // ❌ IF RAZORPAY MODE (NORMAL)
-            const { order, bookingId } = orderRes.data;
-
-            if (!order || !order.id) {
-                throw new Error('Order Synchronization Disruption (Empty Order ID)');
-            }
-
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-                amount: order.amount,
-                currency: order.currency,
-                name: 'GrowthUtsav',
-                description: `Digital Clearance: ${event.title}`,
-                order_id: order.id,
-                handler: async function (response) {
-                    logMission('RAZORPAY_SUCCESS', response);
-                    try {
-                        setLoading(true);
-                        const verifyRes = await bookingApi.verifyPayment({ ...response, bookingId });
-                        logMission('VERIFICATION_RESPONSE', verifyRes.data);
-                        if (verifyRes.data.success) {
-                            setTicketId(verifyRes.data.ticketId);
-                            setStep(4);
-                            toast.success('Clearance Granted! Ticket sent to your email.');
-                        }
-                    } catch (err) {
-                        logMission('VERIFICATION_FAILURE', err);
-                        setError('Handshake Corruption during verification.');
-                        setStep(2);
-                    } finally {
-                        setLoading(false);
-                    }
-                },
-                prefill: { name: user?.name, email: user?.email },
-                theme: { color: '#6366f1' },
-                modal: {
-                    ondismiss: () => {
-                        logMission('RAZORPAY_CLOSE', 'USER_ABORTED');
-                        setLoading(false);
-                        setStep(2);
-                    }
-                }
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', (response) => {
-                logMission('RAZORPAY_FAILURE', response.error);
-                setError(response.error.description);
-                setStep(2);
-            });
-            rzp.open();
-            logMission('RAZORPAY_MODAL', 'DEPLOYED');
-
-        } catch (err) {
-            logMission('CHECKOUT_CRITICAL_FAILURE', err);
-            const msg = err.response?.data?.message || err.message || 'Mission Disruption';
-            setError(msg);
-            toast.error(msg);
-            setStep(2);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDemoPayment = async () => {
-        logMission('DEMO_FLOW', 'BYPASS_INITIATED');
-        if (!validateForms()) return;
-        setStep(3);
-        setLoading(true);
-        try {
-            const res = await bookingApi.demoCheckout({
-                eventId: event._id, 
-                ticketType, 
-                selectedDate,
-                selectedDays,
-                quantity, 
-                attendeeDetails,
-                partialAmount: isPartialPayment ? parseFloat(partialAmount) : undefined
-            });
-            logMission('DEMO_RESPONSE', res.data);
             if (res.data.success) {
                 setTicketId(res.data.ticketId);
                 setStep(4);
-                toast.success('Clearance Granted! Ticket sent to your email.');
+            } else {
+                throw new Error(res.data.message || 'Booking failed');
             }
         } catch (err) {
-            logMission('DEMO_FAILURE', err);
-            setError('Demo bypass encryption failed.');
+            toast.error(err.response?.data?.message || err.message);
             setStep(2);
         } finally {
             setLoading(false);
@@ -279,40 +132,63 @@ const CheckoutFlow = () => {
     };
 
     return (
-        <div className="checkout-page-wrapper py-5">
-            <Container>
-                {/* ─── Professional Stepper ─── */}
-                <div className="modern-stepper">
-                    <div className={`step-item ${step >= 1 ? 'active' : ''}`}>
-                        <FaShoppingCart /> CART
+        <div className="checkout-page-wrapper">
+            {/* Background Decorations */}
+            <div className="checkout-bg-decoration">
+                <div className="orb orb-1"></div>
+                <div className="orb orb-2"></div>
+            </div>
+
+            <Container className="checkout-container-relative">
+                {/* ─── Premium Stepper ─── */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="modern-stepper"
+                >
+                    <div className={`step-item ${step === 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
+                        {step > 1 ? <FaCheckCircle /> : <FaShoppingCart />} CART
                     </div>
                     <div className="step-divider" />
-                    <div className={`step-item ${step >= 2 ? 'active' : ''}`}>
-                        <FaUserFriends /> DETAILS
+                    <div className={`step-item ${step === 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
+                        {step > 2 ? <FaCheckCircle /> : <FaUserFriends />} DETAILS
                     </div>
                     <div className="step-divider" />
-                    <div className={`step-item ${step >= 3 ? 'active' : ''}`}>
-                        <FaCreditCard /> PAYMENT
+                    <div className={`step-item ${step === 3 ? 'active' : ''} ${step > 3 ? 'completed' : ''}`}>
+                        {step > 3 ? <FaCheckCircle /> : <FaCreditCard />} PAYMENT
                     </div>
-                </div>
+                </motion.div>
 
                 <AnimatePresence mode="wait">
                     {step === 1 && (
-                        <motion.div key="cart" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -30 }} className="row justify-content-center">
-                            <div className="col-lg-10">
-                                <Card className="checkout-premium-card">
+                        <motion.div 
+                            key="cart" 
+                            initial={{ opacity: 0, scale: 0.95 }} 
+                            animate={{ opacity: 1, scale: 1 }} 
+                            exit={{ opacity: 0, x: -30 }} 
+                            className="row justify-content-center"
+                        >
+                            <div className="col-lg-11">
+                                <div className="checkout-premium-card">
                                     <div className="checkout-header-section">
-                                        <h2>{event.title}</h2>
-                                        <p>{ticketType} Plan Selection</p>
+                                        <h2>Review Your Selection</h2>
+                                        <p className="text-soft">Experience the best of GrowthUtsav with {event.title}</p>
                                     </div>
-                                    <Card.Body className="checkout-body-content">
+                                    <div className="checkout-body-content">
                                         <Row className="g-5">
-                                            {/* Left Panel: Selection */}
-                                            <Col md={7}>
-                                                <div className="mb-4">
-                                                    <Form.Label className="small fw-bold text-muted uppercase mb-2">Select Your Plan</Form.Label>
+                                            <Col lg={7}>
+                                                <div className="event-mini-preview">
+                                                    <img src={event.bannerImage || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=400'} alt="Event" className="mini-img" />
+                                                    <div>
+                                                        <h5 className="fw-bold m-0">{event.title}</h5>
+                                                        <Badge bg="light" text="dark" className="mt-2">{ticketType} Pass</Badge>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mb-5">
+                                                    <Form.Label className="small fw-black text-muted uppercase mb-3">Change Ticket Plan</Form.Label>
                                                     <Form.Select 
-                                                        className="premium-input premium-select"
+                                                        className="premium-input"
                                                         value={ticketType}
                                                         onChange={handlePlanChange}
                                                     >
@@ -323,183 +199,213 @@ const CheckoutFlow = () => {
                                                     </Form.Select>
                                                 </div>
                                                 
-                                                <div className="mb-4">
-                                                    <Form.Label className="small fw-bold text-muted uppercase mb-2">Number of Tickets</Form.Label>
+                                                <div className="mb-5">
+                                                    <Form.Label className="small fw-black text-muted uppercase mb-3">Adjust Quantity</Form.Label>
                                                     <div className="quantity-control">
-                                                        <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
-                                                        <span className="qty-value">{quantity}</span>
+                                                        <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>-</button>
+                                                        <span className="qty-value fs-5">{quantity}</span>
                                                         <button className="qty-btn" onClick={() => setQuantity(Math.min(10, quantity + 1))}>+</button>
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-5 pt-4 border-top">
-                                                    <Link to={`/events/${event._id}`} className="text-muted text-decoration-none small fw-bold d-flex align-items-center gap-2">
-                                                        <FaArrowLeft /> Cancel and return to event
-                                                    </Link>
-                                                </div>
+                                                <Link to={`/events/${event._id}`} className="text-muted text-decoration-none small fw-bold d-flex align-items-center gap-2 mt-4 hover-pink">
+                                                    <FaArrowLeft /> Back to event details
+                                                </Link>
                                             </Col>
 
-                                            {/* Right Panel: Summary */}
-                                            <Col md={5}>
+                                            <Col lg={5}>
                                                 <div className="price-breakdown">
-                                                    <h5 className="fw-bold mb-4">Order Summary</h5>
+                                                    <h5 className="fw-black mb-4">Order Summary</h5>
                                                     <div className="price-row">
-                                                        <span>Subtotal ({quantity} × {ticketType})</span>
+                                                        <span>Subtotal ({quantity} Tickets)</span>
                                                         <span>₹{subtotal}</span>
                                                     </div>
                                                     <div className="price-row">
-                                                        <span>Platform Fee</span>
+                                                        <span>Platform Secure Fee</span>
                                                         <span>₹{platformFee}</span>
                                                     </div>
                                                     <div className="price-row total">
-                                                        <span>Total Amount</span>
+                                                        <span>Total</span>
                                                         <span>₹{totalAmount}</span>
                                                     </div>
-                                                </div>
 
-                                                <div className="mt-4 p-3 rounded-4 border border-pink-100 bg-pink-50/20">
-                                                    <Form.Check 
-                                                        type="checkbox"
-                                                        id="partial-payment-check"
-                                                        label="Pay in Installments?"
-                                                        className="fw-bold text-pink small"
-                                                        checked={isPartialPayment}
-                                                        onChange={(e) => {
-                                                            setIsPartialPayment(e.target.checked);
-                                                            if (e.target.checked) setPartialAmount(Math.ceil(totalAmount / 2).toString());
-                                                        }}
-                                                    />
-                                                    {isPartialPayment && (
-                                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mt-3 overflow-hidden">
-                                                            <Form.Label className="tiny-text uppercase text-muted fw-bold">Initial Payment Amount (₹)</Form.Label>
-                                                            <Form.Control 
-                                                                type="number"
-                                                                className="premium-input-sm"
-                                                                value={partialAmount}
-                                                                onChange={(e) => setPartialAmount(e.target.value)}
-                                                                max={totalAmount - 1}
-                                                                min="1"
-                                                            />
-                                                            <p className="tiny-text text-muted mt-1">Pay ₹{totalAmount - (parseFloat(partialAmount) || 0)} later to get your entry clearance.</p>
-                                                        </motion.div>
-                                                    )}
+                                                    <div className="mt-4 p-4 rounded-4 bg-light border border-opacity-10">
+                                                        <Form.Check 
+                                                            type="switch"
+                                                            id="partial-payment-check"
+                                                            label="Enable Installment Payment"
+                                                            className="fw-bold text-dark"
+                                                            checked={isPartialPayment}
+                                                            onChange={(e) => {
+                                                                setIsPartialPayment(e.target.checked);
+                                                                if (e.target.checked) setPartialAmount(Math.ceil(totalAmount / 2).toString());
+                                                            }}
+                                                        />
+                                                        {isPartialPayment && (
+                                                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-3">
+                                                                <Form.Control 
+                                                                    type="number"
+                                                                    className="premium-input"
+                                                                    placeholder="Initial payment"
+                                                                    value={partialAmount}
+                                                                    onChange={(e) => setPartialAmount(e.target.value)}
+                                                                />
+                                                                <p className="small text-muted mt-2">Balance of ₹{totalAmount - (parseFloat(partialAmount) || 0)} can be paid later.</p>
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <Button 
+                                                        className="futuristic-btn w-100 mt-4" 
+                                                        onClick={() => setStep(2)}
+                                                    >
+                                                        Continue to Details
+                                                    </Button>
                                                 </div>
-                                                
-                                                <Button 
-                                                    className="btn btn-pink mt-4" 
-                                                    onClick={() => setStep(2)}
-                                                >
-                                                    Proceed to Details <FaArrowLeft style={{ transform: 'rotate(180deg)' }} />
-                                                </Button>
                                             </Col>
                                         </Row>
-                                    </Card.Body>
-                                </Card>
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     )}
 
                     {step === 2 && (
-                        <motion.div key="details" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
-                            <Row className="justify-content-center">
-                                <Col lg={10}>
-                                    <Card className="checkout-premium-card">
-                                        <div className="checkout-header-section">
-                                            <h2>Attendee Details</h2>
-                                            <p>Complete information for all {quantity} tickets</p>
-                                        </div>
-                                        <Card.Body className="checkout-body-content">
-                                            {error && (
-                                                <Alert variant="danger" className="rounded-4 border-0 bg-danger bg-opacity-10 text-danger mb-4">
-                                                    <FaShieldAlt className="me-2" /> {error}
-                                                </Alert>
-                                            )}
-
-                                            <Row className="g-4">
-                                                {attendeeDetails.map((att, index) => (
-                                                    <Col key={index} md={quantity > 1 ? 6 : 12}>
-                                                        <div className="attendee-card">
-                                                            <div className="sector-tag">Ticket #{index + 1}</div>
-                                                            <Form.Group className="mb-3">
-                                                                <Form.Label className="small fw-bold text-muted uppercase">Full Name</Form.Label>
-                                                                <Form.Control 
-                                                                    className="premium-input" 
-                                                                    placeholder="Enter attendee name" 
-                                                                    value={att.name} 
-                                                                    onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)} 
-                                                                />
-                                                            </Form.Group>
-                                                            <Form.Group className="mb-3">
-                                                                <Form.Label className="small fw-bold text-muted uppercase">Email Address</Form.Label>
-                                                                <Form.Control 
-                                                                    type="email" 
-                                                                    className="premium-input" 
-                                                                    placeholder="email@example.com" 
-                                                                    value={att.email} 
-                                                                    onChange={(e) => handleAttendeeChange(index, 'email', e.target.value)} 
-                                                                />
-                                                            </Form.Group>
-                                                            <Form.Group>
-                                                                <Form.Label className="small fw-bold text-muted uppercase">Phone Number</Form.Label>
-                                                                <Form.Control 
-                                                                    type="tel" 
-                                                                    className="premium-input" 
-                                                                    placeholder="+91 00000 00000" 
-                                                                    value={att.phone} 
-                                                                    onChange={(e) => handleAttendeeChange(index, 'phone', e.target.value)} 
-                                                                />
-                                                            </Form.Group>
-                                                        </div>
-                                                    </Col>
-                                                ))}
-                                            </Row>
-
-                                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4 mt-5 pt-4 border-top">
-                                                <button className="btn btn-link text-muted text-decoration-none fw-bold" onClick={() => setStep(1)}>
-                                                    <FaArrowLeft /> Back to selection
-                                                </button>
-                                                <div className="d-flex flex-column flex-sm-row gap-3 w-100 w-md-auto">
-                                                    <Button className="btn btn-outline-pink rounded-pill fw-bold px-4" onClick={handleDemoPayment}>
-                                                        Bypass for Demo
-                                                    </Button>
-                                                    <Button className="btn btn-pink px-5" onClick={initiatePaymentFlow}>
-                                                        {loading ? <FaSync className="fa-spin" /> : 'Secure Payment →'}
-                                                    </Button>
-                                                </div>
+                        <motion.div key="details" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="row justify-content-center">
+                            <Col lg={11}>
+                                <div className="checkout-premium-card">
+                                    <div className="checkout-header-section">
+                                        <h2>Attendee Identity</h2>
+                                        <p className="text-soft">Please provide accurate details for entry clearance</p>
+                                    </div>
+                                    <div className="checkout-body-content">
+                                        <div className="mb-5 p-4 rounded-4 bg-primary bg-opacity-5 border border-primary border-opacity-10 d-flex gap-3 align-items-center">
+                                            <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                                <FaEnvelopeOpenText size={24} />
                                             </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
+                                            <div>
+                                                <h6 className="fw-bold m-0">Secure Email Delivery</h6>
+                                                <p className="small text-muted m-0">Tickets will be dispatched to the primary contact email address.</p>
+                                            </div>
+                                            <Form.Control 
+                                                className="premium-input ms-auto w-auto" 
+                                                placeholder="Primary Email" 
+                                                value={contactEmail}
+                                                onChange={(e) => setContactEmail(e.target.value)}
+                                            />
+                                        </div>
+
+                                        <Row className="g-4">
+                                            {attendeeDetails.map((att, index) => (
+                                                <Col key={index} md={quantity > 1 ? 6 : 12}>
+                                                    <motion.div whileHover={{ y: -5 }} className="attendee-card">
+                                                        <div className="sector-tag">Ticket Holder #{index + 1}</div>
+                                                        <Form.Group className="mb-4">
+                                                            <Form.Label className="tiny-text uppercase fw-bold text-muted">Full Name</Form.Label>
+                                                            <Form.Control 
+                                                                className="premium-input" 
+                                                                placeholder="As per ID" 
+                                                                value={att.name} 
+                                                                onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)} 
+                                                            />
+                                                        </Form.Group>
+                                                        <Form.Group className="mb-4">
+                                                            <Form.Label className="tiny-text uppercase fw-bold text-muted">Email</Form.Label>
+                                                            <Form.Control 
+                                                                className="premium-input" 
+                                                                placeholder="Personal email" 
+                                                                value={att.email} 
+                                                                onChange={(e) => handleAttendeeChange(index, 'email', e.target.value)} 
+                                                            />
+                                                        </Form.Group>
+                                                        <Form.Group>
+                                                            <Form.Label className="tiny-text uppercase fw-bold text-muted">Phone Number</Form.Label>
+                                                            <Form.Control 
+                                                                className="premium-input" 
+                                                                placeholder="Active mobile" 
+                                                                value={att.phone} 
+                                                                onChange={(e) => handleAttendeeChange(index, 'phone', e.target.value)} 
+                                                            />
+                                                        </Form.Group>
+                                                    </motion.div>
+                                                </Col>
+                                            ))}
+                                        </Row>
+
+                                        <div className="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+                                            <Button variant="link" className="text-muted fw-bold text-decoration-none" onClick={() => setStep(1)}>
+                                                ← Modify Selection
+                                            </Button>
+                                            <Button className="futuristic-btn px-5" onClick={initiatePaymentFlow}>
+                                                Proceed to Secure Payment
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Col>
                         </motion.div>
                     )}
 
                     {step === 3 && (
-                        <motion.div key="processing" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-5">
-                            <div className="mb-5 position-relative d-inline-block">
-                                <Spinner animation="border" variant="primary" className="processing-spinner-large" />
+                        <motion.div key="processing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-5">
+                            <div className="spinner-glow mb-4">
+                                <Spinner animation="border" style={{ width: '80px', height: '80px', color: 'var(--primary)' }} />
                             </div>
-                            <h2 className="fw-bold mb-3">Processing Payment...</h2>
-                            <p className="text-muted fw-medium">Please do not refresh the page or close your browser.</p>
+                            <h2 className="fw-black">Authorizing Transaction...</h2>
+                            <p className="text-soft">Connecting to secure payment gateway. Please wait.</p>
                         </motion.div>
                     )}
 
                     {step === 4 && (
-                        <motion.div key="success" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-5">
-                            <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 mb-4 p-4">
-                                <FaCheckCircle size={60} className="text-success" />
+                        <motion.div 
+                            key="success" 
+                            initial={{ opacity: 0, scale: 0.9 }} 
+                            animate={{ opacity: 1, scale: 1 }} 
+                            className="text-center py-5"
+                        >
+                            <div className="success-glow-wrap mb-5">
+                                <div className="success-glow"></div>
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: 'spring', damping: 10, stiffness: 100 }}
+                                >
+                                    <FaCheckCircle size={100} className="text-success" />
+                                </motion.div>
                             </div>
-                            <h1 className="fw-bold display-5 mb-3">Payment Successful!</h1>
-                            <p className="text-muted fs-5 mb-5 mx-auto" style={{ maxWidth: '600px' }}>Your booking is confirmed. Your digital pass has been sent to your email and is available in your dashboard.</p>
+
+                            {isPartialPayment ? (
+                                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                                    <h1 className="fw-black display-4 mb-3">Booking Initiated!</h1>
+                                    <p className="text-soft fs-5 mb-5 mx-auto" style={{ maxWidth: '600px' }}>Your partial payment was successful. Complete the remaining balance in your dashboard to unlock your full digital pass.</p>
+                                </motion.div>
+                            ) : (
+                                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                                    <h1 className="fw-black display-4 mb-3">🎉 Congratulations!</h1>
+                                    <h4 className="fw-bold text-primary mb-4">You have completed your full payment.</h4>
+                                    <p className="text-dark fs-5 mb-1 mx-auto fw-bold" style={{ maxWidth: '600px' }}>Your ticket has already been sent to your email successfully.</p>
+                                    <p className="text-muted mb-5 mx-auto" style={{ maxWidth: '600px' }}>Please check your inbox/spam folder for your digital ticket PDF.</p>
+                                </motion.div>
+                            )}
                             
-                            <div className="d-flex flex-column flex-sm-row justify-content-center gap-4">
-                                <Button as={Link} to={ticketId ? `/ticket/${ticketId}` : "/my-bookings"} className="btn btn-pink px-5">
-                                    {ticketId ? "View Digital Pass" : "Go to Dashboard"}
+                            <motion.div 
+                                initial={{ y: 20, opacity: 0 }} 
+                                animate={{ y: 0, opacity: 1 }} 
+                                transition={{ delay: 0.4 }}
+                                className="d-flex flex-column flex-sm-row justify-content-center gap-4 mt-5"
+                            >
+                                <Button 
+                                    as={Link} 
+                                    to={`/digital-pass/${ticketId}`} 
+                                    className="futuristic-btn"
+                                    disabled={!ticketId}
+                                >
+                                    <FaRocket className="me-2" /> View Digital Pass
                                 </Button>
-                                <Button as={Link} to="/events" className="btn btn-outline-pink rounded-pill fw-bold px-4">
-                                    Book Another Event
+                                <Button as={Link} to="/events" variant="outline-dark" className="rounded-pill fw-bold px-5">
+                                    Explore More Events
                                 </Button>
-                            </div>
+                            </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>

@@ -1,11 +1,10 @@
-const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();
+
+const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
-
-// Load env vars
-dotenv.config();
 
 // Connect to database
 connectDB();
@@ -103,6 +102,23 @@ const { downloadTicket, verifyTicketForScanner } = require('./controllers/ticket
 app.get('/api/ticket/download/:id', protect, downloadTicket);
 app.get('/api/ticket/verify/:id', verifyTicketForScanner);
 
+// --- SMTP TEST ROUTE ---
+app.get("/test-mail", async (req, res) => {
+    try {
+        const { sendTicketMail } = require('./utils/sendEmail');
+        const info = await sendTicketMail({
+            to: "gp775843@gmail.com",
+            subject: "SMTP TEST",
+            html: "<b>Your SMTP is working perfectly</b>",
+        });
+
+        res.send("MAIL SENT SUCCESSFULLY TO gp775843@gmail.com. Check your inbox!");
+    } catch (err) {
+        console.error("❌ TEST MAIL FAILED:", err);
+        res.status(500).send("MAIL FAILED: " + err.message);
+    }
+});
+
 app.use((req, res, next) => {
     console.log(`❌ [404 ERROR]: ${req.method} ${req.originalUrl} - No route matched`);
     res.status(404).json({
@@ -122,6 +138,7 @@ app.use((err, req, res, next) => {
 initScheduler();
 
 console.log("✅ Event Routes Loaded:", eventRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
+console.log("✅ Booking Routes Loaded:", bookingRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 
 const PORT = process.env.PORT || 5000;
 

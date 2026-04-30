@@ -1,5 +1,5 @@
 const express = require('express');
-const sendEmail = require('../utils/sendEmail');
+const { sendTicketMail } = require('../utils/sendEmail');
 const sendWhatsApp = require('../utils/sendWhatsApp');
 const Event = require('../models/Event');
 const Booking = require('../models/Booking');
@@ -13,10 +13,10 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 // @access  Private (Admin)
 router.post('/test-email', protect, authorize('admin'), async (req, res) => {
     try {
-        await sendEmail({
-            email: req.user.email,
+        await sendTicketMail({
+            to: req.user.email,
             subject: 'Growth Utsav - Test Email',
-            message: '<h1>Test Email</h1><p>Automation system is operational.</p>'
+            html: '<h1>Test Email</h1><p>Automation system is operational.</p>'
         });
         res.status(200).json({ success: true, message: 'Test email sent' });
     } catch (err) {
@@ -34,10 +34,10 @@ router.post('/remind/:eventId', protect, authorize('organizer', 'admin'), async 
 
         for (const booking of bookings) {
             const user = booking.user;
-            await sendEmail({
-                email: user.email,
+            await sendTicketMail({
+                to: user.email,
                 subject: `Reminder: ${event.title}`,
-                message: `Hi ${user.name}, this is a reminder for ${event.title}.`
+                html: `Hi ${user.name}, this is a reminder for ${event.title}.`
             });
         }
 

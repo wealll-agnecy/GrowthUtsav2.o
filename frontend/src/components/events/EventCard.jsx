@@ -25,7 +25,13 @@ const EventCard = ({ event }) => {
             onClick={() => navigate(`/events/${event?._id}`)}
         >
             <div className="event-img-wrapper">
-                <img src={bannerUrl} alt={event?.title} className="event-img" />
+                <img 
+                    src={bannerUrl} 
+                    alt={event?.title} 
+                    className="event-img" 
+                    loading="lazy" 
+                    decoding="async" 
+                />
                 {event?.isLive || event?.status === 'live' ? (
                     <span className="event-badge live-pulse">LIVE NOW</span>
                 ) : (

@@ -3,11 +3,11 @@
 /* === GLOBAL LAYOUT STANDARDS === */
 body {
   font-family: 'Poppins', sans-serif;
-  background: #fff1f2 !important;
+  background-color: var(--bg-main) !important;
   color: var(--text-primary);
   font-size: 16px;
   line-height: 1.6;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cards,
@@ -21,19 +21,20 @@ body {
   /* Theme Tokens - Light Mode (Default) */
   --bg-main: #fff1f2;
   --bg-card: #ffffff;
-  --text-primary: #000000;
-  --text-secondary: #1a1a1a;
-  --text-muted: #333333;
+  --bg-surface: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
   --accent: #ec4899;
   --accent-light: #f472b6;
-  --border: #d1d5db;
-  --glass-bg: rgba(255, 255, 255, 0.8);
+  --border: rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(236, 72, 153, 0.1);
   --premium-shadow: 0 10px 40px rgba(236, 72, 153, 0.05);
 
   /* Functional Palette */
   --primary: #ec4899;
-  --primary-glow: rgba(236, 72, 153, 0.15);
+  --primary-glow: rgba(236, 72, 153, 0.2);
   --primary-dark: #db2777;
   --primary-light: #f9a8d4;
   --accent-gold: #d4af37;
@@ -41,7 +42,7 @@ body {
   --navbar-height: 72px;
   --radius-card: 24px;
   --radius-button: 999px;
-  --transition-premium: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-premium: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   --theme-danger: #ef4444;
   --theme-success: #10b981;
@@ -49,15 +50,18 @@ body {
 }
 
 .dark-mode {
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --text-primary: #f9fafb;
-  --text-secondary: #e5e7eb;
-  --text-muted: #9ca3af;
-  --border: #334155;
-  --glass-bg: rgba(30, 41, 59, 0.8);
+  --bg-main: #0b0e14;
+  --bg-card: #161b22;
+  --bg-surface: #0d1117;
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent: #ec4899;
+  --accent-light: #f472b6;
+  --border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(22, 27, 34, 0.8);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --premium-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  --premium-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 /* === UNIVERSAL HIGH-CONTRAST FORM INPUTS === */
@@ -123,142 +127,147 @@ select,
   background-color: #FFFFFF !important;
   color: #000000 !important;
 }
+/* ════════════════════════════════════════════════════════════
+   PREMIUM GLOBAL BUTTON DESIGN SYSTEM (HOST EVENTS STYLE)
+   ════════════════════════════════════════════════════════════ */
 
-/* === UNIVERSAL BUTTON STANDARDS === */
-.btn {
-  padding: 0.5rem 1.5rem !important;
-  /* px-4 py-2 */
-  border-radius: 50rem !important;
-  /* rounded-pill */
-  font-weight: 500 !important;
-  /* fw-medium */
-  transition: all 0.3s ease !important;
-  letter-spacing: 0.02em !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  white-space: nowrap !important;
-  border: 1px solid transparent;
-  height: auto !important;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  /* initial subtle shadow */
+:root {
+    --btn-primary-gradient: linear-gradient(45deg, #ee749f, #a855f7);
+    --btn-glow-color: rgba(238, 116, 159, 0.5);
+    --btn-shadow-deep: 0 15px 35px -5px rgba(0, 0, 0, 0.2), 0 10px 20px -5px rgba(238, 116, 159, 0.3);
+    --btn-transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* Base Universal Button */
+.btn, 
+.navbar .btn, 
+.modal-footer .btn, 
+.checkout-page-wrapper .btn,
+.admin-console .btn {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px 38px !important;
+    border-radius: 100px !important;
+    font-family: 'Outfit', 'Poppins', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    transition: var(--btn-transition) !important;
+    overflow: hidden !important;
+    border: none !important;
+    z-index: 1 !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    user-select: none !important;
+}
+
+/* Primary / Pink / Futuristic State (Host Events Style) */
+.btn-pink, 
+.btn-primary, 
+.btn-primary-custom, 
+.futuristic-btn,
+.btn-success {
+    background: var(--btn-primary-gradient) !important;
+    color: #FFFFFF !important;
+    box-shadow: var(--btn-shadow-deep) !important;
+}
+
+/* Outline / Secondary State (Glassmorphism Style) */
+.btn-outline-pink, 
+.btn-outline-primary, 
+.btn-outline-custom,
+.btn-outline-light {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 2px solid #ee749f !important;
+    color: #ee749f !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Hover & Animation Logic */
 .btn:hover {
-  transform: scale(1.05) !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
-  /* subtle shadow increase */
+    transform: scale(1.06) translateY(-4px) !important;
+    color: #FFFFFF !important;
 }
 
-.btn-primary-custom {
-  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;
-  color: white !important;
-  border: none !important;
-  padding: 14px 35px !important;
-  font-weight: 600 !important;
-  border-radius: 999px !important;
-  box-shadow: 0 10px 25px rgba(236, 72, 153, 0.25) !important;
-  transition: all 0.3s ease !important;
+.btn-pink:hover, 
+.btn-primary:hover, 
+.btn-primary-custom:hover, 
+.futuristic-btn:hover {
+    box-shadow: 0 20px 40px var(--btn-glow-color), 0 15px 25px rgba(0, 0, 0, 0.15) !important;
 }
 
-.btn-primary-custom:hover {
-  transform: translateY(-3px) !important;
-  box-shadow: 0 15px 35px rgba(236, 72, 153, 0.35) !important;
-}
-
-.btn-outline-custom {
-  background: transparent !important;
-  color: #1f2937 !important;
-  border: 1.5px solid #1f2937 !important;
-  padding: 14px 35px !important;
-  font-weight: 600 !important;
-  border-radius: 999px !important;
-  transition: all 0.3s ease !important;
-}
-
+.btn-outline-pink:hover, 
+.btn-outline-primary:hover, 
 .btn-outline-custom:hover {
-  background: #1f2937 !important;
-  color: white !important;
-  transform: translateY(-3px) !important;
+    background: #ee749f !important;
+    color: #FFFFFF !important;
+    border-color: #ee749f !important;
+    box-shadow: 0 15px 30px var(--btn-glow-color) !important;
 }
 
-/* === PINK THEME STANDARDIZED BUTTONS === */
-.btn-pink {
-  background: #f9a8d4 !important; /* light pink */
-  color: #fff !important;
-  border: none !important;
-  border-radius: 10px !important;
-  padding: 10px 20px !important;
-  font-weight: 500 !important;
-  transition: all 0.3s ease !important;
-  height: 42px !important;
-  min-width: 120px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+/* Shine / Light Sweep Effect */
+.btn::after {
+    content: '' !important;
+    position: absolute !important;
+    top: -50% !important;
+    left: -120% !important;
+    width: 100% !important;
+    height: 200% !important;
+    background: linear-gradient(
+        to right, 
+        transparent, 
+        rgba(255, 255, 255, 0.4), 
+        transparent
+    ) !important;
+    transform: rotate(35deg) !important;
+    transition: 0.7s !important;
+    z-index: -1 !important;
 }
 
-.btn-pink:hover {
-  background: #f472b6 !important;
-  transform: scale(1.03) !important;
-  color: #fff !important;
+.btn:hover::after {
+    left: 120% !important;
 }
 
-.btn-pink:active {
-  transform: scale(0.98) !important;
+/* Active / Click Interaction */
+.btn:active {
+    transform: scale(0.94) translateY(0) !important;
+    transition: all 0.1s ease !important;
 }
 
-.btn-outline-pink {
-  border: 1px solid #f9a8d4 !important;
-  color: #f472b6 !important;
-  background: transparent !important;
-  height: 42px !important;
-  min-width: 120px !important;
-  border-radius: 10px !important;
-  padding: 10px 20px !important;
-  font-weight: 500 !important;
-  transition: all 0.3s ease !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+/* Disabled State Styling */
+.btn:disabled, 
+.btn.disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(0.8) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
-.btn-outline-pink:hover {
-  background: #f9a8d4 !important;
-  color: white !important;
-  transform: scale(1.03) !important;
+/* Danger / Warning Variants */
+.btn-danger {
+    background: linear-gradient(45deg, #ef4444, #f87171) !important;
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.25) !important;
+    color: #fff !important;
 }
 
-.btn-outline-pink:active {
-  transform: scale(0.98) !important;
+.btn-danger:hover {
+    box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4) !important;
 }
 
-.btn-primary {
-  background-color: #2563EB !important;
-  border-color: #2563EB !important;
-  color: #ffffff !important;
-}
-
-.btn-primary:active {
-  background-color: #1D4ED8 !important;
-  border-color: #1D4ED8 !important;
-  transform: scale(0.98) !important;
-}
-
-.btn-outline-primary {
-  background-color: transparent !important;
-  border: 1px solid #2563EB !important;
-  color: #2563EB !important;
-}
-
-.btn-outline-primary:hover {
-  background-color: #2563EB !important;
-  color: #ffffff !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  padding: 8px 12px !important;
-  text-decoration: none !important;
+/* Spacing Adjustments for Mobile */
+@media (max-width: 768px) {
+    .btn {
+        padding: 14px 28px !important;
+        font-size: 0.8rem !important;
+        width: 100% !important;
+    }
 }
 
 
@@ -5405,4 +5414,50 @@ body.dashboard-active .navbar-premium .navbar-brand {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+/* Scanner Status Colors */
+.green {
+  color: #00b894 !important;
+  font-weight: 500 !important;
+}
+
+.red {
+  color: #ff4d4d !important;
+  font-weight: 500 !important;
+}
+
+/* Demo Payment System Styles */
+.payment-box {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+
+.payment-box span {
+    font-weight: 700;
+    color: #333;
+}
+
+.payment-box small {
+  color: #888;
+}
+
+.badge-demo {
+  margin-top: 3px;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  width: fit-content;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-demo.green {
+  background: #e6fff5;
+  color: #00b894;
+}
+
+.badge-demo.orange {
+  background: #fff4e6;
+  color: #ff9800;
 }

@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const crypto = require('crypto');
-const sendEmail = require('../utils/sendEmail');
+const { sendTicketMail } = require('../utils/sendEmail');
 const jwt = require('jsonwebtoken');
 
 // Get token from model, create cookie and send response
@@ -192,6 +192,51 @@ exports.updateFcmToken = async (req, res, next) => {
     }
 };
 
+// @desc    Update user details
+// @route   PUT /api/v1/auth/updatedetails
+// @access  Private
+exports.updateDetails = async (req, res, next) => {
+    try {
+        const { name, email, phone, address } = req.body;
+
+        // Check if email already exists for another user
+        if (email) {
+            const existingEmail = await User.findOne({ email, _id: { $ne: req.user.id } });
+            if (existingEmail) {
+                return res.status(400).json({ success: false, message: 'This email is already linked to another account.' });
+            }
+        }
+
+        // Check if phone already exists for another user
+        if (phone) {
+            const existingPhone = await User.findOne({ phone, _id: { $ne: req.user.id } });
+            if (existingPhone) {
+                return res.status(400).json({ success: false, message: 'This phone number is already linked to another account.' });
+            }
+        }
+
+        const fieldsToUpdate = { name, email, phone, address };
+
+        if (req.file) {
+            fieldsToUpdate.avatar = `/uploads/avatars/${req.file.filename}`;
+        }
+
+        const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Identity updated successfully',
+            data: user
+        });
+    } catch (err) {
+        console.error("[PROFILE_UPDATE_ERROR]:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // @desc    Forgot password
 exports.forgotPassword = async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
@@ -204,7 +249,7 @@ exports.forgotPassword = async (req, res, next) => {
     const message = `<h1>Reset Password</h1><p>Reset link: <a href="${resetUrl}">${resetUrl}</a></p>`;
 
     try {
-        await sendEmail({ email: user.email, subject: 'Password Reset', message });
+        await sendTicketMail({ to: user.email, subject: 'Password Reset', html: message });
         res.status(200).json({ success: true, data: 'Email sent' });
     } catch (err) {
         user.resetPasswordToken = undefined;

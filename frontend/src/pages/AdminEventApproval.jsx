@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import * as eventApi from '../api/eventApi';
-import { Container, Table, Button, Badge, Card, Spinner, Alert, Modal, Row, Col, Tab, Nav } from 'react-bootstrap';
-import { FaCheck, FaTimes, FaEye, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaInbox, FaFilter } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Container, Button, Badge, Spinner, Alert, Modal } from 'react-bootstrap';
+import { FaCheck, FaTimes, FaEye, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaInbox, FaUserCircle, FaTicketAlt, FaClock, FaTag, FaUsers } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../css/admin-pages.css';
+
+const API_BASE = `http://${window.location.hostname}:5000`;
 
 const AdminEventApproval = () => {
     const [events, setEvents] = useState([]);
@@ -179,47 +181,153 @@ const AdminEventApproval = () => {
                 </div>
             </Container>
 
-            {/* Audit Modal */}
-            <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg">
-                <Modal.Header closeButton className="border-0">
-                    <Modal.Title className="fw-bold">Event Audit Log</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="p-4">
-                    {selectedEvent && (
-                        <div className="row g-4">
-                            <div className="col-12">
-                                <div className="p-4 bg-light rounded-4">
-                                    <h3 className="fw-bold mb-3">{selectedEvent.title}</h3>
-                                    <p className="text-slate-600 lh-lg">{selectedEvent.description}</p>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <label className="card-title-sm mb-3">Host Origin</label>
-                                <div className="p-3 border rounded-3">
-                                    <div className="fw-bold">{selectedEvent.organizer?.name}</div>
-                                    <div className="small text-muted">{selectedEvent.organizer?.email}</div>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <label className="card-title-sm mb-3">Pricing Architecture</label>
-                                <div className="d-flex flex-wrap gap-2">
-                                    {selectedEvent.ticketTypes?.map((t, i) => (
-                                        <Badge key={i} bg="white" className="border text-dark p-2">₹{t.price} - {t.name}</Badge>
-                                    ))}
-                                </div>
+            {/* Premium Audit Modal */}
+            <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className="premium-audit-modal">
+                <div style={{
+                    background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(236,72,153,0.2)',
+                    boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)'
+                }}>
+                    {/* Close Button */}
+                    <button
+                        onClick={() => setShowModal(false)}
+                        style={{
+                            position: 'absolute', top: '16px', right: '16px', zIndex: 10,
+                            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+                            width: '32px', height: '32px', color: '#fff', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            backdropFilter: 'blur(10px)'
+                        }}
+                    ><FaTimes size={12} /></button>
+
+                    {selectedEvent && (<>
+                        {/* Banner */}
+                        <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
+                            {selectedEvent.bannerImage ? (
+                                <img
+                                    src={selectedEvent.bannerImage.startsWith('http') ? selectedEvent.bannerImage : `${API_BASE}${selectedEvent.bannerImage}`}
+                                    alt={selectedEvent.title}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                            ) : (
+                                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #ec4899, #8b5cf6, #06b6d4)' }} />
+                            )}
+                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,1) 0%, rgba(15,23,42,0.4) 60%, transparent 100%)' }} />
+                            <div style={{ position: 'absolute', bottom: '16px', left: '20px' }}>
+                                <span style={{ background: 'rgba(236,72,153,0.9)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                                    {selectedEvent.status}
+                                </span>
+                                <h2 style={{ color: '#fff', fontWeight: 900, fontSize: '1.5rem', margin: '6px 0 0', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                                    {selectedEvent.title}
+                                </h2>
                             </div>
                         </div>
-                    )}
-                </Modal.Body>
-                <Modal.Footer className="border-0">
-                    <Button className="btn btn-outline-pink" onClick={() => setShowModal(false)}>Terminate Audit</Button>
-                    {activeTab === 'pending' && (
-                        <>
-                            <Button className="btn btn-outline-pink" onClick={() => handleAction(selectedEvent._id, 'rejected')}>Reject Node</Button>
-                            <Button className="btn btn-pink" onClick={() => handleAction(selectedEvent._id, 'approved')}>Authorize Node</Button>
-                        </>
-                    )}
-                </Modal.Footer>
+
+                        {/* Body */}
+                        <div style={{ padding: '20px 24px' }}>
+                            {/* Description */}
+                            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.7, marginBottom: '20px' }}>
+                                {selectedEvent.description}
+                            </p>
+
+                            {/* Info Grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                                {/* Organizer Card */}
+                                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <div style={{ color: '#ec4899', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px' }}>Host Origin</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            {selectedEvent.organizer?.avatar && selectedEvent.organizer.avatar !== 'no-avatar.jpg' ? (
+                                                <img src={selectedEvent.organizer.avatar.startsWith('http') ? selectedEvent.organizer.avatar : `${API_BASE}${selectedEvent.organizer.avatar}`} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                                            ) : <FaUserCircle size={20} color="#fff" />}
+                                        </div>
+                                        <div>
+                                            <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '0.875rem' }}>{selectedEvent.organizer?.name}</div>
+                                            <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{selectedEvent.organizer?.email}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Schedule Card */}
+                                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <div style={{ color: '#06b6d4', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px' }}>Schedule</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                                            <FaCalendarAlt color="#ec4899" size={12} />
+                                            {new Date(selectedEvent.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                                            <FaClock color="#ec4899" size={12} />
+                                            {selectedEvent.time || 'TBD'}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                                            <FaMapMarkerAlt color="#ec4899" size={12} />
+                                            {selectedEvent.venue}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Ticket Tiers */}
+                            {selectedEvent.ticketTypes?.length > 0 && (
+                                <div style={{ marginBottom: '20px' }}>
+                                    <div style={{ color: '#8b5cf6', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px' }}>Pricing Architecture</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {selectedEvent.ticketTypes.map((t, i) => (
+                                            <div key={i} style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '8px', padding: '8px 14px' }}>
+                                                <div style={{ color: '#c4b5fd', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>{t.name}</div>
+                                                <div style={{ color: '#f1f5f9', fontWeight: 900, fontSize: '1rem' }}>₹{t.price}</div>
+                                                <div style={{ color: '#64748b', fontSize: '10px' }}>{t.quantity - (t.sold || 0)} left</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Category & Stats Row */}
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+                                <div style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.2)', borderRadius: '8px', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <FaTag color="#ec4899" size={11} />
+                                    <span style={{ color: '#f9a8d4', fontSize: '0.75rem', fontWeight: 600 }}>{selectedEvent.category}</span>
+                                </div>
+                                {selectedEvent.maxAttendees && (
+                                    <div style={{ background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: '8px', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <FaUsers color="#06b6d4" size={11} />
+                                        <span style={{ color: '#67e8f9', fontSize: '0.75rem', fontWeight: 600 }}>Max {selectedEvent.maxAttendees}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px 20px', color: '#94a3b8', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                                >
+                                    Close
+                                </button>
+                                {activeTab === 'pending' && (<>
+                                    <button
+                                        onClick={() => handleAction(selectedEvent._id, 'rejected')}
+                                        disabled={actionLoading[selectedEvent._id]}
+                                        style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px 20px', color: '#f87171', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        <FaTimes size={12} /> Reject
+                                    </button>
+                                    <button
+                                        onClick={() => handleAction(selectedEvent._id, 'approved')}
+                                        disabled={actionLoading[selectedEvent._id]}
+                                        style={{ background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', border: 'none', borderRadius: '10px', padding: '10px 24px', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 20px rgba(236,72,153,0.4)', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    >
+                                        {actionLoading[selectedEvent._id] ? <Spinner size="sm" /> : <><FaCheck size={12} /> Authorize</>}
+                                    </button>
+                                </>)}
+                            </div>
+                        </div>
+                    </>)}
+                </div>
             </Modal>
         </div>
     );

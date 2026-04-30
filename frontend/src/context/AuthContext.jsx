@@ -172,6 +172,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Logout user
+    // Logout user
     const logout = async () => {
         try {
             await axios.get('/api/v1/auth/logout');
@@ -181,6 +182,22 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
         } catch (err) {
             console.error('Logout failed', err);
+        }
+    };
+
+    // Refresh user data from server
+    const refreshUser = async () => {
+        try {
+            const res = await axios.get('/api/v1/auth/me');
+            if (res.data.success) {
+                const userData = res.data.data;
+                if (!userData.id) userData.id = userData._id;
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+                return userData;
+            }
+        } catch (err) {
+            console.error('Refresh user failed', err);
         }
     };
 
@@ -194,6 +211,7 @@ export const AuthProvider = ({ children }) => {
                 login,
                 adminLogin,
                 logout,
+                refreshUser,
                 setError
             }}
         >

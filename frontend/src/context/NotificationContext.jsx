@@ -46,16 +46,47 @@ export const NotificationProvider = ({ children }) => {
             newSocket.emit('join', user._id || user.id);
         });
 
+        const playNotificationSound = () => {
+            try {
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                audio.play();
+            } catch (err) {
+                console.warn('Audio playback blocked or failed:', err);
+            }
+        };
+
         newSocket.on('notification', (notif) => {
             console.log('🔔 New Real-time Notification:', notif);
             setNotifications(prev => [notif, ...prev]);
             setUnreadCount(prev => prev + 1);
             
-            // Show Premium Toast
-            toast.success(notif.title || 'New Notification', {
-                description: notif.message,
-                duration: 5000,
-                icon: '🔔'
+            // Play notification sound
+            playNotificationSound();
+            
+            // Extract Event ID for redirection
+            const eventId = notif.eventId?._id || notif.eventId || notif.event?._id || notif.event;
+
+            // Show Clickable Premium Toast
+            toast((t) => (
+                <div 
+                    style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '4px' }}
+                    onClick={() => {
+                        if (eventId) {
+                            window.location.href = `/events/${eventId}`;
+                        } else {
+                            window.location.href = '/notifications';
+                        }
+                        toast.dismiss(t.id);
+                    }}
+                >
+                    <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>🔔</span> {notif.title || 'New Signal'}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>{notif.message}</div>
+                </div>
+            ), {
+                duration: 6000,
+                position: 'top-right',
             });
         });
 

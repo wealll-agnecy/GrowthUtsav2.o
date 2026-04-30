@@ -115,54 +115,131 @@ exports.verifyTicketForScanner = async (req, res) => {
             .populate('user', 'name email');
 
         if (!ticket) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Invalid Ticket: ID not found in system' 
+            return res.status(200).json({ 
+                success: true, 
+                status: 'ACCESS DENIED — Invalid ticket',
+                message: 'Ticket ID not found in database.' 
             });
         }
 
+        // --- VALIDATION LOGIC ---
+        const booking = await Booking.findById(ticket.booking);
+        const event = ticket.event || (booking ? booking.event : null);
+        
+        // Source of Truth
+        const currentAmountPaid = booking ? (booking.amountPaid || 0) : (ticket.amountPaid || 0);
+        const currentTotalAmount = booking ? booking.totalAmount : (ticket.totalAmount || 0);
+        const currentRemaining = Math.max(0, currentTotalAmount - currentAmountPaid);
+        const currentPaymentStatus = booking ? (booking.paymentStatus || 'PENDING').toUpperCase() : (ticket.paymentStatus || 'UNKNOWN');
+
+        // Multi-day logic
+        const durationDays = (event && event.isMultiDay) ? (event.multiDayPlan?.length || 1) : 1;
+        const validityText = `Valid for ${durationDays} Day${durationDays > 1 ? 's' : ''}`;
+
         const details = {
+            ticketId: ticket._id,
             ticketCode: ticket.ticketCode,
             name: ticket.name,
             email: ticket.email,
             phone: ticket.mobileNumber,
-            eventName: ticket.eventName || ticket.event?.title || 'Event',
+            eventName: ticket.eventName || (event ? event.title : 'Event'),
+            status: ticket.status.toUpperCase(),
+            paymentStatus: currentPaymentStatus,
+            ticketTier: ticket.ticketType,
+            ticketPrice: currentTotalAmount,
+            amountPaid: currentAmountPaid,
+            remainingAmount: currentRemaining,
+            validity: validityText,
+            selectedDate: ticket.selectedDate,
+            selectedDays: ticket.selectedDays,
             bookedAt: ticket.bookedAt,
-            seat: ticket.seatNumber || 'General',
-            status: ticket.status === 'used' ? 'USED' : 'VALID',
-            isScanned: ticket.status === 'used',
-            selectedDate: ticket.selectedDate || ticket.event?.date,
-            selectedDays: ticket.selectedDays
+            seat: ticket.seatNumber || 'General'
         };
 
-        // AUTO ENTRY MARKING
-        const booking = await Booking.findById(ticket.booking);
-        if (!booking || booking.amountPaid < booking.totalAmount) {
+        // 1. Cancelled Ticket
+        if (ticket.status === 'cancelled') {
             return res.status(200).json({
                 success: true,
                 status: 'DENIED',
-                message: 'ACCESS DENIED: Full amount not paid ⚠️',
-                data: details
+                isDuplicate: true,
+                message: 'Ticket Cancelled',
+                data: details,
+                ticket: details
             });
         }
 
-        if (ticket.status === 'unused') {
-            ticket.status = 'used';
-            ticket.scannedAt = Date.now();
-            await ticket.save();
-            
+        // 2. Payment Pending Check
+        const isPaid = (
+            currentPaymentStatus === 'COMPLETED' || 
+            currentPaymentStatus === 'PAID' || 
+            currentRemaining <= 0
+        );
+        
+        if (!isPaid) {
             return res.status(200).json({
                 success: true,
-                message: 'Clearance Granted',
-                data: details
+                status: 'DENIED',
+                isDuplicate: false,
+                message: `Payment Pending: ₹${currentRemaining}`,
+                data: details,
+                ticket: details
+            });
+        }
+
+        // 3. DAILY SCAN LIMIT
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        if (ticket.lastScanDate && ticket.lastScanDate >= startOfToday) {
+            return res.status(200).json({
+                success: true,
+                status: 'DENIED',
+                isDuplicate: true,
+                message: 'Already Used Today',
+                data: details,
+                ticket: details
+            });
+        }
+
+        // 4. ATOMIC ENTRY MARKING
+        const updatedTicket = await Ticket.findOneAndUpdate(
+            { 
+                _id: ticket._id, 
+                $or: [
+                    { lastScanDate: { $exists: false } },
+                    { lastScanDate: { $lt: startOfToday } }
+                ],
+                status: { $ne: 'cancelled' }
+            },
+            { 
+                $set: { 
+                    status: 'used', 
+                    isScanned: true, 
+                    scannedAt: new Date(),
+                    lastScanDate: new Date()
+                } 
+            },
+            { new: true }
+        );
+
+        if (!updatedTicket) {
+            return res.status(200).json({
+                success: true,
+                status: 'DENIED',
+                isDuplicate: true,
+                message: 'Already Used',
+                data: details,
+                ticket: details
             });
         }
 
         return res.status(200).json({
             success: true,
-            isDuplicate: true,
-            message: 'ALREADY USED ❌',
-            data: details
+            status: 'GRANTED',
+            isDuplicate: false,
+            message: 'Clear for Entry',
+            data: details,
+            ticket: details
         });
 
     } catch (err) {
@@ -266,12 +343,16 @@ exports.createTicketAfterPayment = async (bookingId, eventId, userId) => {
 
         const ticketPrice = booking.quantity > 0 ? booking.totalAmount / booking.quantity : booking.totalAmount;
 
+        const primaryAttendee = booking.attendeeDetails && booking.attendeeDetails.length > 0 
+            ? booking.attendeeDetails[0] 
+            : { name: userDoc.name, email: userDoc.email };
+
         const ticketData = {
             uuid: uniqueId,
             ticketCode: sequentialId, 
-            name: userDoc.name || "Attendee",
-            mobileNumber: userDoc.phone || '0000000000',
-            email: userDoc.email || 'guest@growthu.com',
+            name: primaryAttendee.name || userDoc.name || "Attendee",
+            mobileNumber: primaryAttendee.phone || userDoc.phone || '0000000000',
+            email: booking.contactEmail || primaryAttendee.email || userDoc.email || 'guest@growthu.com',
             eventName: event.title,
             eventId: eventId,
             ticketType: booking.ticketType || "General",
@@ -311,7 +392,11 @@ exports.verifyTicket = async (req, res, next) => {
         const ticket = await Ticket.findOne({ uuid: actualUuid }).populate('event', 'title date time');
 
         if (!ticket) {
-            return res.status(404).json({ success: false, message: 'Invalid Ticket' });
+            return res.json({ 
+                success: true, 
+                status: "ACCESS DENIED — Invalid ticket", 
+                message: "This identifier does not match any registered ticket." 
+            });
         }
 
         if (eventId && ticket.eventId.toString() !== eventId) {
@@ -397,40 +482,137 @@ exports.verifyTicketScan = async (req, res) => {
         }).populate('user', 'name email').populate('event', 'title date venue');
 
         if (!ticket) {
-            return res.json({ success: false, message: "Invalid Ticket" });
+            return res.json({ 
+                success: true, 
+                status: "ACCESS DENIED — Invalid ticket", 
+                message: "This identifier does not match any registered ticket." 
+            });
         }
 
-        // Check if fully paid
+        // --- VALIDATION LOGIC ---
         const booking = await Booking.findById(ticket.booking);
-        if (booking && booking.amountPaid < booking.totalAmount) {
+        const event = ticket.event || (booking ? booking.event : null);
+        
+        // Source of Truth
+        const currentAmountPaid = booking ? (booking.amountPaid || 0) : (ticket.amountPaid || 0);
+        const currentTotalAmount = booking ? booking.totalAmount : (ticket.totalAmount || 0);
+        const currentRemaining = Math.max(0, currentTotalAmount - currentAmountPaid);
+        const currentPaymentStatus = booking ? (booking.paymentStatus || 'PENDING').toUpperCase() : (ticket.paymentStatus || 'UNKNOWN');
+
+        // Multi-day logic
+        const durationDays = (event && event.isMultiDay) ? (event.multiDayPlan?.length || 1) : 1;
+        const validityText = `Valid for ${durationDays} Day${durationDays > 1 ? 's' : ''}`;
+
+        // 2. Payment Condition
+        const isPaid = (
+            currentPaymentStatus === 'COMPLETED' || 
+            currentPaymentStatus === 'PAID' || 
+            currentRemaining <= 0
+        );
+
+        const details = {
+            ticketId: ticket._id,
+            name: ticket.name,
+            email: ticket.email,
+            phone: ticket.mobileNumber,
+            eventName: ticket.eventName || (event ? event.title : 'Event'),
+            ticketCode: ticket.ticketCode,
+            ticketTier: ticket.ticketType,
+            ticketPrice: currentTotalAmount,
+            paymentStatus: currentPaymentStatus,
+            paidAmount: currentAmountPaid,
+            remainingAmount: currentRemaining,
+            validityText: validityText,
+            accessStatus: isPaid ? 'GREEN' : 'RED',
+            seat: ticket.seatNumber || 'General'
+        };
+
+        // 1. Cancelled
+        if (ticket.status === 'cancelled') {
             return res.json({
                 success: true,
                 status: "DENIED",
-                message: "Payment Pending",
-                ticket
+                message: "Ticket Cancelled",
+                ticket: details,
+                data: details
             });
         }
 
-        if (ticket.isScanned || ticket.status === 'used') {
+        // 2. Payment Pending
+        if (!isPaid) {
+            console.log(`⚠️ [SCAN DENIED] Staff verification failed. Payment Incomplete for ${ticket.ticketCode}. Remaining: ${currentRemaining}`);
             return res.json({
                 success: true,
                 status: "DENIED",
-                message: "Already Scanned",
-                ticket
+                message: `Payment Incomplete: ₹${currentRemaining}`,
+                ticket: details,
+                data: details
             });
         }
 
-        // Mark as scanned
-        ticket.isScanned = true;
-        ticket.status = 'used';
-        ticket.scannedAt = new Date();
-        await ticket.save();
+        // 3. DAILY SCAN LIMIT
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        if (ticket.lastScanDate && ticket.lastScanDate >= startOfToday) {
+            return res.json({
+                success: true,
+                status: "DENIED",
+                message: "Already Used Today",
+                ticket: details,
+                data: details
+            });
+        }
+
+        // 4. ATOMIC ENTRY MARKING
+        const updatedTicket = await Ticket.findOneAndUpdate(
+            { 
+                _id: ticket._id, 
+                $or: [
+                    { lastScanDate: { $exists: false } },
+                    { lastScanDate: { $lt: startOfToday } }
+                ],
+                status: { $ne: 'cancelled' }
+            },
+            { 
+                $set: { 
+                    status: 'used', 
+                    isScanned: true, 
+                    scannedAt: new Date(),
+                    lastScanDate: new Date()
+                } 
+            },
+            { new: true }
+        );
+
+        if (!updatedTicket) {
+            return res.json({
+                success: true,
+                status: "DENIED",
+                message: "Already Used",
+                ticket: details,
+                data: details
+            });
+        }
+
+        // Log Scan Success (Wrapped in try-catch to prevent scan failure on log error)
+        try {
+            await ScanLog.create({ 
+                ticketId: ticket._id, 
+                staffId: req.user.id, 
+                eventId: ticket.eventId || (event ? event._id || event : null), 
+                status: 'success' 
+            });
+        } catch (logErr) {
+            console.error("Scan Log Creation Failed:", logErr.message);
+        }
 
         return res.json({
             success: true,
             status: "GRANTED",
-            message: "Access Granted",
-            ticket
+            message: "Clear for Entry",
+            ticket: details,
+            data: details
         });
 
     } catch (err) {

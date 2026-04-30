@@ -1,0 +1,1 @@
+import{k as e}from"./index-B6mI4i6j.js";const a=()=>e.get("/api/v1/expenses"),p=s=>e.post("/api/v1/expenses",s),n=s=>e.delete(`/api/v1/expenses/${s}`),o=()=>e.get("/api/v1/expenses/summary"),i=()=>e.get("/api/v1/expenses/profit");export{a,p as b,i as c,n as d,o as g};

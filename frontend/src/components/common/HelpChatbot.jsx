@@ -196,7 +196,7 @@ const HelpChatbot = () => {
             {/* ── Floating Button ─────────────────────────────── */}
             <AnimatePresence>
                 {!isOpen && (
-                    <div style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <div style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 1020, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                         {/* Hover Popup */}
                         <AnimatePresence>
                             {isHovered && (
@@ -239,9 +239,17 @@ const HelpChatbot = () => {
                             onMouseLeave={() => setIsHovered(false)}
                             aria-label="Open Help Chatbot"
                             id="help-chatbot-fab"
-                            style={{ position: 'relative', bottom: 'auto', right: 'auto' }}
+                            style={{ 
+                                position: 'relative', 
+                                bottom: 'auto', 
+                                right: 'auto',
+                                fontSize: '28px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
                         >
-                            <FaCommentDots size={24} />
+                            {isHovered ? '😊' : '🙂'}
                             <span className="chatbot-fab-label">Help</span>
                         </motion.button>
                     </div>
@@ -263,12 +271,12 @@ const HelpChatbot = () => {
                         {/* Header */}
                         <div className="chatbot-header">
                             <div className="chatbot-header-info">
-                                <div className="chatbot-avatar">
-                                    <FaRobot size={18} />
+                                <div className="chatbot-avatar" style={{ fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff1f2' }}>
+                                    🙂
                                     <span className="chatbot-status-dot" />
                                 </div>
                                 <div>
-                                    <div className="chatbot-name">GrowthUtsav Support</div>
+                                    <div className="chatbot-name">Laila | Support</div>
                                     <div className="chatbot-status">Online · Usually replies instantly</div>
                                 </div>
                             </div>
@@ -292,8 +300,8 @@ const HelpChatbot = () => {
                                     className={`chatbot-bubble-row ${msg.from === 'user' ? 'user-row' : 'bot-row'}`}
                                 >
                                     {msg.from === 'bot' && (
-                                        <span className="bubble-avatar bot-bubble-avatar">
-                                            <FaRobot size={12} />
+                                        <span className="bubble-avatar bot-bubble-avatar" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+                                            🙂
                                         </span>
                                     )}
                                     <div className={`chatbot-bubble ${msg.from === 'user' ? 'user-bubble' : 'bot-bubble'}`}>
@@ -319,8 +327,8 @@ const HelpChatbot = () => {
                                     animate={{ opacity: 1 }}
                                     className="chatbot-bubble-row bot-row"
                                 >
-                                    <span className="bubble-avatar bot-bubble-avatar">
-                                        <FaRobot size={12} />
+                                    <span className="bubble-avatar bot-bubble-avatar" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+                                        🙂
                                     </span>
                                     <div className="chatbot-bubble bot-bubble typing-bubble">
                                         <span className="typing-dot" />

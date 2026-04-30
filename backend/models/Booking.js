@@ -58,6 +58,9 @@ const BookingSchema = new mongoose.Schema({
     paymentId: {
         type: String
     },
+    contactEmail: {
+        type: String
+    },
     ticketId: {
         type: String // We'll store the UUID or ObjectId of the ticket
     },
@@ -66,5 +69,20 @@ const BookingSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+// Optimization Indexes
+// Virtual for remaining amount
+BookingSchema.virtual('remainingAmount').get(function() {
+    return Math.max(0, this.totalAmount - (this.amountPaid || 0));
+});
+
+// Ensure virtuals are serialized
+BookingSchema.set('toJSON', { virtuals: true });
+BookingSchema.set('toObject', { virtuals: true });
+
+BookingSchema.index({ user: 1 });
+BookingSchema.index({ event: 1 });
+BookingSchema.index({ paymentStatus: 1 });
+BookingSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Booking', BookingSchema);

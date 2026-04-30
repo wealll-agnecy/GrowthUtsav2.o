@@ -6,7 +6,8 @@ export const createEvent = async (eventData) => {
     return await axios.post(`${API_URL}`, eventData);
 };
 
-export const getEvents = async (queryStr = '') => {
+export const getEvents = async (params = {}) => {
+    const queryStr = new URLSearchParams(params).toString();
     return await axios.get(`${API_URL}?${queryStr}`);
 };
 

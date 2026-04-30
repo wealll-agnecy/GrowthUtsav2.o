@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, Modal, Spinner, Table, Alert } from 'react-bootstrap';
-import { FaUserPlus, FaTrash, FaLink, FaIdBadge, FaCheck, FaShieldAlt, FaEye, FaSearch, FaUsers } from 'react-icons/fa';
+import { 
+    FaUserPlus, FaTrash, FaLink, FaIdBadge, FaCheck, FaShieldAlt, 
+    FaEye, FaSearch, FaUsers, FaTimes, FaUserCircle, FaBuilding, 
+    FaLightbulb, FaCheckCircle, FaTimesCircle 
+} from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import * as adminApi from '../api/adminApi';
@@ -188,65 +192,116 @@ const AdminStaffManagement = () => {
                 </div>
             </Container>
 
-            {/* Create Staff Modal */}
-            <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} centered size="sm">
-                <Modal.Header closeButton className="border-0 pb-0">
-                    <Modal.Title className="fw-bold fs-5">New Personnel</Modal.Title>
+            {/* Premium Create Staff Modal */}
+            <Modal 
+                show={showCreateModal} 
+                onHide={() => setShowCreateModal(false)} 
+                centered 
+                size="md"
+                className="premium-modal"
+                contentClassName="glass-modal-content"
+            >
+                <Modal.Header className="modal-header-premium border-0">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="modal-icon-header">
+                            <FaUserPlus />
+                        </div>
+                        <div>
+                            <Modal.Title className="fw-black tracking-tight h5 m-0">Initialize Personnel</Modal.Title>
+                            <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Identity Deployment Protocol</p>
+                        </div>
+                    </div>
+                    <button className="btn-close-premium" onClick={() => setShowCreateModal(false)}><FaTimes /></button>
                 </Modal.Header>
-                <Modal.Body className="p-3">
+                <Modal.Body className="p-4 pt-2">
                     <Form onSubmit={handleCreateStaff}>
-                        <Form.Group className="mb-3">
-                            <Form.Label className="small uppercase fw-bold text-muted">Full Name</Form.Label>
-                            <Form.Control required type="text" className="rounded-8" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label className="small uppercase fw-bold text-muted">Email Link</Form.Label>
-                            <Form.Control required type="email" className="rounded-8" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label className="small uppercase fw-bold text-muted">Initial Access Key</Form.Label>
-                            <Form.Control required type="password" minLength={6} className="rounded-8" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
-                        </Form.Group>
-                        <Form.Group className="mb-4">
-                            <Form.Label className="small uppercase fw-bold text-muted">Operational Designation</Form.Label>
-                            <Form.Select className="rounded-8" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
-                                <option value="gate staff">Gate Staff</option>
-                                <option value="coordinator">Coordinator</option>
-                                <option value="support">Support</option>
-                            </Form.Select>
-                        </Form.Group>
-                        <Button type="submit" className="btn btn-pink w-100 rounded-8 py-2 fw-bold">CREATE RECORD</Button>
+                        <div className="detail-section-card mb-3">
+                            <Form.Group className="mb-3">
+                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Full Identity Name</Form.Label>
+                                <Form.Control required type="text" className="rounded-12 border-light py-2" placeholder="e.g. John Matrix" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                            </Form.Group>
+                            <Form.Group className="mb-0">
+                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Email Link</Form.Label>
+                                <Form.Control required type="email" className="rounded-12 border-light py-2" placeholder="staff@growthutsav.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                            </Form.Group>
+                        </div>
+
+                        <div className="detail-section-card mb-4">
+                            <Form.Group className="mb-3">
+                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Security Access Key</Form.Label>
+                                <Form.Control required type="password" minLength={6} className="rounded-12 border-light py-2" placeholder="••••••••" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                            </Form.Group>
+                            <Form.Group className="mb-0">
+                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Designation</Form.Label>
+                                <Form.Select className="rounded-12 border-light py-2" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
+                                    <option value="gate staff">Gate Staff</option>
+                                    <option value="coordinator">Coordinator</option>
+                                    <option value="support">Support</option>
+                                </Form.Select>
+                            </Form.Group>
+                        </div>
+                        
+                        <Button type="submit" className="btn btn-pink w-100 rounded-pill py-3 fw-black shadow-glow">DEPLOY PERSONNEL RECORD</Button>
                     </Form>
                 </Modal.Body>
             </Modal>
 
-            {/* Assign Events Modal */}
-            <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)} centered size="sm">
-                <Modal.Header closeButton className="border-0 pb-0">
-                    <Modal.Title className="fw-bold fs-5">Assign Nodes</Modal.Title>
+            {/* Premium Assign Events Modal */}
+            <Modal 
+                show={showAssignModal} 
+                onHide={() => setShowAssignModal(false)} 
+                centered 
+                size="md"
+                className="premium-modal"
+                contentClassName="glass-modal-content"
+            >
+                <Modal.Header className="modal-header-premium border-0">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className="modal-icon-header">
+                            <FaLink />
+                        </div>
+                        <div>
+                            <Modal.Title className="fw-black tracking-tight h5 m-0">Synchronize Nodes</Modal.Title>
+                            <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Map Personnel to Active Events</p>
+                        </div>
+                    </div>
+                    <button className="btn-close-premium" onClick={() => setShowAssignModal(false)}><FaTimes /></button>
                 </Modal.Header>
-                <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                    <div className="list-group list-group-flush">
-                            {events.map(event => (
-                                <div
-                                    key={event._id}
-                                    className={`list-group-item list-group-item-action d-flex align-items-center justify-content-between py-2 px-3 cursor-pointer ${selectedEvents.includes(event._id) ? 'bg-light' : ''}`}
-                                    onClick={() => toggleEventSelection(event._id)}
-                                >
-                                    <div className="flex-grow-1 overflow-hidden">
-                                        <div className="fw-bold small text-truncate">{event.title}</div>
-                                        <div className="text-muted text-truncate" style={{ fontSize: '10px' }}>{new Date(event.date).toLocaleDateString()} • {event.venue}</div>
+                <Modal.Body className="p-4 pt-2" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                    <div className="d-flex flex-column gap-2">
+                        {events.map(event => (
+                            <div
+                                key={event._id}
+                                className={`event-selection-card ${selectedEvents.includes(event._id) ? 'active' : ''}`}
+                                onClick={() => toggleEventSelection(event._id)}
+                            >
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className={`selection-check ${selectedEvents.includes(event._id) ? 'checked' : ''}`}>
+                                        <FaCheck size={10} />
                                     </div>
-                                <div className={`border rounded-circle d-flex align-items-center justify-content-center ${selectedEvents.includes(event._id) ? 'bg-primary border-primary text-white' : 'bg-white'}`} style={{ width: 24, height: 24 }}>
-                                    {selectedEvents.includes(event._id) && <FaCheck size={12} />}
+                                    <div className="flex-grow-1">
+                                        <div className="event-title-mini">{event.title}</div>
+                                        <div className="event-meta-mini">
+                                            <span>{new Date(event.date).toLocaleDateString()}</span>
+                                            <span className="dot-sep mx-1">•</span>
+                                            <span>{event.venue}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </Modal.Body>
-                <Modal.Footer className="border-0">
-                    <Button className="btn btn-outline-pink" onClick={() => setShowAssignModal(false)}>Close</Button>
-                    <Button className="btn btn-pink" onClick={handleAssignEvents}>Sync Assignments</Button>
+                <Modal.Footer className="border-0 modal-footer-premium px-4 pb-4 mt-3">
+                    <Button variant="link" className="text-muted text-decoration-none fw-bold me-auto" onClick={() => setShowAssignModal(false)}>
+                        Discard
+                    </Button>
+                    <Button 
+                        className="btn btn-pink rounded-pill px-4 fw-black shadow-glow" 
+                        onClick={handleAssignEvents}
+                    >
+                        SYNC ASSIGNMENTS
+                    </Button>
                 </Modal.Footer>
             </Modal>
         </div>

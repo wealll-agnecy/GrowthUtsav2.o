@@ -52,7 +52,7 @@ const TicketSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['unused', 'used'],
+        enum: ['unused', 'used', 'cancelled'],
         default: 'unused'
     },
     isScanned: {
@@ -64,6 +64,9 @@ const TicketSchema = new mongoose.Schema({
         default: 'General'
     },
     scannedAt: {
+        type: Date
+    },
+    lastScanDate: {
         type: Date
     },
     amountPaid: {

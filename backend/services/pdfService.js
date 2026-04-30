@@ -1,6 +1,7 @@
 const PDFDocument = require('pdfkit');
 const QRCode = require('qrcode');
 const Ticket = require('../models/Ticket');
+const path = require('path');
 
 /**
  * Generate a professional PDF ticket buffer
@@ -19,7 +20,11 @@ exports.generateTicketPDF = async (ticketId) => {
 
             const doc = new PDFDocument({ 
                 size: 'A4',
-                margin: 0 
+                margin: 0,
+                info: {
+                    Title: `Ticket - ${ticket.event.title}`,
+                    Author: 'Growth Utsav',
+                }
             });
 
             const chunks = [];
@@ -28,75 +33,101 @@ exports.generateTicketPDF = async (ticketId) => {
 
             // --- PREMIUM DESIGN (White + Gold + Pink) ---
             
-            // 1. Luxury Gradient Background
-            let bgGrad = doc.linearGradient(0, 0, 595.28, 841.89);
+            // 1. Luxury Background with subtle patterns
+            doc.rect(0, 0, 595.28, 841.89).fill('#ffffff');
+            
+            // Subtle Pink Accent Gradient at the bottom
+            let bgGrad = doc.linearGradient(0, 600, 0, 841.89);
             bgGrad.stop(0, '#ffffff')
-                  .stop(1, '#fff5f8'); // Subtle pink tint
-            doc.rect(0, 0, 595.28, 841.89).fill(bgGrad);
+                  .stop(1, '#fff5f8');
+            doc.rect(0, 600, 595.28, 241.89).fill(bgGrad);
 
             // 2. Gold Top Strip (Luxury Header)
             let goldGrad = doc.linearGradient(0, 0, 595.28, 0);
             goldGrad.stop(0, '#d4af37')
                     .stop(0.5, '#ffd700')
                     .stop(1, '#f7c948');
-            doc.rect(0, 0, 595.28, 12).fill(goldGrad);
+            doc.rect(0, 0, 595.28, 15).fill(goldGrad);
 
             // 3. Event Header Section
             doc.fillColor('#AD1457') // Luxury Pink
                .font('Helvetica-Bold')
-               .fontSize(28)
+               .fontSize(32)
                .text(ticket.event.title.toUpperCase(), 50, 60, { characterSpacing: 1 });
             
-            doc.fillColor('#4b5563')
+            doc.fillColor('#6b7280')
                .font('Helvetica')
                .fontSize(10)
-               .text('OFFICIAL DIGITAL ADMISSION PASS', 50, 95, { characterSpacing: 2 });
+               .text('OFFICIAL DIGITAL ADMISSION PASS', 50, 100, { characterSpacing: 2 });
 
-            // 4. Main Pass Details
-            doc.fillColor('#111827').fontSize(14).font('Helvetica-Bold').text('EVENT LOGISTICS', 50, 150);
+            // 4. Main Pass Details (Centered Card)
+            doc.rect(50, 140, 495, 180).fill('#f9fafb').stroke('#e5e7eb');
             
-            // Event Details Box
-            doc.rect(50, 170, 495, 100).fill('#ffffff').stroke('#f3f4f6');
+            doc.fillColor('#111827').fontSize(14).font('Helvetica-Bold').text('EVENT LOGISTICS', 70, 160);
             
-            doc.fillColor('#374151').font('Helvetica').fontSize(12);
-            doc.text(`Location:`, 70, 190);
-            doc.fillColor('#111827').font('Helvetica-Bold').text(ticket.event.venue, 140, 190);
+            // Venue
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('VENUE', 70, 190);
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(ticket.event.venue, 70, 205, { width: 400 });
             
-            doc.fillColor('#374151').font('Helvetica').text(`Date:`, 70, 215);
-            doc.fillColor('#111827').font('Helvetica-Bold').text(new Date(ticket.event.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), 140, 215);
-            
-            doc.fillColor('#374151').font('Helvetica').text(`Schedule:`, 70, 240);
-            doc.fillColor('#111827').font('Helvetica-Bold').text(ticket.event.time || 'TBA', 140, 240);
+            // Date & Time
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('DATE', 70, 240);
+            const eventDate = new Date(ticket.selectedDate || ticket.event.date).toLocaleDateString('en-US', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(eventDate, 70, 255);
+
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('TIME', 300, 240);
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(ticket.event.time || 'Check Schedule', 300, 255);
 
             // 5. Gold Luxury Divider
-            let divGrad = doc.linearGradient(50, 310, 545, 310);
-            divGrad.stop(0, 'rgba(212, 175, 55, 0)')
+            let divGrad = doc.linearGradient(50, 350, 545, 350);
+            divGrad.stop(0, '#ffffff')
                    .stop(0.5, '#d4af37')
-                   .stop(1, 'rgba(212, 175, 55, 0)');
-            doc.moveTo(50, 310).lineTo(545, 310).lineWidth(1).stroke(divGrad);
+                   .stop(1, '#ffffff');
+            doc.moveTo(50, 350).lineTo(545, 350).lineWidth(1).stroke(divGrad);
 
-            // 6. Attendee Tier Section
-            doc.fillColor('#AD1457').fontSize(14).font('Helvetica-Bold').text('CLEARANCE DATA', 50, 350);
+            // Calculate Validity Details
+            const dayCount = (ticket.selectedDays && ticket.selectedDays.length > 0) ? ticket.selectedDays.length : 1;
+            const validityText = `Valid for ${dayCount} Day${dayCount > 1 ? 's' : ''}`;
             
-            doc.fillColor('#374151').font('Helvetica').fontSize(11).text('ATTENDEE:', 50, 380);
-            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(13).text(ticket.name.toUpperCase(), 130, 380);
+            let dateListText = "";
+            if (ticket.selectedDays && ticket.selectedDays.length > 0) {
+                dateListText = ticket.selectedDays.map(d => new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })).join(', ');
+            } else {
+                dateListText = new Date(ticket.selectedDate || ticket.event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+            }
+
+            // 6. Attendee & Tier Section
+            doc.fillColor('#AD1457').fontSize(14).font('Helvetica-Bold').text('ATTENDEE VERIFICATION', 50, 380);
             
-            doc.fillColor('#374151').font('Helvetica').fontSize(11).text('EMAIL:', 50, 405);
-            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(11).text(ticket.email, 130, 405);
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('NAME', 50, 410);
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(14).text(ticket.name.toUpperCase(), 50, 425);
             
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('EMAIL', 50, 460);
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(ticket.email, 50, 475);
+            
+            // Validity Details (New Section)
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('BOOKED DATES', 50, 510);
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(10).text(dateListText, 50, 525, { width: 300 });
+
             // Badge Concept for Ticket Type
-            doc.roundedRect(50, 440, 180, 35, 17).fill('#AD1457');
-            doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(11).text(ticket.ticketType + ' PASS', 50, 452, { width: 180, align: 'center' });
+            const badgeWidth = 180;
+            doc.roundedRect(50, 560, badgeWidth, 35, 17.5).fill('#AD1457');
+            doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(11).text(`${ticket.ticketType.toUpperCase()} PASS`, 50, 572, { width: badgeWidth, align: 'center' });
+
+            // Entry Rules & Duration
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(10).text('Allowed Entry: 1 Person Only', 50, 610);
+            doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(11).text(validityText.toUpperCase(), 50, 625);
+
 
             // 7. QR Code Section (Right Side)
-            // Gold border for QR
-            doc.roundedRect(380, 350, 160, 160, 10).lineWidth(2).stroke('#f7c948');
+            doc.roundedRect(380, 380, 165, 165, 10).lineWidth(1.5).stroke('#d4af37');
             
             const baseUrl = process.env.PUBLIC_URL || 'https://growthutsav.com'; 
             const verificationUrl = `${baseUrl}/ticket/${ticket.uuid}`;
             
             const qrBuffer = await QRCode.toBuffer(verificationUrl, { 
-                width: 150,
+                width: 155,
                 margin: 1,
                 color: {
                     dark: '#111827',
@@ -104,16 +135,17 @@ exports.generateTicketPDF = async (ticketId) => {
                 }
             });
             
-            doc.image(qrBuffer, 385, 355, { width: 150 });
-            doc.fontSize(9).fillColor('#9ca3af').text('SCAN TO VERIFY INTEGRITY', 380, 520, { width: 160, align: 'center' });
+            doc.image(qrBuffer, 385, 385, { width: 155 });
+            doc.fontSize(9).fillColor('#9ca3af').font('Helvetica').text('SCAN TO VERIFY AUTHENTICITY', 380, 555, { width: 165, align: 'center' });
 
-            // 8. Security ID Footer
+            // 8. Footer Section
             doc.fillColor('#9ca3af').fontSize(8).font('Helvetica').text(`UNIQUE ASSET KEY: ${ticket.uuid.toUpperCase()}`, 50, 750);
+            doc.text(`TICKET ID: ${ticket.ticketCode}`, 50, 762);
             
-            // Final Footer Line
-            doc.rect(0, 780, 595.28, 61.89).fill('#f9fafb');
+            // Bottom Branding
+            doc.rect(0, 785, 595.28, 56.89).fill('#f9fafb');
             doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(10).text('GROWTH UTSAV • SECURE EVENT SERVICES', 0, 805, { align: 'center' });
-            doc.fillColor('#9ca3af').font('Helvetica').fontSize(8).text('Unauthorized duplication or resale of this asset is strictly prohibited.', 0, 820, { align: 'center' });
+            doc.fillColor('#9ca3af').font('Helvetica').fontSize(8).text('This is a computer-generated document. No signature required.', 0, 820, { align: 'center' });
 
             doc.end();
         } catch (err) {
@@ -122,3 +154,4 @@ exports.generateTicketPDF = async (ticketId) => {
         }
     });
 };
+

@@ -6,10 +6,15 @@ import axios from 'axios';
 
 const StaffDashboard = () => {
     const [attendees, setAttendees] = useState([]);
+    const [recentEntries, setRecentEntries] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchAttendees = async () => {
         try {
+            // Load from LocalStorage first for instant results
+            const saved = localStorage.getItem('recent_scans');
+            if (saved) setRecentEntries(JSON.parse(saved));
+
             const res = await axios.get('/api/v1/organizer/bookings');
             setAttendees(res.data.data || []);
         } catch (err) {
@@ -61,32 +66,63 @@ const StaffDashboard = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {attendees.filter(a => a.status === 'used' || a.isScanned).slice(0, 10).map((attendee) => (
-                                                <tr key={attendee._id}>
-                                                    <td className="px-4 py-3">
-                                                        <div className="fw-bold">{attendee.name || attendee.user?.name || attendee.attendeeDetails?.[0]?.name}</div>
-                                                        <div className="small text-muted">{attendee.email || attendee.user?.email || attendee.attendeeDetails?.[0]?.email}</div>
-                                                    </td>
-                                                    <td className="py-3 small">{attendee.eventName || attendee.event?.title}</td>
-                                                    <td className="py-3">
-                                                        <div className="tiny-text fw-bold mb-1">₹{attendee.amountPaid || 0} Paid</div>
-                                                        <Badge bg={attendee.paymentStatus === 'PAID' ? 'success' : 'warning'} className="rounded-pill">
-                                                            {attendee.paymentStatus || 'PARTIAL'}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="py-3">
-                                                        <Badge bg="primary-subtle" className="text-primary rounded-pill px-3">
-                                                            SCANNED
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="text-end px-4 py-3 small text-muted">
-                                                        {attendee.scannedAt ? new Date(attendee.scannedAt).toLocaleTimeString() : 'N/A'}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {attendees.length === 0 && !loading && (
+                                            {recentEntries.length > 0 ? (
+                                                recentEntries.map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td className="px-4 py-3">
+                                                            <div className="fw-bold">{item.name}</div>
+                                                        </td>
+                                                        <td className="py-3 small">{item.event}</td>
+                                                        <td className="py-3">
+                                                            <div className="payment-box">
+                                                                <span>₹{item.paid || 0} / ₹{item.total || 0}</span>
+                                                                <small>Due: ₹{item.due || 0}</small>
+                                                                <div className={`badge-demo ${item.paymentStatus === 'PAID' ? 'green' : 'orange'}`}>
+                                                                    {item.paymentStatus || 'PARTIAL'}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3">
+                                                            <span className={item.status === 'GRANTED' ? 'green' : 'red'}>
+                                                                {item.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="text-end px-4 py-3 small text-muted">
+                                                            {item.time}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                attendees.filter(a => a.status === 'used' || a.isScanned).slice(0, 10).map((attendee) => (
+                                                    <tr key={attendee._id}>
+                                                        <td className="px-4 py-3">
+                                                            <div className="fw-bold">{attendee.name || attendee.user?.name || attendee.attendeeDetails?.[0]?.name}</div>
+                                                            <div className="small text-muted">{attendee.email || attendee.user?.email || attendee.attendeeDetails?.[0]?.email}</div>
+                                                        </td>
+                                                        <td className="py-3 small">{attendee.eventName || attendee.event?.title}</td>
+                                                        <td className="py-3">
+                                                            <div className="payment-box">
+                                                                <span>₹{attendee.amountPaid || 0} / ₹{attendee.totalAmount || 0}</span>
+                                                                <small>Due: ₹{(attendee.totalAmount || 0) - (attendee.amountPaid || 0)}</small>
+                                                                <div className={`badge-demo ${attendee.paymentStatus === 'PAID' ? 'green' : 'orange'}`}>
+                                                                    {attendee.paymentStatus || 'PARTIAL'}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3">
+                                                            <Badge bg="primary-subtle" className="text-primary rounded-pill px-3">
+                                                                SCANNED
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="text-end px-4 py-3 small text-muted">
+                                                            {attendee.scannedAt ? new Date(attendee.scannedAt).toLocaleTimeString() : 'N/A'}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                            {recentEntries.length === 0 && attendees.length === 0 && !loading && (
                                                 <tr>
-                                                    <td colSpan="4" className="text-center py-5 text-muted">No entries processed yet.</td>
+                                                    <td colSpan="5" className="text-center py-5 text-muted">No entries processed yet.</td>
                                                 </tr>
                                             )}
                                         </tbody>

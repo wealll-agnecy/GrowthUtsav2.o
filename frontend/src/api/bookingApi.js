@@ -3,7 +3,6 @@ import axios from 'axios';
 const API_URL = '/api/v1/bookings';
 
 export const checkout = async (bookingData) => {
-    // TEMPORARY: Bypassing Razorpay for Demo Mode
     return await axios.post(`${API_URL}/demo-book`, bookingData);
 };
 
@@ -29,4 +28,8 @@ export const initiateInstallment = async (id, amount) => {
 
 export const verifyInstallment = async (paymentData) => {
     return await axios.post(`${API_URL}/verify-installment`, paymentData);
+};
+
+export const resendTicketEmail = async (id) => {
+    return await axios.post(`${API_URL}/resend-ticket/${id}`);
 };

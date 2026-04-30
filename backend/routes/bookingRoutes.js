@@ -3,13 +3,15 @@ const {
     checkout,
     verifyPayment,
     getMyBookings,
-    demoBooking   // ✅ correct import
+    demoBooking,
+    resendTicketEmail
 } = require('../controllers/bookingController');
 
 const router = express.Router();
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 // ✅ ROUTES
+router.post('/resend-ticket/:id', protect, authorize('attendee', 'admin'), resendTicketEmail);
 router.post('/demo-book', protect, authorize('attendee', 'admin'), demoBooking);
 router.post('/demobook', protect, authorize('attendee', 'admin'), demoBooking);
 router.post('/demo-checkout', protect, authorize('attendee', 'admin'), demoBooking);
