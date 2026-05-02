@@ -12,5 +12,25 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['react-bootstrap', 'framer-motion', 'react-icons'],
+          'vendor-utils': ['axios', 'firebase', 'socket.io-client'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
   }
 })

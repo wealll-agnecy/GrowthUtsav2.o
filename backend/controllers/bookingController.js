@@ -40,8 +40,10 @@ exports.checkout = async (req, res) => {
                 const day = event.multiDayPlan.find(d => new Date(d.date).toDateString() === reqDate);
                 if (!day) return res.status(400).json({ success: false, message: "Invalid event date selected" });
                 
-                const dayTier = day.plans.find(p => p.name === ticketType);
-                if (!dayTier) return res.status(400).json({ success: false, message: "Invalid plan for selected date" });
+                // Use plan name from selectedPlans if available, otherwise fallback to ticketType
+                const planName = (req.body.selectedPlans && req.body.selectedPlans[reqDateStr]) || ticketType;
+                const dayTier = day.plans.find(p => p.name === planName);
+                if (!dayTier) return res.status(400).json({ success: false, message: `Invalid plan (${planName}) for date ${reqDateStr}` });
                 
                 totalAmount += dayTier.price * parseInt(quantity);
             }
@@ -58,6 +60,7 @@ exports.checkout = async (req, res) => {
             user: req.user.id,
             event: eventId,
             ticketType,
+            selectedPlans: req.body.selectedPlans,
             selectedDate: selectedDatesArray.length > 0 ? selectedDatesArray[0] : event.date,
             selectedDays: selectedDatesArray,
             quantity: parseInt(quantity),
@@ -166,8 +169,10 @@ exports.demoBooking = async (req, res) => {
                 const day = event.multiDayPlan.find(d => new Date(d.date).toDateString() === reqDate);
                 if (!day) return res.status(400).json({ success: false, message: "Invalid event date selected" });
                 
-                const dayTier = day.plans.find(p => p.name === ticketType);
-                if (!dayTier) return res.status(400).json({ success: false, message: "Invalid plan for selected date" });
+                // Use plan name from selectedPlans if available, otherwise fallback to ticketType
+                const planName = (req.body.selectedPlans && req.body.selectedPlans[reqDateStr]) || ticketType;
+                const dayTier = day.plans.find(p => p.name === planName);
+                if (!dayTier) return res.status(400).json({ success: false, message: `Invalid plan (${planName}) for date ${reqDateStr}` });
                 
                 totalAmount += dayTier.price * parseInt(quantity);
                 tiersToUpdate.push(dayTier);
@@ -185,6 +190,7 @@ exports.demoBooking = async (req, res) => {
             user: req.user.id,
             event: eventId,
             ticketType,
+            selectedPlans: req.body.selectedPlans,
             selectedDate: selectedDatesArray.length > 0 ? selectedDatesArray[0] : event.date,
             selectedDays: selectedDatesArray,
             quantity: parseInt(quantity),

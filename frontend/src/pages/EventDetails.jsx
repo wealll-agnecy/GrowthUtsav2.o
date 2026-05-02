@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import * as eventApi from '../api/eventApi';
 import { useAuth } from '../context/AuthContext';
-import { Container, Row, Col, Form, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Container, Row, Col, Form, Spinner, Alert, Badge, Modal, Button } from 'react-bootstrap';
 import {
     FaMapMarkerAlt, FaCalendarAlt, FaClock, FaCheckCircle,
     FaShoppingCart, FaArrowLeft, FaShieldAlt, FaTicketAlt,
-    FaPhone, FaUserCircle
+    FaPhone, FaUserCircle, FaEnvelope
 } from 'react-icons/fa';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -26,6 +26,15 @@ const EventDetails = () => {
     const [selectedDays, setSelectedDays] = useState([]);
     const [isAllDays, setIsAllDays] = useState(false);
     const [quantity, setQuantity] = useState(1);
+    const [showInquiryModal, setShowInquiryModal] = useState(false);
+    const [inquiryData, setInquiryData] = useState({
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: '',
+        message: ''
+    });
+    const [inquiryLoading, setInquiryLoading] = useState(false);
+    const [inquirySuccess, setInquirySuccess] = useState(false);
 
     useEffect(() => {
         const fetchEventAndRelated = async () => {
@@ -80,16 +89,14 @@ const EventDetails = () => {
             return;
         }
 
-        let currentPrice = 0;
+        const initialSelectedPlans = {};
         if (event.isMultiDay) {
             selectedDays.forEach(date => {
                 const day = event.multiDayPlan.find(d => d.date === date);
+                // Use the selectedTier as the default for all selected days
                 const plan = day?.plans.find(p => p.name === selectedTier);
-                currentPrice += plan?.price || 0;
+                initialSelectedPlans[date] = plan?.name || day?.plans[0]?.name;
             });
-        } else {
-            const ticket = event.ticketTypes.find(t => t.name === selectedTier);
-            currentPrice = ticket?.price || 0;
         }
 
         navigate('/checkout', {
@@ -98,10 +105,43 @@ const EventDetails = () => {
                 ticketType: selectedTier,
                 selectedDate: event.isMultiDay ? selectedDays[0] : selectedDate,
                 selectedDays: event.isMultiDay ? selectedDays : [],
+                selectedPlans: initialSelectedPlans,
                 quantity: parsedQuantity,
-                totalPrice: currentPrice * parsedQuantity
+                totalPrice: computedTotalPrice
             }
         });
+    };
+
+    const handleInquirySubmit = async (e) => {
+        e.preventDefault();
+        setInquiryLoading(true);
+        try {
+            const payload = {
+                attendeeId: user?._id || 'guest',
+                eventId: event._id,
+                organizerId: event.organizer._id,
+                ...inquiryData
+            };
+
+            // Debug Step as requested
+            console.log({
+                organizerId: event.organizer._id,
+                eventId: event._id
+            });
+
+            await axios.post('/api/v1/inquiries/create', payload);
+            setInquirySuccess(true);
+            setTimeout(() => {
+                setShowInquiryModal(false);
+                setInquirySuccess(false);
+                setInquiryData({ ...inquiryData, message: '' });
+            }, 2000);
+        } catch (err) {
+            console.error('Inquiry error:', err);
+            alert('Failed to send inquiry. Please try again.');
+        } finally {
+            setInquiryLoading(false);
+        }
     };
 
     if (loading) {
@@ -252,9 +292,24 @@ const EventDetails = () => {
                                                 {event.organizer?.name || 'Authorized Host'}
                                                 <Badge bg="pink-subtle" className="text-pink px-2 py-1 rounded-pill small uppercase tracking-tighter" style={{ fontSize: '10px' }}>Verified</Badge>
                                             </h4>
+                                            <div className="d-flex flex-column gap-1 mt-2">
+                                                <div className="text-white-50 small d-flex align-items-center gap-2">
+                                                    <FaEnvelope className="text-pink" size={12} />
+                                                    {event.organizer?.email}
+                                                </div>
+                                                <div className="text-white-50 small d-flex align-items-center gap-2">
+                                                    <FaPhone className="text-pink" size={12} />
+                                                    {event.organizer?.phone || 'N/A'}
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="d-none d-md-block">
-                                            <Link to="/contact-us" className="btn btn-outline-pink btn-sm rounded-pill px-4 fw-bold">Inquiry</Link>
+                                            <button 
+                                                onClick={() => setShowInquiryModal(true)}
+                                                className="btn btn-outline-pink btn-sm rounded-pill px-4 fw-bold"
+                                            >
+                                                Inquiry
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -432,6 +487,84 @@ const EventDetails = () => {
                     )}
                 </Container>
             </section>
+
+            {/* Inquiry Modal */}
+            <Modal show={showInquiryModal} onHide={() => setShowInquiryModal(false)} centered className="premium-modal">
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="fw-black tracking-tighter">Event Inquiry</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="pt-0">
+                    {inquirySuccess ? (
+                        <div className="text-center py-5">
+                            <FaCheckCircle size={50} className="text-success mb-3" />
+                            <h4 className="fw-bold">Inquiry Sent!</h4>
+                            <p className="text-muted">The organizer will get back to you soon.</p>
+                        </div>
+                    ) : (
+                        <Form onSubmit={handleInquirySubmit} className="mt-3">
+                            <p className="text-muted small mb-4">Have questions about <strong>{event.title}</strong>? Send a message to the host.</p>
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold">Name</Form.Label>
+                                        <Form.Control 
+                                            type="text" 
+                                            placeholder="Your Name"
+                                            required
+                                            value={inquiryData.name}
+                                            onChange={(e) => setInquiryData({...inquiryData, name: e.target.value})}
+                                            className="rounded-3 border-light"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label className="small fw-bold">Email</Form.Label>
+                                        <Form.Control 
+                                            type="email" 
+                                            placeholder="Your Email"
+                                            required
+                                            value={inquiryData.email}
+                                            onChange={(e) => setInquiryData({...inquiryData, email: e.target.value})}
+                                            className="rounded-3 border-light"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="small fw-bold">Phone Number</Form.Label>
+                                <Form.Control 
+                                    type="tel" 
+                                    placeholder="Your Phone"
+                                    required
+                                    value={inquiryData.phone}
+                                    onChange={(e) => setInquiryData({...inquiryData, phone: e.target.value})}
+                                    className="rounded-3 border-light"
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-4">
+                                <Form.Label className="small fw-bold">Message</Form.Label>
+                                <Form.Control 
+                                    as="textarea" 
+                                    rows={4} 
+                                    placeholder="How can we help you?"
+                                    required
+                                    value={inquiryData.message}
+                                    onChange={(e) => setInquiryData({...inquiryData, message: e.target.value})}
+                                    className="rounded-3 border-light"
+                                />
+                            </Form.Group>
+                            <Button 
+                                type="submit" 
+                                className="btn-pink w-100 py-3 fw-bold rounded-3"
+                                disabled={inquiryLoading}
+                            >
+                                {inquiryLoading ? <Spinner animation="border" size="sm" /> : 'Send Inquiry'}
+                            </Button>
+                        </Form>
+                    )}
+                </Modal.Body>
+            </Modal>
         </div>
     );
 };

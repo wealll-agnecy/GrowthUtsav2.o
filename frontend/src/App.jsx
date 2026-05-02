@@ -10,6 +10,7 @@ import MobileHeader from './components/common/MobileHeader';
 import MobileBottomNav from './components/common/MobileBottomNav';
 import DashboardLayout from './components/common/DashboardLayout';
 import './layout.css';
+import ScrollToTop from './components/common/ScrollToTop';
 
 
 // Performance: Lazy Loading across all deployment nodes
@@ -34,6 +35,7 @@ const OrganizerEvents = lazy(() => import('./pages/OrganizerEvents'));
 const OrganizerDashboard = lazy(() => import('./pages/OrganizerDashboard'));
 const OrganizerBookings = lazy(() => import('./pages/OrganizerBookings'));
 const OrganizerEventAnalytics = lazy(() => import('./pages/OrganizerEventAnalytics'));
+const OrganizerInquiriesPage = lazy(() => import('./pages/OrganizerInquiriesPage'));
 const OrganizerStaffManagement = lazy(() => import('./pages/OrganizerStaffManagement'));
 const PricingPlans = lazy(() => import('./pages/PricingPlans'));
 const LogisticsDashboard = lazy(() => import('./pages/LogisticsDashboard'));
@@ -67,6 +69,8 @@ const DashboardWrapper = ({ children, role }) => (
         </Suspense>
     </DashboardLayout>
 );
+
+import RemainingPaymentPage from './pages/RemainingPaymentPage';
 
 const AppContent = () => {
     const location = useLocation();
@@ -124,6 +128,7 @@ const AppContent = () => {
                             <Route path="/organizer/bookings" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerBookings /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/organizer/events" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerEvents /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/organizer/event/:id" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerEventAnalytics /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/organizer/inquiries" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerInquiriesPage /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/organizer/plans" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><PricingPlans /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/organizer/staff" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><OrganizerStaffManagement /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/logistics/:eventId" element={<ProtectedRoute roles={['organizer', 'admin']}><DashboardWrapper role="organizer"><LogisticsDashboard /></DashboardWrapper></ProtectedRoute>} />
@@ -141,6 +146,7 @@ const AppContent = () => {
 
                             <Route path="/staff/dashboard" element={<ProtectedRoute roles={['staff', 'admin']}><DashboardWrapper role="staff"><StaffDashboard /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/staff/scanner" element={<ProtectedRoute roles={['staff', 'admin']}><DashboardWrapper role="staff"><StaffScanner /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/remaining-payment/:bookingId" element={<ProtectedRoute><RemainingPaymentPage /></ProtectedRoute>} />
                         </Routes>
                     </Suspense>
                 </div>
@@ -178,6 +184,7 @@ const AppContent = () => {
 function App() {
     return (
         <Router>
+            <ScrollToTop />
             <AppContent />
         </Router>
     );

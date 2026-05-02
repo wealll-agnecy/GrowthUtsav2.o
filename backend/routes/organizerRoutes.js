@@ -33,10 +33,10 @@ router.get("/event/:id/details", async (req, res) => {
     const event = await Event.findById(eventId);
     const eventName = event ? event.title : 'Unknown Event';
 
-    const tickets = await Ticket.find({ event: eventId });
-    const expenses = await Expense.find({ eventId: eventId }); // Note: updated to eventId field
+    const tickets = await Ticket.find({ eventId: eventId });
+    const expenses = await Expense.find({ eventId: eventId });
 
-    const totalRevenue = tickets.reduce((sum, t) => sum + (t.price || 0), 0);
+    const totalRevenue = tickets.reduce((sum, t) => sum + (t.ticketPrice || t.price || 0), 0);
     const totalTickets = tickets.length;
     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
 
@@ -46,15 +46,16 @@ router.get("/event/:id/details", async (req, res) => {
     const planSalesMap = {};
     
     tickets.forEach(t => {
-      const dateStr = new Date(t.createdAt).toISOString().split('T')[0];
+      const date = t.bookedAt || t.createdAt || new Date();
+      const dateStr = new Date(date).toISOString().split('T')[0];
       if (!salesByDateMap[dateStr]) salesByDateMap[dateStr] = { date: dateStr, ticketsSold: 0, revenue: 0 };
       salesByDateMap[dateStr].ticketsSold += 1;
-      salesByDateMap[dateStr].revenue += (t.price || 0);
+      salesByDateMap[dateStr].revenue += (t.ticketPrice || t.price || 0);
       
       const plan = t.ticketType || 'General';
       if (!planSalesMap[plan]) planSalesMap[plan] = { planName: plan, ticketsSold: 0, revenue: 0 };
       planSalesMap[plan].ticketsSold += 1;
-      planSalesMap[plan].revenue += (t.price || 0);
+      planSalesMap[plan].revenue += (t.ticketPrice || t.price || 0);
     });
 
     const salesByDate = Object.values(salesByDateMap);
@@ -72,7 +73,8 @@ router.get("/event/:id/details", async (req, res) => {
     });
 
     } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ [ORGANIZER DETAILS ERROR]:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 

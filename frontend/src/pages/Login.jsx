@@ -81,7 +81,6 @@ const Login = () => {
                             <Form.Control
                                 type="text"
                                 className="premium-auth-input"
-                                placeholder="name@example.com"
                                 value={identifier}
                                 onChange={handleIdentifierChange}
                                 required
@@ -95,14 +94,13 @@ const Login = () => {
                                 <Form.Control
                                     type={showPassword ? "text" : "password"}
                                     className="premium-auth-input password-input"
-                                    placeholder="Enter your security key"
                                     value={password}
                                     onChange={handlePasswordChange}
                                     required
                                 />
                                 <button
                                     type="button"
-                                    className="btn position-absolute end-0 top-50 translate-middle-y border-0 shadow-none password-toggle-btn"
+                                    className="position-absolute end-0 top-0 border-0 shadow-none password-toggle-btn"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -110,18 +108,20 @@ const Login = () => {
                             </div>
                         </div>
 
-                        <div className="d-flex justify-content-between mb-4 small">
-                            <Form.Check type="checkbox" label="Remember me" className="text-muted" />
-                            <Link to="/forgot-password" title="Forgot Password?" className="text-decoration-none text-pink">Forgot Password?</Link>
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <Form.Check type="checkbox" label="Remember me" className="remember-me-beauty" />
+                            <Link to="/forgot-password" size="sm" className="forgot-password-link">Forgot Password?</Link>
                         </div>
 
-                        <button
-                            type="submit"
-                            className="btn btn-pink"
-                            disabled={loading}
-                        >
-                            {loading ? <Spinner size="sm" /> : 'Sign In To Portal'}
-                        </button>
+                        <div className="d-flex justify-content-center mt-2">
+                            <button
+                                type="submit"
+                                className="btn btn-pink px-5"
+                                disabled={loading}
+                            >
+                                {loading ? <Spinner size="sm" /> : 'Sign In To Portal'}
+                            </button>
+                        </div>
                     </Form>
 
                     <div className="auth-footer">
@@ -129,8 +129,8 @@ const Login = () => {
                     </div>
 
                     <div className="text-center mt-3">
-                        <Link to="/" className="text-muted small text-decoration-none">
-                            <FaArrowLeft className="me-1" /> Return to Homepage
+                        <Link to="/" className="return-home-link">
+                            <FaArrowLeft /> Return to Homepage
                         </Link>
                     </div>
                 </motion.div>

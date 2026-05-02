@@ -233,6 +233,20 @@ const Profile = () => {
                                                 />
                                             </Form.Group>
                                         </Col>
+                                        {user?.role === 'organizer' && (
+                                            <Col md={12}>
+                                                <Form.Group className="mt-2">
+                                                    <Form.Label className="small fw-bold text-muted uppercase">Company Registration Number</Form.Label>
+                                                    <Form.Control 
+                                                        className="bg-light border-0 py-2 px-3 fw-bold" 
+                                                        value={user.organizationDetails?.registrationNumber || 'Pending Verification'}
+                                                        readOnly={true}
+                                                        style={{ opacity: 0.8 }}
+                                                    />
+                                                    <div className="tiny-text text-muted mt-1 italic">This number is verified during registration and cannot be changed manually.</div>
+                                                </Form.Group>
+                                            </Col>
+                                        )}
                                     </Row>
 
                                     {isEditing && (

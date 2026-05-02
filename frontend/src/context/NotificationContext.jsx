@@ -38,7 +38,8 @@ export const NotificationProvider = ({ children }) => {
 
         // Initialize Socket
         const newSocket = io(window.location.origin.includes('5173') ? 'http://localhost:5000' : '/', {
-            withCredentials: true
+            withCredentials: true,
+            transports: ['websocket', 'polling']
         });
 
         newSocket.on('connect', () => {

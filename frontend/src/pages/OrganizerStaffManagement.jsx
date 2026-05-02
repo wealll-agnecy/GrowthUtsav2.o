@@ -4,6 +4,7 @@ import { FaUserPlus, FaTrash, FaLink, FaIdBadge, FaCheck } from 'react-icons/fa'
 import { motion } from 'framer-motion';
 import * as organizerApi from '../api/organizerApi';
 import * as eventApi from '../api/eventApi';
+import { playSound } from '../utils/soundManager';
 
 const OrganizerStaffManagement = () => {
     const [staffList, setStaffList] = useState([]);
@@ -43,6 +44,7 @@ const OrganizerStaffManagement = () => {
             await organizerApi.createStaff(formData);
             setShowCreateModal(false);
             setFormData({ name: '', email: '', password: '', staffRole: 'gate staff' });
+            playSound('success');
             fetchData();
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to create staff');
@@ -53,6 +55,7 @@ const OrganizerStaffManagement = () => {
         if (window.confirm('Delete this staff member?')) {
             try {
                 await organizerApi.deleteStaff(id);
+                playSound('delete');
                 fetchData();
             } catch (err) {
                 alert('Failed to delete staff');
@@ -76,6 +79,7 @@ const OrganizerStaffManagement = () => {
         try {
             await organizerApi.assignStaffToEvents(selectedStaff._id, selectedEvents);
             setShowAssignModal(false);
+            playSound('success');
             fetchData();
         } catch (err) {
             alert('Failed to assign events');

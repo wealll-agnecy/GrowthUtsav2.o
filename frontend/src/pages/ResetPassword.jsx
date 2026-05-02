@@ -103,7 +103,6 @@ const ResetPassword = () => {
                                                         </InputGroup.Text>
                                                         <Form.Control
                                                             type={showPass ? 'text' : 'password'}
-                                                            placeholder="••••••••"
                                                             value={password}
                                                             onChange={(e) => setPassword(e.target.value)}
                                                             className="bg-transparent border-0 text-white py-3 shadow-none h-auto"
@@ -127,7 +126,6 @@ const ResetPassword = () => {
                                                         </InputGroup.Text>
                                                         <Form.Control
                                                             type={showPass ? 'text' : 'password'}
-                                                            placeholder="••••••••"
                                                             value={confirmPassword}
                                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                                             className="bg-transparent border-0 text-white py-3 shadow-none h-auto"

@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Badge, Spinner, Button, Alert } from "react-
 import { useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaClock, FaEye, FaTrash, FaSearch, FaInbox } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { playSound } from '../utils/soundManager';
 import '../css/admin-pages.css';
 
 export default function AdminEnquiries() {
@@ -33,6 +34,7 @@ export default function AdminEnquiries() {
     if (!window.confirm('Delete this enquiry?')) return;
     try {
         await axios.delete(`/api/v1/enquiries/${id}`, { withCredentials: true });
+        playSound('delete');
         setToast({ msg: 'Enquiry deleted', type: 'success' });
         fetchEnquiries();
     } catch (err) {

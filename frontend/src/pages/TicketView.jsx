@@ -51,37 +51,10 @@ const TicketView = () => {
         }
     }, [location]);
 
-    const handlePayInstallment = async () => {
+    const handlePayRemaining = () => {
         const bookingId = ticket?.booking?._id || ticket?.booking;
         if (!bookingId) return;
-
-        const total = ticket?.totalAmount || ticket?.booking?.totalAmount || 0;
-        const paid = ticket?.amountPaid || ticket?.booking?.amountPaid || 0;
-        const remaining = total - paid;
-        
-        if (remaining <= 0) return;
-
-        try {
-            setPaying(true);
-            await bookingApi.initiateInstallment(bookingId, remaining);
-            
-            // Demo bypass (Instant Verification)
-            const verifyRes = await bookingApi.verifyInstallment({
-                bookingId: bookingId,
-                amount: remaining
-            });
-            
-            if (verifyRes.data.success) {
-                // Refresh with success trigger
-                navigate(`/digital-pass/${id}?success=true`, { replace: true });
-                window.location.reload();
-            }
-        } catch (err) {
-            console.error("Installment failed:", err);
-            setError("Payment verification failed. Please contact support.");
-        } finally {
-            setPaying(false);
-        }
+        navigate(`/remaining-payment/${bookingId}`);
     };
 
     useEffect(() => {
@@ -264,11 +237,9 @@ const TicketView = () => {
                                     </div>
                                     <Button 
                                         className="btn btn-pink"
-                                        onClick={handlePayInstallment}
-                                        disabled={paying}
+                                        onClick={handlePayRemaining}
                                     >
-                                        {paying ? <Spinner size="sm" className="me-2" /> : <FaCreditCard className="me-2" />}
-                                        {paying ? 'Processing...' : 'Pay Remaining'}
+                                        <FaCreditCard className="me-2" /> Pay Remaining
                                     </Button>
                                 </Alert>
                             )}

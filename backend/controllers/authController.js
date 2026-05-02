@@ -59,6 +59,11 @@ exports.register = async (req, res, next) => {
             try { organizationDetails = JSON.parse(organizationDetails); } catch (e) {}
         }
 
+        // Ensure registrationNumber is captured even if passed separately via FormData
+        if (req.body.registrationNumber && organizationDetails) {
+            organizationDetails.registrationNumber = req.body.registrationNumber;
+        }
+
         if (req.file && role === 'organizer') {
             if (!organizationDetails) organizationDetails = {};
             organizationDetails.logo = `/uploads/logos/${req.file.filename}`;

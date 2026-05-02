@@ -52,6 +52,7 @@ const UserSchema = new mongoose.Schema({
     // Extra info organizer provides on registration
     organizationDetails: {
         companyName: String,
+        registrationNumber: String,
         eventIntent: String,
         phone: String,
         website: String,

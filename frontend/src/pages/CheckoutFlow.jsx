@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import * as bookingApi from '../api/bookingApi';
 import toast from 'react-hot-toast';
+import { playSound } from '../utils/soundManager';
 import './CheckoutFlow.css';
 
 const CheckoutFlow = () => {
@@ -18,6 +19,20 @@ const CheckoutFlow = () => {
     const [ticketType, setTicketType] = useState(state?.ticketType);
     const [price, setPrice] = useState(state?.totalPrice / (state?.quantity || 1) || 0);
     const platformFee = 50;
+
+    const [selectedPlans, setSelectedPlans] = useState(() => {
+        if (state?.selectedPlans) return state.selectedPlans;
+        const initial = {};
+        if (state?.event?.isMultiDay && state?.selectedDays) {
+            state.selectedDays.forEach(date => {
+                const day = state.event.multiDayPlan.find(d => d.date === date);
+                if (day && day.plans.length > 0) {
+                    initial[date] = state.ticketType || day.plans[0].name;
+                }
+            });
+        }
+        return initial;
+    });
 
     const [attendeeDetails, setAttendeeDetails] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -58,25 +73,33 @@ const CheckoutFlow = () => {
     if (!state || !state.event) return null;
     const { event, selectedDate, selectedDays } = state;
 
-    const subtotal = price * quantity;
+    const calculateSubtotal = () => {
+        if (event.isMultiDay) {
+            let total = 0;
+            Object.entries(selectedPlans).forEach(([date, planName]) => {
+                const day = event.multiDayPlan.find(d => d.date === date);
+                const plan = day?.plans.find(p => p.name === planName);
+                total += (plan?.price || 0);
+            });
+            return total * quantity;
+        } else {
+            const ticket = event.ticketTypes.find(t => t.name === ticketType);
+            return (ticket?.price || 0) * quantity;
+        }
+    };
+
+    const subtotal = calculateSubtotal();
     const totalAmount = subtotal + platformFee;
 
-    const handlePlanChange = (e) => {
-        const newPlanName = e.target.value;
-        setTicketType(newPlanName);
+    const handleDayPlanChange = (date, planName) => {
+        setSelectedPlans(prev => ({
+            ...prev,
+            [date]: planName
+        }));
+    };
 
-        let newPrice = 0;
-        if (event.isMultiDay) {
-            selectedDays.forEach(date => {
-                const day = event.multiDayPlan.find(d => d.date === date);
-                const plan = day?.plans.find(p => p.name === newPlanName);
-                newPrice += plan?.price || 0;
-            });
-        } else {
-            const ticket = event.ticketTypes.find(t => t.name === newPlanName);
-            newPrice = ticket?.price || 0;
-        }
-        setPrice(newPrice);
+    const handlePlanChange = (e) => {
+        setTicketType(e.target.value);
     };
 
     const handleAttendeeChange = (index, field, value) => {
@@ -108,7 +131,8 @@ const CheckoutFlow = () => {
         try {
             const res = await bookingApi.checkout({
                 eventId: event._id,
-                ticketType,
+                ticketType: event.isMultiDay ? 'Multi-Day Pass' : ticketType,
+                selectedPlans: event.isMultiDay ? selectedPlans : undefined,
                 selectedDate,
                 selectedDays,
                 quantity,
@@ -118,6 +142,7 @@ const CheckoutFlow = () => {
             });
 
             if (res.data.success) {
+                playSound('paymentSuccess');
                 setTicketId(res.data.ticketId);
                 setStep(4);
             } else {
@@ -179,25 +204,66 @@ const CheckoutFlow = () => {
                                             <Col lg={7}>
                                                 <div className="event-mini-preview">
                                                     <img src={event.bannerImage || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=400'} alt="Event" className="mini-img" />
-                                                    <div>
+                                                    <div className="flex-grow-1">
                                                         <h5 className="fw-bold m-0">{event.title}</h5>
-                                                        <Badge bg="light" text="dark" className="mt-2">{ticketType} Pass</Badge>
+                                                        <div className="d-flex flex-wrap gap-2 mt-2">
+                                                            {event.isMultiDay ? (
+                                                                Object.entries(selectedPlans).map(([date, plan]) => (
+                                                                    <Badge key={date} bg="pink-subtle" className="text-pink border border-pink border-opacity-10">
+                                                                        {new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}: {plan}
+                                                                    </Badge>
+                                                                ))
+                                                            ) : (
+                                                                <Badge bg="light" text="dark">{ticketType} Pass</Badge>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="mb-5">
-                                                    <Form.Label className="small fw-black text-muted uppercase mb-3">Change Ticket Plan</Form.Label>
-                                                    <Form.Select 
-                                                        className="premium-input"
-                                                        value={ticketType}
-                                                        onChange={handlePlanChange}
-                                                    >
-                                                        {event.isMultiDay 
-                                                            ? event.multiDayPlan[0].plans.map(p => <option key={p.name} value={p.name}>{p.name}</option>)
-                                                            : event.ticketTypes.map(t => <option key={t.name} value={t.name}>{t.name}</option>)
-                                                        }
-                                                    </Form.Select>
-                                                </div>
+                                                {event.isMultiDay ? (
+                                                    <div className="multi-day-plans-container">
+                                                        {selectedDays.map(date => {
+                                                            const matchedDay = event.multiDayPlan.find(d => d.date === date);
+                                                            if (!matchedDay) return null;
+                                                            return (
+                                                                <div key={date} className="day-plan-section">
+                                                                    <div className="day-header d-flex justify-content-between align-items-center">
+                                                                        <span>Day {event.multiDayPlan.findIndex(d => d.date === date) + 1} - {new Date(date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                                                        <Badge bg="pink-subtle" className="text-pink">{selectedPlans[date]}</Badge>
+                                                                    </div>
+                                                                    <div className="plans-grid">
+                                                                        {matchedDay.plans.map(plan => (
+                                                                            <div 
+                                                                                key={plan.name} 
+                                                                                className={`plan-card-mini ${selectedPlans[date] === plan.name ? 'active' : ''}`}
+                                                                                onClick={() => handleDayPlanChange(date, plan.name)}
+                                                                            >
+                                                                                <div className="plan-radio-mini">
+                                                                                    {selectedPlans[date] === plan.name && <div className="radio-inner" />}
+                                                                                </div>
+                                                                                <div className="plan-details-mini">
+                                                                                    <div className="plan-name-mini">{plan.name}</div>
+                                                                                    <div className="plan-price-mini">₹{plan.price}</div>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <div className="mb-5">
+                                                        <Form.Label className="small fw-black text-muted uppercase mb-3">Change Ticket Plan</Form.Label>
+                                                        <Form.Select 
+                                                            className="premium-input"
+                                                            value={ticketType}
+                                                            onChange={handlePlanChange}
+                                                        >
+                                                            {event.ticketTypes.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+                                                        </Form.Select>
+                                                    </div>
+                                                )}
                                                 
                                                 <div className="mb-5">
                                                     <Form.Label className="small fw-black text-muted uppercase mb-3">Adjust Quantity</Form.Label>

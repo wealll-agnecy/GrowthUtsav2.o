@@ -109,6 +109,65 @@
     color: #475569;
 }
 
+/* STAFF DASHBOARD BADGES */
+.badge-demo {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+}
+
+.badge-demo.green {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-demo.amber, .badge-demo.orange {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.badge-demo.red {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* SCAN REASON BADGES */
+.scan-reason {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text-soft);
+    font-weight: 700;
+    width: fit-content;
+    white-space: nowrap;
+}
+
+.scan-reason.valid-ticket {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.scan-reason.payment-due {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+.scan-reason.false-ticket, .scan-reason.cancelled-ticket {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.scan-reason.already-scanned, .scan-reason.expired-ticket {
+    background: rgba(100, 116, 139, 0.1);
+    color: #475569;
+}
+
 /* ACTION BUTTONS */
 .action-btn-group {
     display: flex;

@@ -22,7 +22,11 @@ exports.addExpense = async (req, res) => {
 // @access  Private (Admin)
 exports.getExpenses = async (req, res) => {
     try {
-        const expenses = await Expense.find().sort('-date').populate('recordedBy', 'name email');
+        const query = {};
+        if (req.query.eventId) {
+            query.eventId = req.query.eventId;
+        }
+        const expenses = await Expense.find(query).sort('-date').populate('recordedBy', 'name email');
         res.status(200).json({ success: true, count: expenses.length, data: expenses });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
@@ -40,6 +44,27 @@ exports.deleteExpense = async (req, res) => {
         }
         await expense.deleteOne();
         res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// @desc    Update platform expense
+// @route   PUT /api/v1/expenses/:id
+// @access  Private (Admin/Organizer)
+exports.updateExpense = async (req, res) => {
+    try {
+        let expense = await Expense.findById(req.params.id);
+        if (!expense) {
+            return res.status(404).json({ success: false, message: 'Expense not found' });
+        }
+        
+        expense = await Expense.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+        
+        res.status(200).json({ success: true, data: expense });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

@@ -64,6 +64,7 @@ const DashboardLayout = ({ children, role }) => {
     const organizerLinks = [
         { name: 'Dashboard', path: '/organizer/dashboard', icon: <FaThLarge /> },
         { name: 'My Events', path: '/organizer/events', icon: <FaCalendarAlt /> },
+        { name: 'Inquiries', path: '/organizer/inquiries', icon: <FaEnvelope /> },
         { name: 'Create Event', path: '/organizer/create-event', icon: <FaPlusCircle /> },
         { name: 'Bookings', path: '/organizer/bookings', icon: <FaTicketAlt /> },
         { name: 'Earnings', path: '/organizer/earnings', icon: <FaChartLine /> },

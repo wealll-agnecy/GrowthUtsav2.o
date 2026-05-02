@@ -24,6 +24,7 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
 const enquiryRoutes = require('./routes/enquiryRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const eventInquiryRoutes = require('./routes/eventInquiryRoutes');
 const path = require('path');
 
 const initScheduler = require('./utils/scheduler');
@@ -97,6 +98,7 @@ app.use('/api/v1/organizer', organizerRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/inquiries', eventInquiryRoutes);
 
 const { downloadTicket, verifyTicketForScanner } = require('./controllers/ticketController');
 app.get('/api/ticket/download/:id', protect, downloadTicket);

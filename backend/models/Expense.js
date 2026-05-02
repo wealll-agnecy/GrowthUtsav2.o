@@ -16,14 +16,18 @@ const expenseSchema = new mongoose.Schema({
         default: null
     },
     category: {
-
         type: String,
-        enum: ['Server', 'Marketing', 'Staff', 'Legal', 'Infrastructure', 'Other'],
+        enum: ['Venue', 'Makeup Products', 'Decoration', 'Marketing', 'Staff', 'Food', 'Travel', 'Other'],
         default: 'Other'
     },
     description: {
         type: String,
         trim: true
+    },
+    status: {
+        type: String,
+        enum: ['Paid', 'Pending'],
+        default: 'Pending'
     },
     date: {
         type: Date,

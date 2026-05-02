@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { Container, Row, Col, Button, Badge } from 'react-bootstrap';
 import {
     FaArrowRight, FaStar, FaShieldAlt, FaRocket, FaAward, FaTwitter, FaInstagram, FaFacebookF,
@@ -53,13 +53,15 @@ const PREVIOUS_EVENTS = [
     { id: 8, title: 'High-Fashion Runway', url: videoUrl },
 ];
 
-const BookFlipShowcase = ({ events }) => {
+const BookFlipShowcase = memo(({ events }) => {
     const [flippedIndices, setFlippedIndices] = useState(new Set());
     const [isHovered, setIsHovered] = useState(false);
+    const bookRef = useRef(null);
+    const isInView = useInView(bookRef, { once: true, amount: 0.1 });
 
     useEffect(() => {
         let interval;
-        if (isHovered) {
+        if (isHovered && isInView) {
             interval = setInterval(() => {
                 setFlippedIndices(prev => {
                     const next = new Set(prev);
@@ -74,7 +76,7 @@ const BookFlipShowcase = ({ events }) => {
             }, 6000);
         }
         return () => clearInterval(interval);
-    }, [isHovered, events]);
+    }, [isHovered, events, isInView]);
 
     const toggleFlip = (index) => {
         const nextIndices = new Set(flippedIndices);
@@ -88,11 +90,12 @@ const BookFlipShowcase = ({ events }) => {
 
     return (
         <div
+            ref={bookRef}
             className="book-view"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {events.map((vid, index) => {
+            {isInView && events.map((vid, index) => {
                 const isFlipped = flippedIndices.has(index);
                 return (
                     <motion.div
@@ -109,9 +112,11 @@ const BookFlipShowcase = ({ events }) => {
                     >
                         <div className="page-front">
                             <div className="page-content">
-                                <video autoPlay muted loop playsInline className="page-video">
-                                    <source src={vid.url} type="video/mp4" />
-                                </video>
+                                {isInView && (
+                                    <video autoPlay muted loop playsInline className="page-video">
+                                        <source src={vid.url} type="video/mp4" />
+                                    </video>
+                                )}
                                 <div className="page-overlay">
                                     <div className="page-number">COLLECTION 0{index + 1}</div>
                                     <h4 className="page-title">{vid.title}</h4>
@@ -131,7 +136,7 @@ const BookFlipShowcase = ({ events }) => {
             <div className="book-base-shadow"></div>
         </div>
     );
-};
+});
 
 const Home = () => {
     const { user } = useAuth();
@@ -167,15 +172,16 @@ const Home = () => {
         fetchEvents();
     }, []);
 
-    const featuredEvents = Array.isArray(events) 
-        ? [...events].sort((a, b) => {
+    const featuredEvents = useMemo(() => {
+        if (!Array.isArray(events)) return [];
+        return [...events].sort((a, b) => {
             const aLive = a.status === 'live' || a.isLive;
             const bLive = b.status === 'live' || b.isLive;
             if (aLive && !bLive) return -1;
             if (!aLive && bLive) return 1;
             return 0;
-        }).slice(0, 4) 
-        : [];
+        }).slice(0, 4);
+    }, [events]);
 
     return (
         <div className="homepage-beauty-wrapper">
@@ -228,7 +234,7 @@ const Home = () => {
                                 className="hero-visual"
                             >
                                 <div className="hero-main-img-container">
-                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Beauty" className="hero-main-img" loading="eager" />
+                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Beauty" className="hero-main-img" fetchpriority="high" />
                                     <div className="hero-img-overlay"></div>
                                 </div>
                             </motion.div>

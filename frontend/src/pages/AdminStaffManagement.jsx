@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import * as adminApi from '../api/adminApi';
 import * as eventApi from '../api/eventApi';
+import { playSound } from '../utils/soundManager';
 import '../css/admin-pages.css';
 
 const AdminStaffManagement = () => {
@@ -50,6 +51,7 @@ const AdminStaffManagement = () => {
             await adminApi.createStaff(formData);
             setShowCreateModal(false);
             setFormData({ name: '', email: '', password: '', staffRole: 'gate staff' });
+            playSound('success');
             toast.success('Personnel record created');
             fetchData();
         } catch (err) {
@@ -61,6 +63,7 @@ const AdminStaffManagement = () => {
         if (window.confirm('Delete this staff member?')) {
             try {
                 await adminApi.deleteStaff(id);
+                playSound('delete');
                 toast.success('Personnel terminated');
                 fetchData();
             } catch (err) {
@@ -85,6 +88,7 @@ const AdminStaffManagement = () => {
         try {
             await adminApi.assignStaffToEvents(selectedStaff._id, selectedEvents);
             setShowAssignModal(false);
+            playSound('success');
             toast.success('Node assignment synchronized');
             fetchData();
         } catch (err) {
@@ -198,52 +202,55 @@ const AdminStaffManagement = () => {
                 onHide={() => setShowCreateModal(false)} 
                 centered 
                 size="md"
-                className="premium-modal"
-                contentClassName="glass-modal-content"
+                className="premium-popup"
             >
-                <Modal.Header className="modal-header-premium border-0">
-                    <div className="d-flex align-items-center gap-3">
-                        <div className="modal-icon-header">
-                            <FaUserPlus />
-                        </div>
-                        <div>
-                            <Modal.Title className="fw-black tracking-tight h5 m-0">Initialize Personnel</Modal.Title>
-                            <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Identity Deployment Protocol</p>
-                        </div>
-                    </div>
-                    <button className="btn-close-premium" onClick={() => setShowCreateModal(false)}><FaTimes /></button>
-                </Modal.Header>
-                <Modal.Body className="p-4 pt-2">
-                    <Form onSubmit={handleCreateStaff}>
-                        <div className="detail-section-card mb-3">
-                            <Form.Group className="mb-3">
-                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Full Identity Name</Form.Label>
-                                <Form.Control required type="text" className="rounded-12 border-light py-2" placeholder="e.g. John Matrix" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-0">
-                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Email Link</Form.Label>
-                                <Form.Control required type="email" className="rounded-12 border-light py-2" placeholder="staff@growthutsav.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                            </Form.Group>
+                <div className="popup-body">
+                    <button className="close-btn" onClick={() => setShowCreateModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
+                        <FaTimes size={16} />
+                    </button>
+                    
+                    <div className="popup-content">
+                        <div className="d-flex align-items-center gap-3 mb-4">
+                            <div className="modal-icon-header">
+                                <FaUserPlus />
+                            </div>
+                            <div>
+                                <h4 className="fw-black m-0">Initialize Personnel</h4>
+                                <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Identity Deployment Protocol</p>
+                            </div>
                         </div>
 
-                        <div className="detail-section-card mb-4">
-                            <Form.Group className="mb-3">
-                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Security Access Key</Form.Label>
-                                <Form.Control required type="password" minLength={6} className="rounded-12 border-light py-2" placeholder="••••••••" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-0">
-                                <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Designation</Form.Label>
-                                <Form.Select className="rounded-12 border-light py-2" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
-                                    <option value="gate staff">Gate Staff</option>
-                                    <option value="coordinator">Coordinator</option>
-                                    <option value="support">Support</option>
-                                </Form.Select>
-                            </Form.Group>
-                        </div>
-                        
-                        <Button type="submit" className="btn btn-pink w-100 rounded-pill py-3 fw-black shadow-glow">DEPLOY PERSONNEL RECORD</Button>
-                    </Form>
-                </Modal.Body>
+                        <Form onSubmit={handleCreateStaff}>
+                            <div className="section-card mb-3">
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Full Identity Name</Form.Label>
+                                    <Form.Control required type="text" className="rounded-12 border-light py-2" placeholder="e.g. John Matrix" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                </Form.Group>
+                                <Form.Group className="mb-0">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Email Link</Form.Label>
+                                    <Form.Control required type="email" className="rounded-12 border-light py-2" placeholder="staff@growthutsav.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                </Form.Group>
+                            </div>
+
+                            <div className="section-card mb-4">
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Security Access Key</Form.Label>
+                                    <Form.Control required type="password" minLength={6} className="rounded-12 border-light py-2" placeholder="••••••••" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                                </Form.Group>
+                                <Form.Group className="mb-0">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Designation</Form.Label>
+                                    <Form.Select className="rounded-12 border-light py-2" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
+                                        <option value="gate staff">Gate Staff</option>
+                                        <option value="coordinator">Coordinator</option>
+                                        <option value="support">Support</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </div>
+                            
+                            <Button type="submit" className="btn btn-pink w-100 rounded-pill py-3 fw-black shadow-glow">DEPLOY PERSONNEL RECORD</Button>
+                        </Form>
+                    </div>
+                </div>
             </Modal>
 
             {/* Premium Assign Events Modal */}
@@ -252,58 +259,63 @@ const AdminStaffManagement = () => {
                 onHide={() => setShowAssignModal(false)} 
                 centered 
                 size="md"
-                className="premium-modal"
-                contentClassName="glass-modal-content"
+                className="premium-popup"
             >
-                <Modal.Header className="modal-header-premium border-0">
-                    <div className="d-flex align-items-center gap-3">
-                        <div className="modal-icon-header">
-                            <FaLink />
+                <div className="popup-body">
+                    <button className="close-btn" onClick={() => setShowAssignModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
+                        <FaTimes size={16} />
+                    </button>
+                    
+                    <div className="popup-content">
+                        <div className="d-flex align-items-center gap-3 mb-4">
+                            <div className="modal-icon-header">
+                                <FaLink />
+                            </div>
+                            <div>
+                                <h4 className="fw-black m-0">Synchronize Nodes</h4>
+                                <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Map Personnel to Active Events</p>
+                            </div>
                         </div>
-                        <div>
-                            <Modal.Title className="fw-black tracking-tight h5 m-0">Synchronize Nodes</Modal.Title>
-                            <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Map Personnel to Active Events</p>
-                        </div>
-                    </div>
-                    <button className="btn-close-premium" onClick={() => setShowAssignModal(false)}><FaTimes /></button>
-                </Modal.Header>
-                <Modal.Body className="p-4 pt-2" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                    <div className="d-flex flex-column gap-2">
-                        {events.map(event => (
-                            <div
-                                key={event._id}
-                                className={`event-selection-card ${selectedEvents.includes(event._id) ? 'active' : ''}`}
-                                onClick={() => toggleEventSelection(event._id)}
-                            >
-                                <div className="d-flex align-items-center gap-3">
-                                    <div className={`selection-check ${selectedEvents.includes(event._id) ? 'checked' : ''}`}>
-                                        <FaCheck size={10} />
-                                    </div>
-                                    <div className="flex-grow-1">
-                                        <div className="event-title-mini">{event.title}</div>
-                                        <div className="event-meta-mini">
-                                            <span>{new Date(event.date).toLocaleDateString()}</span>
-                                            <span className="dot-sep mx-1">•</span>
-                                            <span>{event.venue}</span>
+
+                        <div className="d-flex flex-column gap-2" style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: '10px' }}>
+                            {events.map(event => (
+                                <div
+                                    key={event._id}
+                                    className={`event-selection-card ${selectedEvents.includes(event._id) ? 'active' : ''}`}
+                                    onClick={() => toggleEventSelection(event._id)}
+                                >
+                                    <div className="d-flex align-items-center gap-3">
+                                        <div className={`selection-check ${selectedEvents.includes(event._id) ? 'checked' : ''}`}>
+                                            <FaCheck size={10} />
+                                        </div>
+                                        <div className="flex-grow-1">
+                                            <div className="event-title-mini">{event.title}</div>
+                                            <div className="event-meta-mini">
+                                                <span>{new Date(event.date).toLocaleDateString()}</span>
+                                                <span className="dot-sep mx-1">•</span>
+                                                <span>{event.venue}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
+
+                        <div className="d-flex justify-content-end gap-3 mt-4">
+                            <Button variant="light" className="rounded-pill px-4 fw-bold" onClick={() => setShowAssignModal(false)}>
+                                Discard
+                            </Button>
+                            <Button 
+                                className="btn-pink rounded-pill px-4 fw-black shadow-glow" 
+                                onClick={handleAssignEvents}
+                            >
+                                SYNC ASSIGNMENTS
+                            </Button>
+                        </div>
                     </div>
-                </Modal.Body>
-                <Modal.Footer className="border-0 modal-footer-premium px-4 pb-4 mt-3">
-                    <Button variant="link" className="text-muted text-decoration-none fw-bold me-auto" onClick={() => setShowAssignModal(false)}>
-                        Discard
-                    </Button>
-                    <Button 
-                        className="btn btn-pink rounded-pill px-4 fw-black shadow-glow" 
-                        onClick={handleAssignEvents}
-                    >
-                        SYNC ASSIGNMENTS
-                    </Button>
-                </Modal.Footer>
+                </div>
             </Modal>
+
         </div>
     );
 };

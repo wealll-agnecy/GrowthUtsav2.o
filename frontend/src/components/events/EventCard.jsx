@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import '../../pages/EventListing.css'; // Importing the styles we just added
+import { FaMapMarkerAlt, FaCalendarAlt, FaClock } from 'react-icons/fa';
+import './EventCard.css';
 
 const EventCard = ({ event }) => {
     const navigate = useNavigate();
     
     const formattedDate = event?.date ? new Date(event.date).toLocaleDateString('en-US', {
         month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+        day: 'numeric'
     }) : 'TBA';
 
     const ticketPrices = event?.ticketTypes?.map(t => t.price) || [0];
@@ -24,39 +24,59 @@ const EventCard = ({ event }) => {
             className="event-card" 
             onClick={() => navigate(`/events/${event?._id}`)}
         >
-            <div className="event-img-wrapper">
+            <div className="event-image-wrapper">
                 <img 
                     src={bannerUrl} 
                     alt={event?.title} 
-                    className="event-img" 
+                    className="event-image" 
                     loading="lazy" 
                     decoding="async" 
                 />
-                {event?.isLive || event?.status === 'live' ? (
-                    <span className="event-badge live-pulse">LIVE NOW</span>
-                ) : (
-                    <span className="event-badge">Trending</span>
+                <div className="event-overlay"></div>
+                
+                {/* floating badges */}
+                <span className="category-badge">
+                    {event?.category || 'Special'}
+                </span>
+                
+                {(event?.isLive || event?.status === 'live' || event?.isTrending) && (
+                    <span className="fast-selling">
+                        {event?.isLive ? 'LIVE NOW' : 'Selling Fast'}
+                    </span>
                 )}
-                <span className="event-price-badge">₹{minPrice}</span>
             </div>
 
             <div className="event-content">
                 <h3 className="event-title">{event?.title || 'Event Name'}</h3>
+                <p className="event-subtitle">Exclusive Event Experience</p>
 
-                <div className="event-subinfo">
-                    <span>📍 {event?.venue || 'Venue TBA'}</span>
-                    <span>📅 {formattedDate}</span>
+                <div className="event-meta">
+                    <div className="meta-item">
+                        <FaMapMarkerAlt size={12} />
+                        <span>{event?.venue?.split(',')[0] || 'Venue TBA'}</span>
+                    </div>
+                    <div className="meta-item">
+                        <FaCalendarAlt size={12} />
+                        <span>{formattedDate}</span>
+                    </div>
                 </div>
 
-                <button 
-                    className="event-btn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/events/${event?._id}`);
-                    }}
-                >
-                    Book Now
-                </button>
+                <div className="event-footer">
+                    <div className="event-price">
+                        <span className="price-label">Starts from</span>
+                        <span className="price-value">₹{minPrice}</span>
+                    </div>
+                    
+                    <button 
+                        className="event-btn"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/events/${event?._id}`);
+                        }}
+                    >
+                        Book Now
+                    </button>
+                </div>
             </div>
         </div>
     );

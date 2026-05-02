@@ -16,7 +16,7 @@ const Register = () => {
         name: '', email: '', phone: '', password: '', role: roleParam
     });
     const [orgDetails, setOrgDetails] = useState({
-        companyName: '', selectedEventTypes: [], logo: null, logoPreview: ''
+        companyName: '', selectedEventTypes: [], logo: null, logoPreview: '', registrationNumber: ''
     });
     const [showEventDropdown, setShowEventDropdown] = useState(false);
 
@@ -83,6 +83,7 @@ const Register = () => {
 
         if (isOrganizer && step === 2) {
             if (!orgDetails.companyName.trim()) return setError("Organization name is required");
+            if (!orgDetails.registrationNumber.trim()) return setError("Registration number is required");
             if (orgDetails.selectedEventTypes.length === 0) return setError("Select at least one event type");
             if (!orgDetails.logo) return setError("Logo upload is required");
         }
@@ -142,21 +143,21 @@ const Register = () => {
                                 <motion.div key="step1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                                     <div className="premium-input-group">
                                         <label>Full Name</label>
-                                        <Form.Control id="name" className="premium-auth-input" placeholder="Enter your legal full name" value={formData.name} onChange={handleChange} required />
+                                        <Form.Control id="name" className="premium-auth-input" value={formData.name} onChange={handleChange} required />
                                     </div>
                                     <div className="premium-input-group">
                                         <label>Email Address</label>
-                                        <Form.Control id="email" type="email" className="premium-auth-input" placeholder="work@example.com" value={formData.email} onChange={handleChange} required />
+                                        <Form.Control id="email" type="email" className="premium-auth-input" value={formData.email} onChange={handleChange} required />
                                     </div>
                                     <div className="premium-input-group">
                                         <label>Phone Number</label>
-                                        <Form.Control id="phone" type="text" className="premium-auth-input" placeholder="+91 00000 00000" value={formData.phone} onChange={handleChange} required />
+                                        <Form.Control id="phone" type="text" className="premium-auth-input" value={formData.phone} onChange={handleChange} required />
                                     </div>
                                     <div className="premium-input-group">
                                         <label>CREATE PASSWORD</label>
                                         <div className="position-relative">
-                                            <Form.Control id="password" type={showPassword ? "text" : "password"} className="premium-auth-input password-input" placeholder="Create a strong password" value={formData.password} onChange={handleChange} required minLength="6" />
-                                            <button type="button" className="btn position-absolute end-0 top-50 translate-middle-y border-0 shadow-none password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
+                                            <Form.Control id="password" type={showPassword ? "text" : "password"} className="premium-auth-input password-input" value={formData.password} onChange={handleChange} required minLength="6" />
+                                            <button type="button" className="position-absolute end-0 top-0 border-0 shadow-none password-toggle-btn" onClick={() => setShowPassword(!showPassword)}>
                                                 {showPassword ? <FaEyeSlash /> : <FaEye />}
                                             </button>
                                         </div>
@@ -168,7 +169,11 @@ const Register = () => {
                                         <Col md={6}>
                                             <div className="premium-input-group">
                                                 <label>Company / Artist Name</label>
-                                                <Form.Control id="companyName" className="premium-auth-input" placeholder="Registered Organization Name" value={orgDetails.companyName} onChange={handleOrgChange} required />
+                                                <Form.Control id="companyName" className="premium-auth-input" value={orgDetails.companyName} onChange={handleOrgChange} required />
+                                            </div>
+                                            <div className="premium-input-group">
+                                                <label>Company Registration Number</label>
+                                                <Form.Control id="registrationNumber" className="premium-auth-input" value={orgDetails.registrationNumber} onChange={handleOrgChange} required />
                                             </div>
                                             <div className="premium-input-group position-relative">
                                                 <label>Event Segments</label>
@@ -217,15 +222,15 @@ const Register = () => {
                             )}
                         </AnimatePresence>
 
-                        <div className="d-flex gap-2 mt-4">
+                        <div className="d-flex justify-content-center gap-2 mt-4">
                             {step === 2 && (
-                                <button type="button" className="btn btn-outline-pink rounded-3 px-4" onClick={() => setStep(1)}>
+                                <button type="button" className="btn btn-outline-pink rounded-pill px-4" onClick={() => setStep(1)}>
                                     <FaArrowLeft />
                                 </button>
                             )}
                             <button
                                 type="submit"
-                                className="btn btn-pink"
+                                className="btn btn-pink px-5"
                                 disabled={loading}
                             >
                                 {loading ? <Spinner size="sm" /> : step === 1 && isOrganizer ? 'Next: Business Setup' : 'Activate Account'}
@@ -238,8 +243,8 @@ const Register = () => {
                     </div>
 
                     <div className="text-center mt-3">
-                        <Link to="/" className="text-muted small text-decoration-none">
-                            <FaArrowLeft className="me-1" /> Return Home
+                        <Link to="/" className="return-home-link">
+                            <FaArrowLeft /> Return Home
                         </Link>
                     </div>
                 </motion.div>

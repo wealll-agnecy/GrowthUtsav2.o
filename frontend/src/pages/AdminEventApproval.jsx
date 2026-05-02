@@ -4,6 +4,7 @@ import { Container, Button, Badge, Spinner, Alert, Modal } from 'react-bootstrap
 import { FaCheck, FaTimes, FaEye, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaInbox, FaUserCircle, FaTicketAlt, FaClock, FaTag, FaUsers } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { playSound } from '../utils/soundManager';
 import '../css/admin-pages.css';
 
 const API_BASE = `http://${window.location.hostname}:5000`;
@@ -52,9 +53,18 @@ const AdminEventApproval = () => {
         if (!window.confirm(`Confirm ${status} for this event?`)) return;
         setActionLoading(prev => ({ ...prev, [id]: true }));
         try {
-            if (status === 'approved') await eventApi.adminApproveEvent(id);
-            else if (status === 'rejected') await eventApi.adminRejectEvent(id);
-            else await eventApi.updateEventStatus(id, status);
+            if (status === 'approved') {
+                await eventApi.adminApproveEvent(id);
+                playSound('success');
+            }
+            else if (status === 'rejected') {
+                await eventApi.adminRejectEvent(id);
+                playSound('reject');
+            }
+            else {
+                await eventApi.updateEventStatus(id, status);
+                playSound('notification');
+            }
             
             fetchEvents();
             setShowModal(false);
@@ -182,88 +192,82 @@ const AdminEventApproval = () => {
             </Container>
 
             {/* Premium Audit Modal */}
-            <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg" className="premium-audit-modal">
-                <div style={{
-                    background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(236,72,153,0.2)',
-                    boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)'
-                }}>
+            <Modal 
+                show={showModal} 
+                onHide={() => setShowModal(false)} 
+                centered 
+                size="lg" 
+                className="premium-popup"
+            >
+                <div className="popup-body">
                     {/* Close Button */}
-                    <button
-                        onClick={() => setShowModal(false)}
-                        style={{
-                            position: 'absolute', top: '16px', right: '16px', zIndex: 10,
-                            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
-                            width: '32px', height: '32px', color: '#fff', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            backdropFilter: 'blur(10px)'
-                        }}
-                    ><FaTimes size={12} /></button>
+                    <button className="close-btn" onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
+                        <FaTimes size={16} />
+                    </button>
 
                     {selectedEvent && (<>
-                        {/* Banner */}
-                        <div style={{ position: 'relative', height: '180px', overflow: 'hidden' }}>
-                            {selectedEvent.bannerImage ? (
-                                <img
-                                    src={selectedEvent.bannerImage.startsWith('http') ? selectedEvent.bannerImage : `${API_BASE}${selectedEvent.bannerImage}`}
-                                    alt={selectedEvent.title}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                            ) : (
-                                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #ec4899, #8b5cf6, #06b6d4)' }} />
-                            )}
-                            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,1) 0%, rgba(15,23,42,0.4) 60%, transparent 100%)' }} />
-                            <div style={{ position: 'absolute', bottom: '16px', left: '20px' }}>
-                                <span style={{ background: 'rgba(236,72,153,0.9)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '999px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                                    {selectedEvent.status}
-                                </span>
-                                <h2 style={{ color: '#fff', fontWeight: 900, fontSize: '1.5rem', margin: '6px 0 0', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-                                    {selectedEvent.title}
-                                </h2>
+                        <div className="popup-content pb-0">
+                            <div className="d-flex align-items-center gap-3 mb-4">
+                                <div className="modal-icon-header">
+                                    <FaCalendarAlt />
+                                </div>
+                                <div>
+                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                        <h4 className="fw-black m-0">{selectedEvent.title}</h4>
+                                        <span className={`admin-badge badge-${activeTab} ms-2`}>
+                                            {selectedEvent.status}
+                                        </span>
+                                    </div>
+                                    <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Event Moderation Protocol</p>
+                                </div>
                             </div>
                         </div>
 
                         {/* Body */}
-                        <div style={{ padding: '20px 24px' }}>
+                        <div className="popup-content pt-2">
                             {/* Description */}
-                            <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.7, marginBottom: '20px' }}>
+                            <p className="description-text mb-4" style={{ fontSize: '1rem' }}>
                                 {selectedEvent.description}
                             </p>
 
                             {/* Info Grid */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                            <div className="info-grid mb-4">
                                 {/* Organizer Card */}
-                                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                    <div style={{ color: '#ec4899', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px' }}>Host Origin</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <div className="section-card m-0">
+                                    <div className="section-header-mini mb-3">
+                                        <FaUserCircle className="me-2 text-pink" /> 
+                                        <span>Host Origin</span>
+                                    </div>
+                                    <div className="d-flex align-items-center gap-3">
+                                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg,#ec4899,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                             {selectedEvent.organizer?.avatar && selectedEvent.organizer.avatar !== 'no-avatar.jpg' ? (
-                                                <img src={selectedEvent.organizer.avatar.startsWith('http') ? selectedEvent.organizer.avatar : `${API_BASE}${selectedEvent.organizer.avatar}`} alt="" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-                                            ) : <FaUserCircle size={20} color="#fff" />}
+                                                <img src={selectedEvent.organizer.avatar.startsWith('http') ? selectedEvent.organizer.avatar : `${API_BASE}${selectedEvent.organizer.avatar}`} alt="" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+                                            ) : <FaUserCircle size={24} color="#fff" />}
                                         </div>
                                         <div>
-                                            <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: '0.875rem' }}>{selectedEvent.organizer?.name}</div>
-                                            <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{selectedEvent.organizer?.email}</div>
+                                            <div className="fw-bold" style={{ color: 'var(--text-primary)' }}>{selectedEvent.organizer?.name}</div>
+                                            <div className="small text-muted">{selectedEvent.organizer?.email}</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Schedule Card */}
-                                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                    <div style={{ color: '#06b6d4', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px' }}>Schedule</div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
-                                            <FaCalendarAlt color="#ec4899" size={12} />
+                                <div className="section-card m-0">
+                                    <div className="section-header-mini mb-3">
+                                        <FaClock className="me-2 text-pink" /> 
+                                        <span>Schedule</span>
+                                    </div>
+                                    <div className="d-flex flex-column gap-2">
+                                        <div className="d-flex align-items-center gap-2 small fw-bold" style={{ color: 'var(--text-primary)' }}>
+                                            <FaCalendarAlt className="text-pink" size={14} />
                                             {new Date(selectedEvent.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
-                                            <FaClock color="#ec4899" size={12} />
+                                        <div className="d-flex align-items-center gap-2 small fw-bold" style={{ color: 'var(--text-primary)' }}>
+                                            <FaClock className="text-pink" size={14} />
                                             {selectedEvent.time || 'TBD'}
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
-                                            <FaMapMarkerAlt color="#ec4899" size={12} />
+                                        <div className="d-flex align-items-center gap-2 small fw-bold" style={{ color: 'var(--text-primary)' }}>
+                                            <FaMapMarkerAlt className="text-pink" size={14} />
                                             {selectedEvent.venue}
                                         </div>
                                     </div>
@@ -272,14 +276,17 @@ const AdminEventApproval = () => {
 
                             {/* Ticket Tiers */}
                             {selectedEvent.ticketTypes?.length > 0 && (
-                                <div style={{ marginBottom: '20px' }}>
-                                    <div style={{ color: '#8b5cf6', fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px' }}>Pricing Architecture</div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                <div className="section-card mb-4">
+                                    <div className="section-header-mini mb-3">
+                                        <FaTicketAlt className="me-2 text-pink" /> 
+                                        <span>Pricing Architecture</span>
+                                    </div>
+                                    <div className="d-flex flex-wrap gap-2">
                                         {selectedEvent.ticketTypes.map((t, i) => (
-                                            <div key={i} style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '8px', padding: '8px 14px' }}>
-                                                <div style={{ color: '#c4b5fd', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>{t.name}</div>
-                                                <div style={{ color: '#f1f5f9', fontWeight: 900, fontSize: '1rem' }}>₹{t.price}</div>
-                                                <div style={{ color: '#64748b', fontSize: '10px' }}>{t.quantity - (t.sold || 0)} left</div>
+                                            <div key={i} style={{ background: 'rgba(236,72,153,0.05)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '10px 16px' }}>
+                                                <div className="tiny-text uppercase tracking-widest text-pink fw-bold">{t.name}</div>
+                                                <div className="fw-black h5 m-0" style={{ color: 'var(--text-primary)' }}>₹{t.price}</div>
+                                                <div className="small text-muted">{t.quantity - (t.sold || 0)} left</div>
                                             </div>
                                         ))}
                                     </div>
@@ -287,48 +294,51 @@ const AdminEventApproval = () => {
                             )}
 
                             {/* Category & Stats Row */}
-                            <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
-                                <div style={{ background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.2)', borderRadius: '8px', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <FaTag color="#ec4899" size={11} />
-                                    <span style={{ color: '#f9a8d4', fontSize: '0.75rem', fontWeight: 600 }}>{selectedEvent.category}</span>
+                            <div className="d-flex gap-2 mb-4">
+                                <div className="badge bg-pink-subtle text-pink px-3 py-2 rounded-pill d-flex align-items-center gap-2">
+                                    <FaTag size={12} />
+                                    <span className="fw-bold">{selectedEvent.category}</span>
                                 </div>
                                 {selectedEvent.maxAttendees && (
-                                    <div style={{ background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: '8px', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <FaUsers color="#06b6d4" size={11} />
-                                        <span style={{ color: '#67e8f9', fontSize: '0.75rem', fontWeight: 600 }}>Max {selectedEvent.maxAttendees}</span>
+                                    <div className="badge bg-slate-100 text-slate-600 px-3 py-2 rounded-pill d-flex align-items-center gap-2">
+                                        <FaUsers size={12} />
+                                        <span className="fw-bold">Max {selectedEvent.maxAttendees}</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Action Buttons */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                                <button
+                            <div className="d-flex justify-content-end gap-3 mt-2">
+                                <Button
+                                    variant="light"
                                     onClick={() => setShowModal(false)}
-                                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px 20px', color: '#94a3b8', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                                    className="rounded-pill px-4 fw-bold"
                                 >
-                                    Close
-                                </button>
+                                    Dismiss
+                                </Button>
                                 {activeTab === 'pending' && (<>
-                                    <button
+                                    <Button
+                                        variant="outline-danger"
                                         onClick={() => handleAction(selectedEvent._id, 'rejected')}
                                         disabled={actionLoading[selectedEvent._id]}
-                                        style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', padding: '10px 20px', color: '#f87171', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        className="rounded-pill px-4 fw-bold"
                                     >
-                                        <FaTimes size={12} /> Reject
-                                    </button>
-                                    <button
+                                        <FaTimes size={12} className="me-2" /> Reject
+                                    </Button>
+                                    <Button
                                         onClick={() => handleAction(selectedEvent._id, 'approved')}
                                         disabled={actionLoading[selectedEvent._id]}
-                                        style={{ background: 'linear-gradient(135deg, #ec4899, #8b5cf6)', border: 'none', borderRadius: '10px', padding: '10px 24px', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 20px rgba(236,72,153,0.4)', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        className="btn-pink rounded-pill px-4 fw-black shadow-glow"
                                     >
-                                        {actionLoading[selectedEvent._id] ? <Spinner size="sm" /> : <><FaCheck size={12} /> Authorize</>}
-                                    </button>
+                                        {actionLoading[selectedEvent._id] ? <Spinner size="sm" /> : <><FaCheck size={12} className="me-2" /> Authorize</>}
+                                    </Button>
                                 </>)}
                             </div>
                         </div>
                     </>)}
                 </div>
             </Modal>
+
         </div>
     );
 };

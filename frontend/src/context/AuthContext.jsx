@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { playSound } from '../utils/soundManager';
 
 // Set base URL for all axios requests - Automatically adapt to mobile/production environments
 // Set base URL for all axios requests - Automatically adapt to mobile/production environments
@@ -97,6 +98,7 @@ export const AuthProvider = ({ children }) => {
                 formData.append('phone', userData.phone);
                 formData.append('password', userData.password);
                 formData.append('role', userData.role);
+                formData.append('registrationNumber', userData.organizationDetails.registrationNumber || '');
                 
                 // Extract logo and put other details back in organizationDetails
                 const { logo, ...otherOrgDetails } = userData.organizationDetails;
@@ -120,6 +122,7 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
             const errorMsg = err.response?.data?.message || 'Registration failed';
             setError(errorMsg);
+            playSound('error');
             return { success: false, message: errorMsg };
         } finally {
             setLoading(false);
@@ -138,11 +141,13 @@ export const AuthProvider = ({ children }) => {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
                 setError(null);
                 setUser(res.data.user);
+                playSound('login');
                 return { success: true, user: res.data.user };
             }
         } catch (err) {
             const msg = err.response?.data?.message || 'Login failed';
             setError(msg);
+            playSound('error');
             console.error('[AUTH_DEBUG] ERROR:', msg);
             return { success: false, message: msg };
         } finally {
@@ -161,10 +166,12 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('user', JSON.stringify(res.data.user));
                 axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
                 setUser(res.data.user);
+                playSound('login');
                 return { success: true, user: res.data.user };
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Admin login failed');
+            playSound('error');
             return { success: false, message: err.response?.data?.message };
         } finally {
             setLoading(false);
@@ -180,6 +187,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('user');
             delete axios.defaults.headers.common['Authorization'];
             setUser(null);
+            playSound('logout');
         } catch (err) {
             console.error('Logout failed', err);
         }

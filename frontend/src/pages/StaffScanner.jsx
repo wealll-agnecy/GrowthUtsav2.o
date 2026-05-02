@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import axios from 'axios';
+import { playSound } from '../utils/soundManager';
 import { Container, Button, Badge, Row, Col } from 'react-bootstrap';
 import { FaCheckCircle, FaTimesCircle, FaBackward, FaQrcode } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -11,10 +12,6 @@ const StaffScanner = () => {
     const [scanResult, setScanResult] = useState(null);
     const [isScanning, setIsScanning] = useState(true);
     const [loading, setLoading] = useState(false);
-    
-    // Audio feedback refs
-    const successAudio = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'));
-    const errorAudio = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'));
 
     useEffect(() => {
         let scanner = null;
@@ -64,33 +61,96 @@ const StaffScanner = () => {
             const data = res.data;
 
             if (data.status === 'GRANTED') {
-                successAudio.current.play().catch(() => {});
+                playSound('scanSuccess');
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
             } else {
-                errorAudio.current.play().catch(() => {});
+                playSound('scanDenied');
                 if (navigator.vibrate) navigator.vibrate(300);
             }
 
-            setScanResult(data);
-
             // Log entry for Recent Entries table (Persistent across pages)
             try {
-                const total = data.ticket?.totalAmount || data.ticket?.amount || 1000;
-                const paid = data.ticket?.amountPaid || Math.floor(total * 0.6); // demo: 60% paid mock
-                const due = total - paid;
+                const ticket = data.ticket || {};
+                const totalAmount = ticket.totalAmount || ticket.amount || 0;
+                const paidAmount = ticket.amountPaid || 0;
+                const dueAmount = totalAmount - paidAmount;
+
+                let paymentStatus = "";
+                if (paidAmount <= 0) {
+                    paymentStatus = "UNPAID";
+                } else if (dueAmount <= 0) {
+                    paymentStatus = "FULLY PAID";
+                } else {
+                    paymentStatus = "PARTIAL";
+                }
+
+                // STRICT VALIDATION BLOCK
+                const msg = (data.message || "").toLowerCase();
+                
+                const alreadyScanned = msg.includes("already") || msg.includes("used");
+                const isValidTicket = data.status !== "ACCESS DENIED — Invalid ticket" && data.message !== "This identifier does not match any registered ticket.";
+                const isExpired = ticket.event?.date && new Date(ticket.event.date) < new Date().setHours(0,0,0,0);
+                const paymentDue = ticket.remainingAmount || 0;
+
+                let finalStatus = "";
+                let finalReason = "";
+
+                if (alreadyScanned === true) {
+                    finalStatus = "DENIED";
+                    finalReason = "Already Scanned";
+                }
+                else if (isValidTicket === false) {
+                    finalStatus = "DENIED";
+                    finalReason = "False Ticket";
+                }
+                else if (isExpired === true) {
+                    finalStatus = "DENIED";
+                    finalReason = "Expired Ticket";
+                }
+                else if (paymentDue > 0) {
+                    finalStatus = "DENIED";
+                    finalReason = "Payment Due";
+                }
+                else {
+                    finalStatus = "GRANTED";
+                    finalReason = "Valid Ticket";
+                }
+
+                console.log("Scanner Logic Debug:", {
+                    alreadyScanned,
+                    isValidTicket,
+                    isExpired,
+                    paymentDue,
+                    finalStatus,
+                    finalReason,
+                    backendMessage: data.message
+                });
 
                 const newEntry = {
-                    name: data.ticket?.user?.name || data.ticket?.name || 'Unknown',
-                    event: data.ticket?.event?.title || data.ticket?.eventName || 'N/A',
-                    total: total,
-                    paid: paid,
-                    due: due,
-                    status: data.status,
-                    paymentStatus: due > 0 ? "PARTIAL" : "PAID",
+                    name: ticket.user?.name || ticket.name || 'Unknown',
+                    event: ticket.event?.title || ticket.eventName || 'N/A',
+                    total: totalAmount,
+                    paid: paidAmount,
+                    due: Math.max(dueAmount, 0),
+                    status: finalStatus,
+                    paymentStatus: paymentStatus,
+                    reason: finalReason,
                     time: new Date().toLocaleTimeString()
                 };
                 const existing = JSON.parse(localStorage.getItem('recent_scans') || '[]');
                 localStorage.setItem('recent_scans', JSON.stringify([newEntry, ...existing].slice(0, 50)));
+                
+                // Final Assignment to scanResult data
+                data.status = finalStatus;
+                data.reason = finalReason;
+                data.ticket = {
+                    ...ticket,
+                    totalAmount,
+                    paidAmount,
+                    dueAmount: Math.max(dueAmount, 0)
+                };
+
+                setScanResult(data);
             } catch (e) {
                 console.error("Local Storage Log Error:", e);
             }
@@ -98,7 +158,8 @@ const StaffScanner = () => {
             console.error("Verification Error:", err);
             errorAudio.current.play().catch(() => {});
             setScanResult({ 
-                status: 'INVALID', 
+                status: 'DENIED', 
+                reason: 'False Ticket',
                 message: err.response?.data?.message || 'Verification system failure.' 
             });
         } finally {
@@ -161,8 +222,15 @@ const StaffScanner = () => {
                             </div>
 
                             <div className="attendee-card">
-                                <h3>{scanResult.ticket?.user?.name || scanResult.ticket?.name || 'Unknown Attendee'}</h3>
-                                <p>{scanResult.ticket?.user?.email || scanResult.ticket?.email || 'No email provided'}</p>
+                                <div className="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h3>{scanResult.ticket?.user?.name || scanResult.ticket?.name || 'Unknown Attendee'}</h3>
+                                        <p className="m-0">{scanResult.ticket?.user?.email || scanResult.ticket?.email || 'No email provided'}</p>
+                                    </div>
+                                    <div className={`scan-reason ${scanResult.reason?.toLowerCase().replace(' ', '-')}`}>
+                                        {scanResult.reason}
+                                    </div>
+                                </div>
 
                                 <div className="info-row">
                                     <span>Event</span>

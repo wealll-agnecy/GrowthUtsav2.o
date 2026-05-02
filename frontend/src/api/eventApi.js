@@ -6,9 +6,19 @@ export const createEvent = async (eventData) => {
     return await axios.post(`${API_URL}`, eventData);
 };
 
+const cache = new Map();
+
 export const getEvents = async (params = {}) => {
     const queryStr = new URLSearchParams(params).toString();
-    return await axios.get(`${API_URL}?${queryStr}`);
+    const cacheKey = `getEvents-${queryStr}`;
+    
+    if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+    }
+    
+    const res = await axios.get(`${API_URL}?${queryStr}`);
+    cache.set(cacheKey, res);
+    return res;
 };
 
 export const getMyEvents = async () => {

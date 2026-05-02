@@ -81,7 +81,7 @@ const AdminSecretLogin = () => {
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
                             <Form.Label className="small fw-semibold text-secondary text-uppercase tracking-wider">Clearance ID (Email)</Form.Label>
-                            <Form.Control type="text" required value={email} onChange={(e) => { setEmail(e.target.value); if (setError) setError(null); setLocalError(''); }} className="bg-dark border-secondary text-white py-2" placeholder="commander@growthutsav.com" />
+                            <Form.Control type="text" required value={email} onChange={(e) => { setEmail(e.target.value); if (setError) setError(null); setLocalError(''); }} className="bg-dark border-secondary text-white py-2" />
 
                         </Form.Group>
 
@@ -94,7 +94,6 @@ const AdminSecretLogin = () => {
                                     value={password}
                                     onChange={(e) => { setPassword(e.target.value); if (setError) setError(null); setLocalError(''); }}
                                     className="bg-dark border-secondary text-white py-2 pe-5"
-                                    placeholder="••••••••"
                                 />
 
                                 <Button

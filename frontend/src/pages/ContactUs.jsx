@@ -90,9 +90,11 @@ const ContactUs = () => {
 
                             <Form.Control required as="textarea" name="message" value={form.message} onChange={handleChange} placeholder="How can we assist you with your next event?" className="contact-input-premium" />
 
-                            <button type="submit" disabled={loading} className="btn btn-pink">
-                                {loading ? <Spinner size="sm" /> : "Send Enquiry"}
-                            </button>
+                            <div className="d-flex justify-content-center mt-4">
+                                <button type="submit" disabled={loading} className="btn btn-pink px-5">
+                                    {loading ? <Spinner size="sm" /> : "Send Enquiry"}
+                                </button>
+                            </div>
                         </Form>
                     </div>
 

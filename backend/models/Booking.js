@@ -21,6 +21,9 @@ const BookingSchema = new mongoose.Schema({
     selectedDays: [{
         type: Date
     }],
+    selectedPlans: {
+        type: mongoose.Schema.Types.Mixed
+    },
     quantity: {
         type: Number,
         required: true,

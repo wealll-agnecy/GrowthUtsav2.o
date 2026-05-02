@@ -62,63 +62,101 @@ const StaffDashboard = () => {
                                                 <th className="py-3">Event</th>
                                                 <th className="py-3">Payment</th>
                                                 <th className="py-3">Status</th>
+                                                <th className="py-3">Reason</th>
                                                 <th className="text-end px-4 py-3">Scan Time</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {recentEntries.length > 0 ? (
-                                                recentEntries.map((item, index) => (
-                                                    <tr key={index}>
-                                                        <td className="px-4 py-3">
-                                                            <div className="fw-bold">{item.name}</div>
-                                                        </td>
-                                                        <td className="py-3 small">{item.event}</td>
-                                                        <td className="py-3">
-                                                            <div className="payment-box">
-                                                                <span>₹{item.paid || 0} / ₹{item.total || 0}</span>
-                                                                <small>Due: ₹{item.due || 0}</small>
-                                                                <div className={`badge-demo ${item.paymentStatus === 'PAID' ? 'green' : 'orange'}`}>
-                                                                    {item.paymentStatus || 'PARTIAL'}
+                                                recentEntries.map((item, index) => {
+                                                    const total = item.total || 0;
+                                                    const paid = item.paid || 0;
+                                                    const due = Math.max(total - paid, 0);
+                                                    
+                                                    let statusClass = "amber";
+                                                    if (paid <= 0) statusClass = "red";
+                                                    else if (due <= 0) statusClass = "green";
+
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td className="px-4 py-3">
+                                                                <div className="fw-bold">{item.name}</div>
+                                                            </td>
+                                                            <td className="py-3 small">{item.event}</td>
+                                                            <td className="py-3">
+                                                                <div className="payment-box">
+                                                                    <h6 className="m-0 fw-bold">₹{paid} / ₹{total}</h6>
+                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{due}</p>
+                                                                    <div className={`badge-demo ${statusClass}`}>
+                                                                        {item.paymentStatus}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3">
-                                                            <span className={item.status === 'GRANTED' ? 'green' : 'red'}>
-                                                                {item.status}
-                                                            </span>
-                                                        </td>
-                                                        <td className="text-end px-4 py-3 small text-muted">
-                                                            {item.time}
-                                                        </td>
-                                                    </tr>
-                                                ))
+                                                            </td>
+                                                            <td className="py-3">
+                                                                <span className={item.status === 'GRANTED' ? 'green' : 'red'}>
+                                                                    {item.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-3">
+                                                                <div className={`scan-reason ${item.reason?.toLowerCase().replace(' ', '-')}`}>
+                                                                    {item.reason || 'Valid Ticket'}
+                                                                </div>
+                                                            </td>
+                                                            <td className="text-end px-4 py-3 small text-muted">
+                                                                {item.time}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
                                             ) : (
-                                                attendees.filter(a => a.status === 'used' || a.isScanned).slice(0, 10).map((attendee) => (
-                                                    <tr key={attendee._id}>
-                                                        <td className="px-4 py-3">
-                                                            <div className="fw-bold">{attendee.name || attendee.user?.name || attendee.attendeeDetails?.[0]?.name}</div>
-                                                            <div className="small text-muted">{attendee.email || attendee.user?.email || attendee.attendeeDetails?.[0]?.email}</div>
-                                                        </td>
-                                                        <td className="py-3 small">{attendee.eventName || attendee.event?.title}</td>
-                                                        <td className="py-3">
-                                                            <div className="payment-box">
-                                                                <span>₹{attendee.amountPaid || 0} / ₹{attendee.totalAmount || 0}</span>
-                                                                <small>Due: ₹{(attendee.totalAmount || 0) - (attendee.amountPaid || 0)}</small>
-                                                                <div className={`badge-demo ${attendee.paymentStatus === 'PAID' ? 'green' : 'orange'}`}>
-                                                                    {attendee.paymentStatus || 'PARTIAL'}
+                                                attendees.filter(a => a.status === 'used' || a.isScanned).slice(0, 10).map((attendee) => {
+                                                    const total = attendee.totalAmount || 0;
+                                                    const paid = attendee.amountPaid || 0;
+                                                    const due = Math.max(total - paid, 0);
+
+                                                    let paymentStatus = "PARTIAL";
+                                                    let statusClass = "amber";
+                                                    
+                                                    if (paid <= 0) {
+                                                        paymentStatus = "UNPAID";
+                                                        statusClass = "red";
+                                                    } else if (due <= 0) {
+                                                        paymentStatus = "FULLY PAID";
+                                                        statusClass = "green";
+                                                    }
+
+                                                    return (
+                                                        <tr key={attendee._id}>
+                                                            <td className="px-4 py-3">
+                                                                <div className="fw-bold">{attendee.name || attendee.user?.name || attendee.attendeeDetails?.[0]?.name}</div>
+                                                                <div className="small text-muted">{attendee.email || attendee.user?.email || attendee.attendeeDetails?.[0]?.email}</div>
+                                                            </td>
+                                                            <td className="py-3 small">{attendee.eventName || attendee.event?.title}</td>
+                                                            <td className="py-3">
+                                                                <div className="payment-box">
+                                                                    <h6 className="m-0 fw-bold">₹{paid} / ₹{total}</h6>
+                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{due}</p>
+                                                                    <div className={`badge-demo ${statusClass}`}>
+                                                                        {paymentStatus}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3">
-                                                            <Badge bg="primary-subtle" className="text-primary rounded-pill px-3">
-                                                                SCANNED
-                                                            </Badge>
-                                                        </td>
-                                                        <td className="text-end px-4 py-3 small text-muted">
-                                                            {attendee.scannedAt ? new Date(attendee.scannedAt).toLocaleTimeString() : 'N/A'}
-                                                        </td>
-                                                    </tr>
-                                                ))
+                                                            </td>
+                                                            <td className="py-3">
+                                                                <Badge bg="primary-subtle" className="text-primary rounded-pill px-3">
+                                                                    SCANNED
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="py-3">
+                                                                <div className="scan-reason valid-ticket">
+                                                                    Valid Ticket
+                                                                </div>
+                                                            </td>
+                                                            <td className="text-end px-4 py-3 small text-muted">
+                                                                {attendee.scannedAt ? new Date(attendee.scannedAt).toLocaleTimeString() : 'N/A'}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
                                             )}
                                             {recentEntries.length === 0 && attendees.length === 0 && !loading && (
                                                 <tr>

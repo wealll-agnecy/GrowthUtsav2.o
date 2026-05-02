@@ -64,7 +64,6 @@ const ForgotPassword = () => {
                         <div className="forgot-input-group">
                             <input
                                 type="email"
-                                placeholder="Email Address"
                                 className="forgot-input"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
