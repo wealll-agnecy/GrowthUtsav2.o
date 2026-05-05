@@ -19,7 +19,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-ui': ['react-bootstrap', 'framer-motion', 'react-icons'],
-          'vendor-utils': ['axios', 'firebase', 'socket.io-client'],
+          'vendor-utils': ['axios', 'socket.io-client'],
         }
       }
     },

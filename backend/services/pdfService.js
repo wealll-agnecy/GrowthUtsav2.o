@@ -116,7 +116,9 @@ exports.generateTicketPDF = async (ticketId) => {
             doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(11).text(`${ticket.ticketType.toUpperCase()} PASS`, 50, 572, { width: badgeWidth, align: 'center' });
 
             // Entry Rules & Duration
-            doc.fillColor('#4b5563').font('Helvetica').fontSize(10).text('Allowed Entry: 1 Person Only', 50, 610);
+            const entryQty = (ticket.booking && ticket.booking.quantity) ? ticket.booking.quantity : 1;
+            const entryLabel = `Allowed Entry: ${entryQty} Person${entryQty > 1 ? 's' : ''}`;
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(10).text(entryLabel, 50, 610);
             doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(11).text(validityText.toUpperCase(), 50, 625);
 
 

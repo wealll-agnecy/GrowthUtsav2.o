@@ -3,10 +3,13 @@ import axios from 'axios';
 import { playSound } from '../utils/soundManager';
 
 // Set base URL for all axios requests - Automatically adapt to mobile/production environments
-// Set base URL for all axios requests - Automatically adapt to mobile/production environments
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(window.location.hostname);
-axios.defaults.baseURL = (isLocalhost || isIP) ? `http://${window.location.hostname}:5000` : `${window.location.protocol}//${window.location.host}`;
+
+// For Netlify/Production, use the VITE_API_URL env var if available
+const apiURL = import.meta.env.VITE_API_URL;
+
+axios.defaults.baseURL = apiURL || ((isLocalhost || isIP) ? `http://${window.location.hostname}:5000` : `${window.location.protocol}//${window.location.host}`);
 axios.defaults.withCredentials = true;
 
 const AuthContext = createContext();

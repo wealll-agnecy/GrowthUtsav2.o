@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 import axios from 'axios';
 import { playSound } from '../utils/soundManager';
 import { Container, Button, Badge, Row, Col } from 'react-bootstrap';
@@ -12,43 +12,20 @@ const StaffScanner = () => {
     const [scanResult, setScanResult] = useState(null);
     const [isScanning, setIsScanning] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [scannerError, setScannerError] = useState(null);
+    const isProcessingRef = useRef(false);
 
-    useEffect(() => {
-        let scanner = null;
+    const onScanSuccess = useCallback(async (result) => {
+        if (isProcessingRef.current) return;
+        isProcessingRef.current = true;
         
-        if (isScanning && !scanResult) {
-            scanner = new Html5QrcodeScanner('reader', {
-                qrbox: { width: 280, height: 280 },
-                fps: 20,
-                rememberLastUsedCamera: true,
-                aspectRatio: 1.0
-            });
+        console.log("Captured Sequence:", result);
+        handleVerification(result);
+    }, []); // Removed handleVerification as dependency to keep it stable
 
-            scanner.render(onScanSuccess, onScanError);
-        }
-
-        async function onScanSuccess(result) {
-            console.log("Captured Sequence:", result);
-            if (scanner) {
-                try {
-                    await scanner.clear();
-                } catch (e) {
-                    console.warn("Scanner clear failed", e);
-                }
-            }
-            handleVerification(result);
-        }
-
-        function onScanError(err) {
-            // Silent error for continuous scan
-        }
-
-        return () => {
-            if (scanner) {
-                scanner.clear().catch(error => console.error("Scanner cleanup failure", error));
-            }
-        };
-    }, [isScanning, scanResult]);
+    const onScanError = useCallback((err) => {
+        // Continuous scanning
+    }, []);
 
     const handleVerification = async (qrUrl) => {
         setLoading(true);
@@ -62,10 +39,18 @@ const StaffScanner = () => {
 
             if (data.status === 'GRANTED') {
                 playSound('scanSuccess');
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                try {
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                } catch (vErr) {
+                    console.debug("Vibration blocked or unavailable");
+                }
             } else {
                 playSound('scanDenied');
-                if (navigator.vibrate) navigator.vibrate(300);
+                try {
+                    if (navigator.vibrate) navigator.vibrate(300);
+                } catch (vErr) {
+                    console.debug("Vibration blocked or unavailable");
+                }
             }
 
             // Log entry for Recent Entries table (Persistent across pages)
@@ -153,7 +138,7 @@ const StaffScanner = () => {
             }
         } catch (err) {
             console.error("Verification Error:", err);
-            errorAudio.current.play().catch(() => {});
+            playSound('error');
             setScanResult({ 
                 status: 'DENIED', 
                 reason: 'False Ticket',
@@ -165,6 +150,7 @@ const StaffScanner = () => {
     };
 
     const resetScanner = () => {
+        isProcessingRef.current = false;
         setScanResult(null);
         setIsScanning(true);
     };
@@ -192,13 +178,12 @@ const StaffScanner = () => {
                             exit={{ opacity: 0, y: -20 }}
                             className="w-100 d-flex justify-content-center"
                         >
-                            <div className="scanner-box">
-                                <div className="scanner-corner top-left"></div>
-                                <div className="scanner-corner top-right"></div>
-                                <div className="scanner-corner bottom-left"></div>
-                                <div className="scanner-corner bottom-right"></div>
-                                <div id="reader" style={{ width: '100%' }}></div>
-                            </div>
+                            <ScannerView 
+                                onScanSuccess={onScanSuccess} 
+                                onScanError={onScanError}
+                                scannerError={scannerError}
+                                setScannerError={setScannerError}
+                            />
                         </motion.div>
                     ) : (
                         <motion.div 
@@ -280,3 +265,100 @@ const StaffScanner = () => {
 };
 
 export default StaffScanner;
+
+// --- Helper Components ---
+const ScannerView = ({ onScanSuccess, onScanError, scannerError, setScannerError }) => {
+    const scannerRef = useRef(null);
+    const hasInitializedRef = useRef(false);
+
+    useEffect(() => {
+        if (hasInitializedRef.current) return;
+        
+        const readerElement = document.getElementById('reader');
+        if (!readerElement) {
+            console.warn("Scanner reader element not found in DOM");
+            return;
+        }
+
+        let html5QrCode;
+        try {
+            html5QrCode = new Html5Qrcode("reader");
+            scannerRef.current = html5QrCode;
+            hasInitializedRef.current = true;
+        } catch (e) {
+            console.error("Failed to create Html5Qrcode instance", e);
+            return;
+        }
+
+        const startScanner = async () => {
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        aspectRatio: 1.0
+                    },
+                    onScanSuccess,
+                    onScanError
+                );
+            } catch (err) {
+                console.error("Scanner start error:", err);
+                // Fallback to front camera
+                try {
+                    await html5QrCode.start(
+                        { facingMode: "user" },
+                        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+                        onScanSuccess,
+                        onScanError
+                    );
+                } catch (fallbackErr) {
+                    console.error("Total scanner failure:", fallbackErr);
+                    setScannerError("Camera access failed. Please ensure permissions are granted and you are using HTTPS.");
+                }
+            }
+        };
+
+        const timer = setTimeout(startScanner, 300);
+
+        return () => {
+            clearTimeout(timer);
+            if (scannerRef.current) {
+                const scannerInstance = scannerRef.current;
+                const stopScanner = async () => {
+                    try {
+                        if (scannerInstance.isScanning) {
+                            await scannerInstance.stop();
+                        }
+                    } catch (e) {
+                        console.warn("Scanner cleanup stop failed", e);
+                    }
+                };
+                stopScanner();
+                scannerRef.current = null;
+                hasInitializedRef.current = false;
+            }
+        };
+    }, [onScanSuccess, onScanError, setScannerError]);
+
+    return (
+        <div className="scanner-box">
+            <div className="scanner-corner top-left"></div>
+            <div className="scanner-corner top-right"></div>
+            <div className="scanner-corner bottom-left"></div>
+            <div className="scanner-corner bottom-right"></div>
+            
+            {scannerError ? (
+                <div className="scanner-error-overlay">
+                    <FaTimesCircle size={40} className="mb-3 text-danger" />
+                    <p>{scannerError}</p>
+                    <Button variant="outline-light" size="sm" onClick={() => window.location.reload()}>
+                        Retry
+                    </Button>
+                </div>
+            ) : (
+                <div id="reader" style={{ width: '100%' }}></div>
+            )}
+        </div>
+    );
+};

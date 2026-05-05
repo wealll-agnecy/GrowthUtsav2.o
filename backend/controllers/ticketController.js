@@ -136,6 +136,27 @@ exports.verifyTicketForScanner = async (req, res) => {
         const durationDays = (event && event.isMultiDay) ? (event.multiDayPlan?.length || 1) : 1;
         const validityText = `Valid for ${durationDays} Day${durationDays > 1 ? 's' : ''}`;
 
+        // Today's Plan Resolution (Robust Day-Specific Matching)
+        let todayPlanInfo = ticket.ticketType;
+        if (event && event.isMultiDay && booking && booking.selectedPlans) {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const matchedDateKey = Object.keys(booking.selectedPlans).find(key => {
+                try {
+                    const keyDate = new Date(key);
+                    return keyDate.toISOString().split('T')[0] === todayStr;
+                } catch (e) {
+                    return false;
+                }
+            });
+            if (matchedDateKey) {
+                todayPlanInfo = booking.selectedPlans[matchedDateKey];
+            } else {
+                const planValues = Object.values(booking.selectedPlans);
+                if (planValues.length > 0) todayPlanInfo = planValues[0];
+            }
+        }
+
         const details = {
             ticketId: ticket._id,
             ticketCode: ticket.ticketCode,
@@ -145,7 +166,7 @@ exports.verifyTicketForScanner = async (req, res) => {
             eventName: ticket.eventName || (event ? event.title : 'Event'),
             status: ticket.status.toUpperCase(),
             paymentStatus: currentPaymentStatus,
-            ticketTier: ticket.ticketType,
+            ticketTier: todayPlanInfo,
             ticketPrice: currentTotalAmount,
             amountPaid: currentAmountPaid,
             remainingAmount: currentRemaining,
@@ -510,30 +531,31 @@ exports.verifyTicketScan = async (req, res) => {
             currentRemaining <= 0
         );
 
-        // Today's Plan Info (for Multi-day)
+        // Today's Plan Resolution (Robust Day-Specific Matching)
         let todayPlanInfo = ticket.ticketType;
-        if (event && event.isMultiDay && ticket.selectedDays?.length > 0) {
+        
+        if (event && event.isMultiDay && booking && booking.selectedPlans) {
             const now = new Date();
-            now.setHours(0, 0, 0, 0);
-
-            const dayIndex = ticket.selectedDays.findIndex(d => {
-                const dDate = new Date(d);
-                dDate.setHours(0, 0, 0, 0);
-                return dDate.getTime() === now.getTime();
-            });
+            const todayStr = now.toISOString().split('T')[0]; // Current date YYYY-MM-DD
             
-            if (dayIndex !== -1) {
-                // It's a booked day. Now find which day of the EVENT this is
-                const eventDayIndex = event.multiDayPlan.findIndex(d => {
-                    const eDate = new Date(d.date);
-                    eDate.setHours(0, 0, 0, 0);
-                    return eDate.getTime() === now.getTime();
-                });
+            // Iterate through selected plans and find a match for today
+            const matchedDateKey = Object.keys(booking.selectedPlans).find(key => {
+                try {
+                    const keyDate = new Date(key);
+                    return keyDate.toISOString().split('T')[0] === todayStr;
+                } catch (e) {
+                    return false;
+                }
+            });
 
-                if (eventDayIndex !== -1) {
-                    todayPlanInfo = `${ticket.ticketType} - Day ${eventDayIndex + 1}`;
-                } else {
-                    todayPlanInfo = `${ticket.ticketType} - Day ${dayIndex + 1}`;
+            if (matchedDateKey) {
+                todayPlanInfo = booking.selectedPlans[matchedDateKey];
+            } else {
+                // FALLBACK: If scanning on a non-event day (testing), or key match fails,
+                // find the FIRST plan name from the selected plans as a representative name
+                const planValues = Object.values(booking.selectedPlans);
+                if (planValues.length > 0) {
+                    todayPlanInfo = planValues[0];
                 }
             }
         }

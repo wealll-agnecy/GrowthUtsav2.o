@@ -2650,12 +2650,26 @@ a:hover {
    HELP CHATBOT & CONTACT SYSTEM
    =============================================== */
 
+.chatbot-fab-container {
+  position: fixed;
+  bottom: 32px;
+  right: 28px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+@media (max-width: 991px) {
+  .chatbot-fab-container {
+    bottom: 125px;
+    right: 16px;
+  }
+}
+
 /* --- Floating Action Button --- */
 .chatbot-fab {
-  position: fixed;
-  bottom: 100px;
-  right: 22px;
-  z-index: 2000;
+  position: relative; /* Changed from fixed to relative since container is fixed */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2686,15 +2700,13 @@ a:hover {
 
 @media (max-width: 991px) {
   .chatbot-fab {
-    bottom: 110px;
-    right: 16px;
+    /* bottom/right moved to container */
   }
 }
 
 @media (min-width: 992px) {
   .chatbot-fab {
-    bottom: 32px;
-    right: 28px;
+    /* bottom/right moved to container */
   }
 }
 
@@ -2703,7 +2715,7 @@ a:hover {
   position: fixed;
   bottom: 170px;
   right: 22px;
-  z-index: 2000;
+  z-index: 3000;
   width: 360px;
   max-width: calc(100vw - 32px);
   display: flex;
@@ -2720,7 +2732,7 @@ a:hover {
 
 @media (max-width: 991px) {
   .chatbot-panel {
-    bottom: 175px;
+    bottom: 190px; /* Shifted up to clear the FAB and Navbar */
     right: 16px;
     width: calc(100vw - 32px);
     max-height: 60vh;

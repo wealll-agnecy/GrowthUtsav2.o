@@ -196,7 +196,7 @@ const HelpChatbot = () => {
             {/* ── Floating Button ─────────────────────────────── */}
             <AnimatePresence>
                 {!isOpen && (
-                    <div style={{ position: 'fixed', bottom: '30px', right: '30px', zIndex: 1020, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <div className="chatbot-fab-container">
                         {/* Hover Popup */}
                         <AnimatePresence>
                             {isHovered && (

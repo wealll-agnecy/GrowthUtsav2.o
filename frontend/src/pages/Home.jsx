@@ -234,7 +234,7 @@ const Home = () => {
                                 className="hero-visual"
                             >
                                 <div className="hero-main-img-container">
-                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Beauty" className="hero-main-img" fetchpriority="high" />
+                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Beauty" className="hero-main-img" fetchPriority="high" />
                                     <div className="hero-img-overlay"></div>
                                 </div>
                             </motion.div>

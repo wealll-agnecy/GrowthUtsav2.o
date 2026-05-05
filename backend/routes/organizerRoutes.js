@@ -15,6 +15,67 @@ const router = express.Router();
 
 // All organizer routes require auth + organizer role
 router.use(protect);
+
+// --- ROUTES ACCESSIBLE BY BOTH ORGANIZER AND STAFF ---
+
+router.get('/bookings', authorize('organizer', 'staff'), async (req, res) => {
+    try {
+        const Ticket = require('../models/Ticket');
+        const Event = require('../models/Event');
+        
+        let eventIds = [];
+        
+        if (req.user.role === 'staff') {
+            // Staff only see tickets for events they are assigned to
+            eventIds = req.user.assignedEvents || [];
+        } else {
+            // Organizer sees tickets for all their events
+            const myEvents = await Event.find({ organizer: req.user.id }).select('_id');
+            eventIds = myEvents.map(e => e._id);
+        }
+        
+        // Fetch Tickets (which contain scan status) instead of Bookings
+        const tickets = await Ticket.find({ eventId: { $in: eventIds } })
+            .populate('user', 'name email phone')
+            .populate('event', 'title venue date isMultiDay multiDayPlan')
+            .sort({ scannedAt: -1, createdAt: -1 });
+
+        // Map data to ensure all frontend fields are present and null-safe
+        const mappedData = tickets.map(t => {
+            const total = t.totalAmount || t.ticketPrice || 0;
+            const paid = t.amountPaid || 0;
+            const remaining = Math.max(0, total - paid);
+            const duration = (t.event && t.event.isMultiDay) ? (t.event.multiDayPlan?.length || 1) : 1;
+
+            return {
+                ...t.toObject(),
+                attendeeName: t.name || t.user?.name || "N/A",
+                email: t.email || t.user?.email || "N/A",
+                phone: t.mobileNumber || t.user?.phone || "N/A",
+                eventName: t.eventName || t.event?.title || "N/A",
+                ticketTier: t.ticketType || "N/A",
+                totalAmount: total,
+                amountPaid: paid,
+                remainingAmount: remaining,
+                paymentStatus: t.paymentStatus || (remaining <= 0 ? "PAID" : "PARTIAL"),
+                bookingDate: t.bookedAt || t.createdAt,
+                eventDate: t.event?.date,
+                eventDurationDays: duration,
+                validityText: `${duration} Day${duration > 1 ? 's' : ''}`,
+                lastScanDate: t.lastScanDate || t.scannedAt,
+                isUsed: t.status === 'used' || t.isScanned,
+                ticketStatus: t.status
+            };
+        });
+            
+        res.status(200).json({ success: true, count: mappedData.length, data: mappedData });
+    } catch (err) {
+        console.error("Staff Dashboard API Error:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// --- ROUTES ACCESSIBLE ONLY BY ORGANIZER ---
 router.use(authorize('organizer'));
 
 // Staff Management for Organizers
@@ -78,55 +139,6 @@ router.get("/event/:id/details", async (req, res) => {
   }
 });
 
-router.get('/bookings', async (req, res) => {
-    try {
-        const Ticket = require('../models/Ticket');
-        const Event = require('../models/Event');
-        
-        // Find events owned by this organizer
-        const myEvents = await Event.find({ organizer: req.user.id }).select('_id');
-        const eventIds = myEvents.map(e => e._id);
-        
-        // Fetch Tickets (which contain scan status) instead of Bookings
-        const tickets = await Ticket.find({ eventId: { $in: eventIds } })
-            .populate('user', 'name email phone')
-            .populate('event', 'title venue date isMultiDay multiDayPlan')
-            .sort({ scannedAt: -1, createdAt: -1 });
-
-        // Map data to ensure all frontend fields are present and null-safe
-        const mappedData = tickets.map(t => {
-            const total = t.totalAmount || t.ticketPrice || 0;
-            const paid = t.amountPaid || 0;
-            const remaining = Math.max(0, total - paid);
-            const duration = (t.event && t.event.isMultiDay) ? (t.event.multiDayPlan?.length || 1) : 1;
-
-            return {
-                ...t.toObject(),
-                attendeeName: t.name || t.user?.name || "N/A",
-                email: t.email || t.user?.email || "N/A",
-                phone: t.mobileNumber || t.user?.phone || "N/A",
-                eventName: t.eventName || t.event?.title || "N/A",
-                ticketTier: t.ticketType || "N/A",
-                totalAmount: total,
-                amountPaid: paid,
-                remainingAmount: remaining,
-                paymentStatus: t.paymentStatus || (remaining <= 0 ? "PAID" : "PARTIAL"),
-                bookingDate: t.bookedAt || t.createdAt,
-                eventDate: t.event?.date,
-                eventDurationDays: duration,
-                validityText: `${duration} Day${duration > 1 ? 's' : ''}`,
-                lastScanDate: t.lastScanDate || t.scannedAt,
-                isUsed: t.status === 'used' || t.isScanned,
-                ticketStatus: t.status
-            };
-        });
-            
-        res.status(200).json({ success: true, count: mappedData.length, data: mappedData });
-    } catch (err) {
-        console.error("Staff Dashboard API Error:", err);
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
 
 router.get('/revenue', async (req, res) => {
     try {

@@ -283,6 +283,15 @@ const TicketView = () => {
                                                 </div>
                                             </span>
                                         </div>
+
+                                        <div className="pass-info-item mb-4">
+                                            <span className="pass-info-label">Access Control</span>
+                                            <span className="pass-info-value">
+                                                <div className="fw-black text-uppercase tracking-wider" style={{ color: '#ec407a', fontSize: '1rem' }}>
+                                                    Allowed Entry: {ticket?.booking?.quantity || 1} {(ticket?.booking?.quantity || 1) > 1 ? 'persons' : 'person'}
+                                                </div>
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div className="d-flex justify-content-between align-items-end">

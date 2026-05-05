@@ -34,9 +34,12 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [showContact, setShowContact] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const notifRef = useRef(null);
+    const mobileNotifRef = useRef(null);
+    const profileRef = useRef(null);
     const searchRef = useRef(null);
 
     const timeAgo = (date) => {
@@ -60,8 +63,12 @@ const Navbar = () => {
         
         // Click outside listener
         const handleClickOutside = (event) => {
-            if (notifRef.current && !notifRef.current.contains(event.target)) {
+            if (notifRef.current && !notifRef.current.contains(event.target) && 
+                mobileNotifRef.current && !mobileNotifRef.current.contains(event.target)) {
                 setIsNotifOpen(false);
+            }
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
             }
             if (searchRef.current && !searchRef.current.contains(event.target)) {
                 setIsSearchOpen(false);
@@ -122,12 +129,90 @@ const Navbar = () => {
                     <p className="tagline mb-0">AN EVENT SERIES OF WE ALL</p>
                 </BsNavbar.Brand>
 
-                {/* Mobile Profile Icon (Visible only on mobile, replacing the hamburger menu) */}
-                <div className="d-md-none d-flex align-items-center gap-3">
+                {/* Mobile Icons (Visible only on mobile) */}
+                <div className="d-md-none d-flex align-items-center gap-2">
+                    <div className="position-relative" ref={searchRef}>
+                        <div className="icon-wrapper text-white cursor-pointer" onClick={() => setIsSearchOpen(!isSearchOpen)}>
+                            <BiSearch size={22} />
+                        </div>
+
+                        {/* Mobile Search Overlay Popup */}
+                        <AnimatePresence>
+                            {isSearchOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="mobile-search-popup shadow-premium"
+                                >
+                                    <div className="search-inner-mobile">
+                                        <BiSearch className="ms-2 text-muted" size={18} />
+                                        <input 
+                                            type="text" 
+                                            placeholder="Search events..." 
+                                            className="search-input-mobile"
+                                            autoFocus
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && (navigate(`/events?search=${searchQuery}`), setIsSearchOpen(false))}
+                                        />
+                                        <BiX className="me-2 text-muted cursor-pointer" size={22} onClick={() => setIsSearchOpen(false)} />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {user && (
+                        <div className="position-relative" ref={mobileNotifRef}>
+                            <div className="icon-wrapper text-white cursor-pointer" onClick={toggleNotifs}>
+                                <BiBell size={22} />
+                                {unreadCount > 0 && <span className="badge-ping"></span>}
+                            </div>
+                        </div>
+                    )}
+                    
                     {user ? (
-                        <Link to="/profile" className="icon-wrapper text-white">
-                            <BiUserCircle size={26} />
-                        </Link>
+                        <div className="position-relative" ref={profileRef}>
+                            <div 
+                                className="icon-wrapper text-white cursor-pointer" 
+                                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                            >
+                                <BiUserCircle size={26} />
+                            </div>
+                            
+                            <AnimatePresence>
+                                {isProfileOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="profile-dropdown-mobile shadow-premium"
+                                    >
+                                        <div className="px-3 py-2 border-bottom mb-1">
+                                            <div className="fw-bold small text-dark">{user.name}</div>
+                                            <div className="text-muted tiny-text uppercase">{user.role}</div>
+                                        </div>
+                                        <Link 
+                                            to="/profile" 
+                                            className="dropdown-item-mobile"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            My Account
+                                        </Link>
+                                        <div 
+                                            className="dropdown-item-mobile text-danger fw-bold"
+                                            onClick={() => {
+                                                handleLogout();
+                                                setIsProfileOpen(false);
+                                            }}
+                                        >
+                                            Sign Out
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     ) : (
                         <Link to="/login" className="icon-wrapper text-white">
                             <FaUserCircle size={24} />
@@ -195,58 +280,6 @@ const Navbar = () => {
                                 <BiBell size={22} />
                                 {unreadCount > 0 && <span className="badge-ping"></span>}
                             </div>
-
-                            <AnimatePresence>
-                                {isNotifOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                                        className="notification-dropdown premium-notif-panel shadow-premium"
-                                    >
-                                        <div className="p-2 border-bottom d-flex justify-content-between align-items-center mb-2">
-                                            <span className="fw-black tiny-text tracking-widest text-uppercase">Recent Signals</span>
-                                            {notifications.length > 0 && (
-                                                <button onClick={clearAll} className="btn btn-link btn-sm text-danger text-decoration-none tiny-text fw-bold p-0">Clear All</button>
-                                            )}
-                                        </div>
-
-                                        <div className="premium-notif-list">
-                                            {notifications.length > 0 ? (
-                                                notifications.map(n => (
-                                                    <div 
-                                                        key={n._id || Math.random()} 
-                                                        onClick={() => handleNotifClick(n)} 
-                                                        className={`notif-item-premium ${!n.isRead ? 'notif-item-unread' : ''}`}
-                                                    >
-                                                        <div className="notif-icon-box">
-                                                            <BiBell size={18} />
-                                                        </div>
-                                                        <div className="notif-text-content">
-                                                            <div className="notif-msg">{n.message}</div>
-                                                            <div className="notif-time-ago">
-                                                                <FaClock size={10} /> {timeAgo(n.createdAt)}
-                                                            </div>
-                                                        </div>
-                                                        {!n.isRead && <div className="unread-indicator"></div>}
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <div className="p-5 text-center text-muted small opacity-50">
-                                                    <BiBell size={40} className="mb-2 d-block mx-auto" />
-                                                    No new signals detected.
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        <div className="notif-footer-premium">
-                                            <Link to="/notifications" className="btn-view-all btn d-flex align-items-center justify-content-center" onClick={() => setIsNotifOpen(false)}>
-                                                View All Logs
-                                            </Link>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
                         </div>
 
                         {/* Theme Toggle */}
@@ -295,6 +328,60 @@ const Navbar = () => {
                     </div>
                 </BsNavbar.Collapse>
             </Container>
+
+            {/* Shared Notification Popup - Moved outside container for better positioning */}
+            <AnimatePresence>
+                {isNotifOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                        className="notification-dropdown premium-notif-panel shadow-premium"
+                        style={{ right: '2rem' }} // Precise desktop positioning
+                    >
+                        <div className="p-2 border-bottom d-flex justify-content-between align-items-center mb-2">
+                            <span className="fw-black tiny-text tracking-widest text-uppercase">Recent Signals</span>
+                            {notifications.length > 0 && (
+                                <button onClick={clearAll} className="btn btn-link btn-sm text-danger text-decoration-none tiny-text fw-bold p-0">Clear All</button>
+                            )}
+                        </div>
+
+                        <div className="premium-notif-list">
+                            {notifications.length > 0 ? (
+                                notifications.map(n => (
+                                    <div 
+                                        key={n._id || Math.random()} 
+                                        onClick={() => handleNotifClick(n)} 
+                                        className={`notif-item-premium ${!n.isRead ? 'notif-item-unread' : ''}`}
+                                    >
+                                        <div className="notif-icon-box">
+                                            <BiBell size={18} />
+                                        </div>
+                                        <div className="notif-text-content">
+                                            <div className="notif-msg">{n.message}</div>
+                                            <div className="notif-time-ago">
+                                                <FaClock size={10} /> {timeAgo(n.createdAt)}
+                                            </div>
+                                        </div>
+                                        {!n.isRead && <div className="unread-indicator"></div>}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-5 text-center text-muted small opacity-50">
+                                    <BiBell size={40} className="mb-2 d-block mx-auto" />
+                                    No new signals detected.
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="notif-footer-premium">
+                            <Link to="/notifications" className="btn-view-all btn d-flex align-items-center justify-content-center" onClick={() => setIsNotifOpen(false)}>
+                                View All Logs
+                            </Link>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <ContactModal show={showContact} onClose={() => setShowContact(false)} />
         </BsNavbar>

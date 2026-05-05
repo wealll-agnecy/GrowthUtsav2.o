@@ -119,7 +119,15 @@ const VerifyTicket = () => {
                                     </div>
                                 </Col>
                                 <Col xs={12}>
-                                    <div className="p-4 bg-white/5 rounded-4 border border-white/5">
+                                    <div className="p-4 bg-white/5 rounded-4 border border-white/5 shadow-inner">
+                                        <span className="text-white-50 small fw-black uppercase tracking-widest mb-2 d-block opacity-50">Plan Node</span>
+                                        <div className="text-pink fw-black h4 m-0 d-flex align-items-center gap-3">
+                                            <FaTicketAlt /> {ticket.ticketTier || 'General'}
+                                        </div>
+                                    </div>
+                                </Col>
+                                <Col xs={12}>
+                                    <div className="p-4 bg-white/5 rounded-4 border border-white/5 shadow-inner">
                                         <span className="text-white-50 small fw-black uppercase tracking-widest mb-2 d-block opacity-50">Booking Synchronization</span>
                                         <div className="text-white fw-bold d-flex align-items-center gap-3">
                                             <FaClock className="text-primary-light" /> {new Date(ticket.bookedAt).toLocaleString(undefined, {
