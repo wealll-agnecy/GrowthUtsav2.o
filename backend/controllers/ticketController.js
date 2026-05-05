@@ -510,6 +510,34 @@ exports.verifyTicketScan = async (req, res) => {
             currentRemaining <= 0
         );
 
+        // Today's Plan Info (for Multi-day)
+        let todayPlanInfo = ticket.ticketType;
+        if (event && event.isMultiDay && ticket.selectedDays?.length > 0) {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            const dayIndex = ticket.selectedDays.findIndex(d => {
+                const dDate = new Date(d);
+                dDate.setHours(0, 0, 0, 0);
+                return dDate.getTime() === now.getTime();
+            });
+            
+            if (dayIndex !== -1) {
+                // It's a booked day. Now find which day of the EVENT this is
+                const eventDayIndex = event.multiDayPlan.findIndex(d => {
+                    const eDate = new Date(d.date);
+                    eDate.setHours(0, 0, 0, 0);
+                    return eDate.getTime() === now.getTime();
+                });
+
+                if (eventDayIndex !== -1) {
+                    todayPlanInfo = `${ticket.ticketType} - Day ${eventDayIndex + 1}`;
+                } else {
+                    todayPlanInfo = `${ticket.ticketType} - Day ${dayIndex + 1}`;
+                }
+            }
+        }
+
         const details = {
             ticketId: ticket._id,
             name: ticket.name,
@@ -517,7 +545,7 @@ exports.verifyTicketScan = async (req, res) => {
             phone: ticket.mobileNumber,
             eventName: ticket.eventName || (event ? event.title : 'Event'),
             ticketCode: ticket.ticketCode,
-            ticketTier: ticket.ticketType,
+            ticketTier: todayPlanInfo,
             ticketPrice: currentTotalAmount,
             paymentStatus: currentPaymentStatus,
             paidAmount: currentAmountPaid,

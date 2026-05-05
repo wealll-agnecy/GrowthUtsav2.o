@@ -64,7 +64,7 @@ const DashboardLayout = ({ children, role }) => {
     const organizerLinks = [
         { name: 'Dashboard', path: '/organizer/dashboard', icon: <FaThLarge /> },
         { name: 'My Events', path: '/organizer/events', icon: <FaCalendarAlt /> },
-        { name: 'Inquiries', path: '/organizer/inquiries', icon: <FaEnvelope /> },
+        { name: 'Enquiries', path: '/organizer/inquiries', icon: <FaEnvelope /> },
         { name: 'Create Event', path: '/organizer/create-event', icon: <FaPlusCircle /> },
         { name: 'Bookings', path: '/organizer/bookings', icon: <FaTicketAlt /> },
         { name: 'Earnings', path: '/organizer/earnings', icon: <FaChartLine /> },
@@ -236,20 +236,14 @@ const DashboardLayout = ({ children, role }) => {
             <div
                 className={`flex-grow-1 d-flex flex-column min-w-0 dashboard-content-area ${collapsed ? 'collapsed' : ''}`}
             >
-                {/* Mobile Dashboard Header */}
-                <div className="d-lg-none d-flex align-items-center justify-content-between p-3 border-bottom border-white/5 bg-dark-space shadow-sm sticky-top dashboard-mobile-header">
-                    <Button
-                        variant="link"
-                        onClick={() => setShowMobileSidebar(true)}
-                        className="text-white p-0 shadow-none hover-text-primary transition-all"
-                    >
-                        <FaBars size={20} />
-                    </Button>
-                    <span className="small fw-black text-uppercase tracking-widest text-white">
-                        {role} console
-                    </span>
-                    <div className="mobile-header-spacer" style={{ width: '20px' }}></div>
-                </div>
+                {/* Floating Mobile Sidebar Toggle */}
+                <button
+                    className="d-md-none mobile-sidebar-toggle-floating"
+                    onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+                    aria-label="Toggle Sidebar"
+                >
+                    <FaChevronRight className={showMobileSidebar ? 'rotate-180' : ''} />
+                </button>
 
                 <main className="p-0">
                     <AnimatePresence mode="wait">

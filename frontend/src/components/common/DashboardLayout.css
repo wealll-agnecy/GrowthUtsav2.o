@@ -133,14 +133,18 @@
     transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* SHIFT GLOBAL NAVBAR ON DASHBOARD PAGES */
-body.dashboard-active .navbar-premium {
-    left: 280px !important;
-    width: calc(100% - 280px) !important;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
 @media (min-width: 992px) {
+    body.dashboard-active .navbar-premium {
+        left: 280px !important;
+        width: calc(100% - 280px) !important;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    body.dashboard-active.sidebar-collapsed .navbar-premium {
+        left: 80px !important;
+        width: calc(100% - 80px) !important;
+    }
+
     .dashboard-content-area {
         margin-left: 280px !important;
         transition: var(--transition-premium) !important;
@@ -152,12 +156,6 @@ body.dashboard-active .navbar-premium {
 
     .dashboard-content-area.collapsed .desktop-sidebar-box {
         width: 80px !important;
-    }
-
-    /* Shift Navbar even more when sidebar is collapsed */
-    body.dashboard-active.sidebar-collapsed .navbar-premium {
-        left: 80px !important;
-        width: calc(100% - 80px) !important;
     }
 }
 
@@ -218,7 +216,7 @@ body.dashboard-active .navbar-premium {
 
 .dashboard-mobile-header {
     z-index: 1040;
-    top: 72px !important; /* Sit below the fixed global navbar */
+    top: 64px !important; /* Sit below the fixed global navbar */
     background: #ffffff !important;
     border-bottom: 2px solid #fef3c7 !important;
 }
@@ -262,8 +260,32 @@ body.dashboard-active .navbar-premium {
     pointer-events: none;
 }
 
-@media (max-width: 991px) {
+@media (max-width: 768px) {
     .dashboard-content-area main {
-        padding: 1.5rem !important;
+        padding: 12px !important;
+    }
+    
+    .mobile-sidebar-toggle-floating {
+        position: fixed;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        width: 28px;
+        height: 50px;
+        background: linear-gradient(to bottom, #ff4d8d, #ec4899);
+        color: white;
+        border: none;
+        border-radius: 0 15px 15px 0;
+        z-index: 11000; /* High priority */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 4px 0 12px rgba(236, 72, 153, 0.3);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        padding-right: 4px;
+    }
+
+    .rotate-180 {
+        transform: rotate(180deg);
     }
 }

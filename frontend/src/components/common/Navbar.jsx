@@ -122,10 +122,18 @@ const Navbar = () => {
                     <p className="tagline mb-0">AN EVENT SERIES OF WE ALL</p>
                 </BsNavbar.Brand>
 
-                {/* Mobile Toggle */}
-                <BsNavbar.Toggle aria-controls="main-navbar-nav" className="border-0 shadow-none">
-                    <span className="navbar-toggler-icon"></span>
-                </BsNavbar.Toggle>
+                {/* Mobile Profile Icon (Visible only on mobile, replacing the hamburger menu) */}
+                <div className="d-md-none d-flex align-items-center gap-3">
+                    {user ? (
+                        <Link to="/profile" className="icon-wrapper text-white">
+                            <BiUserCircle size={26} />
+                        </Link>
+                    ) : (
+                        <Link to="/login" className="icon-wrapper text-white">
+                            <FaUserCircle size={24} />
+                        </Link>
+                    )}
+                </div>
 
                 <BsNavbar.Collapse id="main-navbar-nav">
                     {/* Navigation Links */}

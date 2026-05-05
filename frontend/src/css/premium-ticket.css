@@ -188,14 +188,26 @@
 @media (max-width: 768px) {
   .ticket-pass-card {
     flex-direction: column !important;
-    max-width: 400px !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    border-radius: 30px !important;
   }
   
+  .ticket-pass-left {
+    padding: 30px 20px !important;
+  }
+
+  .pass-title {
+    font-size: 1.75rem !important;
+    margin-bottom: 20px !important;
+  }
+
   .ticket-pass-right {
     width: 100% !important;
     border-left: none !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-    padding: 30px !important;
+    border-top: 2px dashed var(--border) !important;
+    padding: 30px 20px !important;
+    background: rgba(212, 175, 55, 0.03) !important;
   }
   
   .ticket-pass-divider {
@@ -204,28 +216,32 @@
   
   .ticket-pass-card::before,
   .ticket-pass-card::after {
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-  }
-  
-  .ticket-pass-card::before {
-    top: auto !important;
-    bottom: calc(250px - 18px) !important; /* Position between sections */
-    transform: translateX(-50%) rotate(90deg) !important; /* Not really rotating circles but for symmetry */
+    display: none !important; /* Hide circles on mobile for cleaner look */
   }
 
-  /* Adjust holes for mobile vertical layout */
-  .ticket-pass-card::before {
-      top: auto !important;
-      bottom: 236px !important;
-      left: -18px !important;
+  .pass-qr-image {
+    width: 160px !important;
+    height: 160px !important;
   }
-  .ticket-pass-card::after {
-      top: auto !important;
-      bottom: 236px !important;
-      right: -18px !important;
-      left: auto !important;
-  }
+}
+
+@media (max-width: 576px) {
+    .success-glass-card {
+        padding: 40px 20px !important;
+        border-radius: 30px !important;
+    }
+    .success-icon-wrapper {
+        width: 80px !important;
+        height: 80px !important;
+        margin-bottom: 20px !important;
+    }
+    .success-title {
+        font-size: 1.75rem !important;
+    }
+    .success-desc {
+        font-size: 0.95rem !important;
+        margin-bottom: 30px !important;
+    }
 }
 
 /* ═══════════ SUCCESS OVERLAY ═══════════ */

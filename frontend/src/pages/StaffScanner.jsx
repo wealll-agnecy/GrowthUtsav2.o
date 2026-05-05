@@ -71,9 +71,13 @@ const StaffScanner = () => {
             // Log entry for Recent Entries table (Persistent across pages)
             try {
                 const ticket = data.ticket || {};
-                const totalAmount = ticket.totalAmount || ticket.amount || 0;
-                const paidAmount = ticket.amountPaid || 0;
+                
+                // BACKEND MAPPING FIX: Use correct field names from details object
+                const totalAmount = ticket.ticketPrice || ticket.totalAmount || ticket.amount || 0;
+                const paidAmount = ticket.paidAmount || ticket.amountPaid || 0;
                 const dueAmount = totalAmount - paidAmount;
+                const planName = ticket.ticketTier || ticket.selectedPlan || ticket.planName || 'N/A';
+                const actualTicketId = ticket.ticketId || ticket._id || 'N/A';
 
                 let paymentStatus = "";
                 if (paidAmount <= 0) {
@@ -116,24 +120,15 @@ const StaffScanner = () => {
                     finalReason = "Valid Ticket";
                 }
 
-                console.log("Scanner Logic Debug:", {
-                    alreadyScanned,
-                    isValidTicket,
-                    isExpired,
-                    paymentDue,
-                    finalStatus,
-                    finalReason,
-                    backendMessage: data.message
-                });
-
                 const newEntry = {
-                    name: ticket.user?.name || ticket.name || 'Unknown',
-                    event: ticket.event?.title || ticket.eventName || 'N/A',
+                    name: ticket.name || (ticket.user?.name) || 'Unknown',
+                    event: ticket.eventName || (ticket.event?.title) || 'N/A',
                     total: totalAmount,
                     paid: paidAmount,
                     due: Math.max(dueAmount, 0),
                     status: finalStatus,
                     paymentStatus: paymentStatus,
+                    selectedPlan: planName,
                     reason: finalReason,
                     time: new Date().toLocaleTimeString()
                 };
@@ -145,8 +140,10 @@ const StaffScanner = () => {
                 data.reason = finalReason;
                 data.ticket = {
                     ...ticket,
+                    _id: actualTicketId,
                     totalAmount,
                     paidAmount,
+                    selectedPlan: planName,
                     dueAmount: Math.max(dueAmount, 0)
                 };
 
@@ -235,6 +232,11 @@ const StaffScanner = () => {
                                 <div className="info-row">
                                     <span>Event</span>
                                     <b>{scanResult.ticket?.event?.title || scanResult.ticket?.eventName || 'N/A'}</b>
+                                </div>
+
+                                <div className="info-row">
+                                    <span>Selected Plan</span>
+                                    <b className="text-pink">{scanResult.ticket?.selectedPlan || scanResult.ticket?.planName || 'N/A'}</b>
                                 </div>
 
                                 <div className="info-row">

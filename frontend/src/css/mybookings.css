@@ -401,4 +401,35 @@
     width: 100%;
     max-width: 550px;
 }
-
+@media (max-width: 768px) {
+  .mybooking-wrapper {
+    padding: 20px 15px !important;
+  }
+  .mybooking-header h1 {
+    font-size: 1.75rem !important;
+  }
+  .booking-card {
+    border-radius: 12px !important;
+  }
+  .booking-img-container {
+    height: 140px !important;
+  }
+  .event-name {
+    font-size: 1rem !important;
+  }
+  .booking-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .pay-due-btn, .view-ticket-btn {
+    width: 100% !important;
+    padding: 12px !important;
+  }
+  .white-crm-modal-box {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  .force-card {
+    padding: 1.5rem !important;
+  }
+}

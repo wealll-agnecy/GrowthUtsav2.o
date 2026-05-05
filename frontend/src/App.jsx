@@ -87,7 +87,7 @@ const AppContent = () => {
                         <Route path="/ticket/:id" element={<VerifyTicket />} />
                     </Routes>
                 </Suspense>
-                <Toaster position="top-right" />
+                <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
             </div>
         );
     }
@@ -152,24 +152,22 @@ const AppContent = () => {
                 </div>
             </main>
 
-            {/* Hide footer and bottom nav on dashboard pages to prevent sidebar overlap */}
-            {!location.pathname.includes('/admin') && 
-             !location.pathname.includes('/organizer') && 
-             !location.pathname.includes('/staff') && 
-             !location.pathname.includes('/attendee') && 
-             location.pathname !== '/profile' && (
-                <>
-                    <MobileBottomNav />
-                    <Footer />
-                </>
-            )}
+            <MobileBottomNav />
 
+            {/* Hide footer on dashboard pages to prevent sidebar overlap */}
+            {!location.pathname.includes('/admin') && 
+            !location.pathname.includes('/organizer') && 
+            !location.pathname.includes('/staff') && 
+            !location.pathname.includes('/attendee') && 
+            location.pathname !== '/profile' && (
+                <Footer />
+            )}
 
             <Suspense fallback={null}>
                 <HelpChatbot />
             </Suspense>
             
-            <Toaster position="top-right" toastOptions={{
+            <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} toastOptions={{
                 style: {
                     background: 'var(--mid-space)',
                     color: 'var(--text-bright)',

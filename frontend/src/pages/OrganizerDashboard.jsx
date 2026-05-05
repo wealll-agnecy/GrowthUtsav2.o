@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fa';
 import '../css/dashboard.css';
 import '../css/global.css';
-import OrganizerInquiries from './OrganizerInquiries';
+
 
 const OrganizerDashboard = () => {
     const [stats, setStats] = useState({ totalEvents: 0, approvedEvents: 0, totalTicketsSold: 0, totalRevenue: 0 });
@@ -261,10 +261,6 @@ const OrganizerDashboard = () => {
                         </div>
                     </Col>
                 </Row>
-
-                {/* ─── Inquiries Section ─── */}
-                <OrganizerInquiries />
-
             </Container>
         </div>
     );

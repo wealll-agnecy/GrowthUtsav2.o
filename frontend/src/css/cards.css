@@ -155,16 +155,21 @@
     transform: none !important;
   }
   
-  .card-img {
-    height: 120px;
+  .card-img img {
+    height: 180px !important; /* Larger images for single column */
   }
   
   .card-body {
-    padding: 16px !important;
+    padding: 20px !important;
   }
   
   .card-body h5 {
-    font-size: 1rem !important;
+    font-size: 1.15rem !important;
+    height: auto !important;
+    -webkit-line-clamp: 2 !important;
+  }
+  .card-body p {
+    font-size: 0.9rem !important;
   }
 }
 

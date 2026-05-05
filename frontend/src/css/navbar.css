@@ -8,7 +8,7 @@
   border-bottom: 1px solid var(--glass-border);
   box-shadow: var(--premium-shadow);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 1080;
+  z-index: 9999;
 }
 
 /* GRADIENT BORDER GLOW */
@@ -183,7 +183,7 @@
   -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
   padding: 15px !important;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
-  z-index: 1085 !important;
+  z-index: 2100 !important;
   transform-origin: top right;
 }
 
@@ -350,4 +350,86 @@
 
 .search-input-navbar:focus {
   outline: none !important;
+}
+
+@media (max-width: 991px) {
+  .navbar-premium {
+    height: 64px !important;
+    padding: 0 10px !important;
+  }
+
+  .navbar-collapse {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 64px);
+    background: var(--bg-card);
+    padding: 24px;
+    border-top: 1px solid var(--border);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex !important;
+    flex-direction: column;
+    transform: translateX(100%);
+    opacity: 0;
+    visibility: hidden;
+    z-index: 9999;
+  }
+
+  .navbar-collapse.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-link-premium {
+    font-size: 1.1rem !important;
+    padding: 12px 0 !important;
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  .navbar-toggler {
+    padding: 0 !important;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+    margin-right: -5px !important;
+  }
+
+  .navbar-toggler:focus {
+    box-shadow: none !important;
+  }
+
+  .logo-text {
+    font-size: 1.25rem !important;
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  .navbar-collapse .d-flex.align-items-center.gap-3 {
+    margin-top: 20px;
+    flex-direction: column;
+    width: 100%;
+    gap: 15px !important;
+  }
+
+  .navbar-collapse .btn {
+    width: 100% !important;
+  }
+}
+
+/* Touch UX Fixes */
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
 }

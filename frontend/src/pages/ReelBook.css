@@ -3,7 +3,8 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #fdf2f8; /* Soft pink background */
+  background: #fdf2f8;
+  /* Soft pink background */
   padding: 40px;
   overflow: hidden;
 }
@@ -65,7 +66,7 @@
   width: 2px;
   height: 100%;
   background: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   z-index: 10;
   transform: translateX(-50%);
 }
@@ -76,7 +77,8 @@
   font-family: 'Playfair Display', serif;
   font-size: 24px;
   line-height: 1.6;
-  color: #000000 !important; /* Force black for maximum visibility */
+  color: #000000 !important;
+  /* Force black for maximum visibility */
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -100,8 +102,15 @@
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 0; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Video Section */
@@ -124,7 +133,7 @@
   left: 30px;
   color: white;
   z-index: 5;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Controls */
@@ -145,7 +154,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
   color: #ff4d8d;
@@ -163,9 +172,18 @@
 }
 
 @keyframes flipRealistic {
-  0% { transform: rotateY(0deg) scale(1); }
-  40% { transform: rotateY(-15deg) scale(0.95); box-shadow: 0 50px 80px rgba(0,0,0,0.3); }
-  100% { transform: rotateY(0deg) scale(1); }
+  0% {
+    transform: rotateY(0deg) scale(1);
+  }
+
+  40% {
+    transform: rotateY(-15deg) scale(0.95);
+    box-shadow: 0 50px 80px rgba(0, 0, 0, 0.3);
+  }
+
+  100% {
+    transform: rotateY(0deg) scale(1);
+  }
 }
 
 /* Opening Animation */
@@ -175,27 +193,32 @@
 }
 
 @keyframes bookOpen {
-  0% { 
-    opacity: 0; 
-    transform: rotateX(20deg) rotateY(-10deg) scale(0.8); 
+  0% {
+    opacity: 0;
+    transform: rotateX(20deg) rotateY(-10deg) scale(0.8);
   }
-  100% { 
-    opacity: 1; 
-    transform: rotateX(0deg) rotateY(0deg) scale(1); 
+
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) rotateY(0deg) scale(1);
   }
 }
-  .book-wrapper {
-    height: 800px;
-    width: 100%;
-  }
-  .book-container {
-    flex-direction: column;
-  }
-  .left-page, .right-page {
-    border-radius: 20px;
-    border: none;
-  }
-  .book-container::after {
-    display: none;
-  }
+
+.book-wrapper {
+  height: 800px;
+  width: 100%;
+}
+
+.book-container {
+  flex-direction: column;
+}
+
+.left-page,
+.right-page {
+  border-radius: 20px;
+  border: none;
+}
+
+.book-container::after {
+  display: none;
 }

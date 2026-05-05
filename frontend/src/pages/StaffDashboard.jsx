@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Table, Badge, Button } from 'react-bootstrap
 import { FaUsers, FaQrcode } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import '../css/dashboard.css';
 
 const StaffDashboard = () => {
     const [attendees, setAttendees] = useState([]);
@@ -62,6 +63,7 @@ const StaffDashboard = () => {
                                                 <th className="py-3">Event</th>
                                                 <th className="py-3">Payment</th>
                                                 <th className="py-3">Status</th>
+                                                <th className="py-3">Plan</th>
                                                 <th className="py-3">Reason</th>
                                                 <th className="text-end px-4 py-3">Scan Time</th>
                                             </tr>
@@ -73,9 +75,8 @@ const StaffDashboard = () => {
                                                     const paid = item.paid || 0;
                                                     const due = Math.max(total - paid, 0);
                                                     
-                                                    let statusClass = "amber";
-                                                    if (paid <= 0) statusClass = "red";
-                                                    else if (due <= 0) statusClass = "green";
+                                                    const isFullyPaid = paid >= total && total > 0;
+                                                    const isPartial = paid > 0 && paid < total;
 
                                                     return (
                                                         <tr key={index}>
@@ -86,15 +87,24 @@ const StaffDashboard = () => {
                                                             <td className="py-3">
                                                                 <div className="payment-box">
                                                                     <h6 className="m-0 fw-bold">₹{paid} / ₹{total}</h6>
-                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{due}</p>
-                                                                    <div className={`badge-demo ${statusClass}`}>
-                                                                        {item.paymentStatus}
-                                                                    </div>
+                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{isFullyPaid ? '0' : due}</p>
+                                                                    {isFullyPaid ? (
+                                                                        <span className="paid-status full">FULLY PAID</span>
+                                                                    ) : isPartial ? (
+                                                                        <span className="paid-status partial">PARTIAL</span>
+                                                                    ) : (
+                                                                        <span className="paid-status unpaid">UNPAID</span>
+                                                                    )}
                                                                 </div>
                                                             </td>
                                                             <td className="py-3">
                                                                 <span className={item.status === 'GRANTED' ? 'green' : 'red'}>
                                                                     {item.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-3">
+                                                                <span className="plan-badge">
+                                                                    {item.selectedPlan || item.planName || 'N/A'}
                                                                 </span>
                                                             </td>
                                                             <td className="py-3">
@@ -114,16 +124,8 @@ const StaffDashboard = () => {
                                                     const paid = attendee.amountPaid || 0;
                                                     const due = Math.max(total - paid, 0);
 
-                                                    let paymentStatus = "PARTIAL";
-                                                    let statusClass = "amber";
-                                                    
-                                                    if (paid <= 0) {
-                                                        paymentStatus = "UNPAID";
-                                                        statusClass = "red";
-                                                    } else if (due <= 0) {
-                                                        paymentStatus = "FULLY PAID";
-                                                        statusClass = "green";
-                                                    }
+                                                    const isFullyPaid = paid >= total && total > 0;
+                                                    const isPartial = paid > 0 && paid < total;
 
                                                     return (
                                                         <tr key={attendee._id}>
@@ -135,16 +137,25 @@ const StaffDashboard = () => {
                                                             <td className="py-3">
                                                                 <div className="payment-box">
                                                                     <h6 className="m-0 fw-bold">₹{paid} / ₹{total}</h6>
-                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{due}</p>
-                                                                    <div className={`badge-demo ${statusClass}`}>
-                                                                        {paymentStatus}
-                                                                    </div>
+                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{isFullyPaid ? '0' : due}</p>
+                                                                    {isFullyPaid ? (
+                                                                        <span className="paid-status full">FULLY PAID</span>
+                                                                    ) : isPartial ? (
+                                                                        <span className="paid-status partial">PARTIAL</span>
+                                                                    ) : (
+                                                                        <span className="paid-status unpaid">UNPAID</span>
+                                                                    )}
                                                                 </div>
                                                             </td>
                                                             <td className="py-3">
                                                                 <Badge bg="primary-subtle" className="text-primary rounded-pill px-3">
                                                                     SCANNED
                                                                 </Badge>
+                                                            </td>
+                                                            <td className="py-3">
+                                                                <span className="plan-badge">
+                                                                    {attendee.selectedPlan || attendee.planName || 'N/A'}
+                                                                </span>
                                                             </td>
                                                             <td className="py-3">
                                                                 <div className="scan-reason valid-ticket">
@@ -160,7 +171,7 @@ const StaffDashboard = () => {
                                             )}
                                             {recentEntries.length === 0 && attendees.length === 0 && !loading && (
                                                 <tr>
-                                                    <td colSpan="5" className="text-center py-5 text-muted">No entries processed yet.</td>
+                                                    <td colSpan="7" className="text-center py-5 text-muted">No entries processed yet.</td>
                                                 </tr>
                                             )}
                                         </tbody>

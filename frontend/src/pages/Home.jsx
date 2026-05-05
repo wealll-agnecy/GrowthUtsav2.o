@@ -188,7 +188,7 @@ const Home = () => {
 
             {/* ═══════════ HERO SECTION ═══════════ */}
             <section className="hero-section d-flex align-items-center">
-                <Container fluid className="px-lg-5">
+                <div className="container-premium">
                     <Row className="align-items-center">
                         <Col lg={7} className="text-lg-start text-center">
                             <motion.h1
@@ -240,12 +240,12 @@ const Home = () => {
                             </motion.div>
                         </Col>
                     </Row>
-                </Container>
+                </div>
             </section>
 
             {/* ═══════════ SECTION 1: CURATED EXPERIENCES ═══════════ */}
             <section className="curated-section">
-                <Container className="py-4 py-lg-5">
+                <div className="container-premium py-4 py-lg-5">
                     <div className="d-flex justify-content-between align-items-end mb-5">
                         <div>
                             <span className="section-subtitle-premium">Curated Experiences</span>
@@ -276,12 +276,12 @@ const Home = () => {
                             ))
                         )}
                     </Row>
-                </Container>
+                </div>
             </section>
 
             {/* ═══════════ HISTORY IN MOTION: 3D BOOK FLIP SHOWCASE ═══════════ */}
             <section className="history-book-section py-5">
-                <div className="container text-center mb-5">
+                <div className="container-premium text-center mb-5">
                     <span className="section-tag-premium">History in Motion</span>
                     <h2 className="section-title-premium mt-2">Previous Events Highlights</h2>
                 </div>
@@ -293,7 +293,7 @@ const Home = () => {
 
             {/* ═══════════ SECTION 2: THE DIFFERENCE ═══════════ */}
             <section className="difference-section">
-                <Container className="py-4 py-lg-5">
+                <div className="container-premium py-4 py-lg-5">
                     <div className="text-center mb-5">
                         <span className="section-subtitle-premium">The Difference</span>
                         <h2 className="section-title-premium">Why Choose GrowthUtsav</h2>
@@ -314,12 +314,12 @@ const Home = () => {
                             </Col>
                         ))}
                     </Row>
-                </Container>
+                </div>
             </section>
 
             {/* ═══════════ SECTION 3: OUR SUCCESSFUL EVENTS ═══════════ */}
             <section className="successful-events-section">
-                <Container className="py-4 py-lg-5">
+                <div className="container-premium py-4 py-lg-5">
                     <div className="text-center mb-5">
                         <span className="section-subtitle-premium">Our Legacy</span>
                         <h2 className="section-title-premium">Our Successful Events</h2>
@@ -347,19 +347,17 @@ const Home = () => {
                             </Col>
                         ))}
                     </Row>
-                </Container>
+                </div>
             </section>
 
 
             {/* ═══════════ TESTIMONIALS ═══════════ */}
             <section className="testimonials-section">
-                <Container className="py-4 py-lg-5">
-                    <Row className="justify-content-center">
-                        <Col lg={8} className="text-center mb-5">
-                            <h6 className="uppercase tracking-widest text-primary fw-bold mb-2">Voices Of Elegance</h6>
-                            <h2 className="fw-bold text-dark">Client Testimonials</h2>
-                        </Col>
-                    </Row>
+                <div className="container-premium py-4 py-lg-5">
+                    <div className="text-center mb-5">
+                        <span className="section-subtitle-premium">Voices Of Elegance</span>
+                        <h2 className="section-title-premium">Client Testimonials</h2>
+                    </div>
                     <Row className="g-4">
                         {TESTIMONIALS.map((t, i) => (
                             <Col md={6} key={i}>
@@ -374,12 +372,12 @@ const Home = () => {
                             </Col>
                         ))}
                     </Row>
-                </Container>
+                </div>
             </section>
 
             {/* ═══════════ CTA SECTION ═══════════ */}
             <section className="cta-beauty-section">
-                <Container>
+                <div className="container-premium">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         whileInView={{ opacity: 1, scale: 1 }}
@@ -389,7 +387,7 @@ const Home = () => {
                         <p>Join thousands of professionals and enthusiasts in exploring the elite world of artistry.</p>
                         <button className="btn btn-pink" onClick={() => navigate('/register')}>Join GrowthUtsav Now</button>
                     </motion.div>
-                </Container>
+                </div>
             </section>
 
         </div>

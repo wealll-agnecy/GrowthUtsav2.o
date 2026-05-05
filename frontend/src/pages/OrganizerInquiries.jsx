@@ -61,7 +61,7 @@ const OrganizerInquiries = () => {
 
     return (
         <div className="organizer-inquiries-section mt-5">
-            <h4 className="dashboard-title-main mb-4" style={{ fontSize: '1.25rem' }}>Event Inquiries</h4>
+            <h4 className="dashboard-title-main mb-4" style={{ fontSize: '1.25rem' }}>Event Enquiries</h4>
             
             {inquiries.length === 0 ? (
                 <div className="dashboard-card text-center py-5">

@@ -245,7 +245,7 @@ const EventDetails = () => {
 
             {/* 2. MAIN CONTENT (2 COLUMN) */}
             <section className="event-main py-5">
-                <Container>
+                <div className="event-details-container">
                     <Row className="g-5">
                         {/* LEFT (70%) */}
                         <Col lg={8}>
@@ -485,7 +485,7 @@ const EventDetails = () => {
                             </Row>
                         </motion.div>
                     )}
-                </Container>
+                </div>
             </section>
 
             {/* Inquiry Modal */}

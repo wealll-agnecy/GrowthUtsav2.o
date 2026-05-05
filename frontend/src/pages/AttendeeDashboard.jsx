@@ -78,7 +78,7 @@ const AttendeeDashboard = () => {
             {/* ─── Stats ─── */}
             <Row className="g-3 g-md-4 mb-5">
                 {stats.map((stat, i) => (
-                    <Col key={i} lg={4} xs={12} md={6}>
+                    <Col key={i} lg={4} xs={6} md={6}>
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
