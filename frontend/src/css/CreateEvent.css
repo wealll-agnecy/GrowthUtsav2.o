@@ -175,6 +175,26 @@
     transform: none;
 }
 
+/* Validation Styles */
+.create-event-card .form-control.is-invalid,
+.create-event-card .form-select.is-invalid {
+  border-color: #e53e3e;
+  background-color: #fff5f5;
+}
+
+.create-event-card .form-control.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+.create-event-card .invalid-feedback {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e53e3e;
+  margin-top: -10px;
+  margin-bottom: 15px;
+  display: block;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .create-event-card {

@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+import API_BASE_URL from '../config/apiConfig';
+
 const NotificationContext = createContext();
 
 export const useNotifications = () => useContext(NotificationContext);
@@ -37,7 +39,7 @@ export const NotificationProvider = ({ children }) => {
         }
 
         // Initialize Socket
-        const newSocket = io(window.location.origin.includes('5173') ? 'http://localhost:5000' : '/', {
+        const newSocket = io(API_BASE_URL, {
             withCredentials: true,
             transports: ['websocket', 'polling']
         });

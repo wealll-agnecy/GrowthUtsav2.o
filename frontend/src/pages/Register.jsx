@@ -85,7 +85,6 @@ const Register = () => {
             if (!orgDetails.companyName.trim()) return setError("Organization name is required");
             if (!orgDetails.registrationNumber.trim()) return setError("Registration number is required");
             if (orgDetails.selectedEventTypes.length === 0) return setError("Select at least one event type");
-            if (!orgDetails.logo) return setError("Logo upload is required");
         }
 
         if (!formData.email.trim()) return setError("Email is required");

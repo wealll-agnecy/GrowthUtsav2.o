@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  VITE_API_URL = "https://growthutsav2-o-1.onrender.com"
   NPM_FLAGS = "--no-audit --no-fund --legacy-peer-deps"
   CI = "false"
   NODE_ENV = "production"

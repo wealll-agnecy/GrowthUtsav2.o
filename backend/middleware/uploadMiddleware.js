@@ -7,6 +7,7 @@ const storage = multer.diskStorage({
         let folder = 'others';
         if (file.fieldname === 'logo') folder = 'logos';
         else if (file.fieldname === 'avatar') folder = 'avatars';
+        else if (file.fieldname === 'eventImage') folder = 'events';
         else if (file.fieldname === 'bannerImage') folder = 'banners';
 
         const uploadPath = path.join(__dirname, '..', 'uploads', folder);

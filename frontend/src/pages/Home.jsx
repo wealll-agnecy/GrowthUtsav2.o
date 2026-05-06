@@ -223,7 +223,7 @@ const Home = () => {
                                 transition={{ delay: 0.4 }}
                                 className="d-flex flex-column flex-sm-row gap-4 justify-content-center justify-content-lg-start"
                             >
-                                <button className="btn btn-pink" onClick={() => navigate('/events')}>Host Events</button>
+                                <button className="btn btn-pink" onClick={() => navigate('/register?role=organizer')}>Host Events</button>
                                 <button className="btn btn-pink" onClick={() => navigate('/events')}>Explore Events</button>
                             </motion.div>
                         </Col>

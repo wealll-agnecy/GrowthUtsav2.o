@@ -12,6 +12,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import EventCard from '../components/events/EventCard';
 import './EventDetails.css';
+import API_BASE_URL from '../config/apiConfig';
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -174,9 +175,11 @@ const EventDetails = () => {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
     });
 
-    const bannerUrl = (event.bannerImage && event.bannerImage !== 'no-photo.jpg')
-        ? (event.bannerImage.startsWith('http') ? event.bannerImage : `http://localhost:5000/uploads/${event.bannerImage}`)
-        : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=2000';
+    const bannerUrl = event.eventImage
+        ? (event.eventImage.startsWith('http') ? event.eventImage : `${API_BASE_URL.replace(/\/api\/v1$/, '')}${event.eventImage}`)
+        : (event.bannerImage && event.bannerImage !== 'no-photo.jpg')
+            ? (event.bannerImage.startsWith('http') ? event.bannerImage : `${API_BASE_URL.replace(/\/api\/v1$/, '')}/uploads/${event.bannerImage}`)
+            : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=2000';
 
     let selectedTicket;
     let currentPlans = [];

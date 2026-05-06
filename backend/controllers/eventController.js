@@ -13,6 +13,22 @@ exports.createEvent = async (req, res, next) => {
             req.body.status = 'pending';
         }
 
+        // Handle JSON-in-FormData parsing
+        if (typeof req.body.ticketTypes === 'string') {
+            try { req.body.ticketTypes = JSON.parse(req.body.ticketTypes); } catch (e) {}
+        }
+        if (typeof req.body.multiDayPlan === 'string') {
+            try { req.body.multiDayPlan = JSON.parse(req.body.multiDayPlan); } catch (e) {}
+        }
+        if (typeof req.body.isMultiDay === 'string') {
+            req.body.isMultiDay = req.body.isMultiDay === 'true';
+        }
+
+        // Handle uploaded file
+        if (req.file) {
+            req.body.eventImage = `/uploads/events/${req.file.filename}`;
+        }
+
         const event = await Event.create(req.body);
 
         // Notify ALL users about the new event via BullMQ
@@ -195,10 +211,26 @@ exports.updateEvent = async (req, res, next) => {
                 if (event.status !== 'approved' && event.status !== 'live') {
                     return res.status(400).json({ success: false, message: 'Event must be approved by admin before going Live' });
                 }
-            } else if (req.body.status !== 'draft' && req.body.status !== 'completed') {
+            } else if (req.body.status !== 'draft' && req.body.status !== 'completed' && req.body.status !== 'approved') {
                 // For any other edit, reset to pending for re-approval
                 req.body.status = 'pending';
             }
+        }
+
+        // Handle JSON-in-FormData parsing
+        if (typeof req.body.ticketTypes === 'string') {
+            try { req.body.ticketTypes = JSON.parse(req.body.ticketTypes); } catch (e) {}
+        }
+        if (typeof req.body.multiDayPlan === 'string') {
+            try { req.body.multiDayPlan = JSON.parse(req.body.multiDayPlan); } catch (e) {}
+        }
+        if (typeof req.body.isMultiDay === 'string') {
+            req.body.isMultiDay = req.body.isMultiDay === 'true';
+        }
+
+        // Handle uploaded file
+        if (req.file) {
+            req.body.eventImage = `/uploads/events/${req.file.filename}`;
         }
 
         event = await Event.findByIdAndUpdate(req.params.id, req.body, {

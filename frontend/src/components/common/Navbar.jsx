@@ -282,10 +282,6 @@ const Navbar = () => {
                             </div>
                         </div>
 
-                        {/* Theme Toggle */}
-                        <div className="icon-wrapper cursor-pointer" onClick={toggleTheme} title="Toggle Theme">
-                            {theme === 'light' ? <FaMoon size={18} className="text-muted" /> : <FaSun size={18} className="text-warning" />}
-                        </div>
 
                         {user ? (
                             <NavDropdown

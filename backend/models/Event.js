@@ -15,6 +15,9 @@ const EventSchema = new mongoose.Schema({
         type: String,
         default: 'no-photo.jpg'
     },
+    eventImage: {
+        type: String
+    },
     venue: {
         type: String,
         required: [true, 'Please add a venue']

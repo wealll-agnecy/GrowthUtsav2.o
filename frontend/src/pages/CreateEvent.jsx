@@ -13,6 +13,7 @@ const CreateEvent = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [validationErrors, setValidationErrors] = useState({});
 
     const [formData, setFormData] = useState({
         title: '',
@@ -34,7 +35,9 @@ const CreateEvent = () => {
                     { name: 'Platinum', price: 0, quantity: 100 }
                 ]
             }
-        ]
+        ],
+        eventImage: null,
+        eventImagePreview: ''
     });
 
     useEffect(() => {
@@ -109,12 +112,99 @@ const CreateEvent = () => {
         setFormData({ ...formData, multiDayPlan: newDays });
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData({
+                ...formData,
+                eventImage: file,
+                eventImagePreview: URL.createObjectURL(file)
+            });
+            // Clear error if image is selected
+            if (validationErrors.eventImage) {
+                setValidationErrors(prev => ({ ...prev, eventImage: null }));
+            }
+        }
+    };
+
+    const validateForm = () => {
+        const errors = {};
+        if (!formData.title.trim()) errors.title = "Please enter an event name so attendees know what this event is about.";
+        if (!formData.description.trim()) errors.description = "Add a bit more detail so people understand your event better.";
+        if (formData.description.trim().length < 50) errors.description = "A slightly longer description helps build trust with your attendees.";
+        if (!formData.venue.trim()) errors.venue = "Enter a venue or location so people know where to show up.";
+        
+        if (!formData.isMultiDay) {
+            if (!formData.date) errors.date = "Select a valid date for your event.";
+            if (!formData.time) errors.time = "Set a start time so attendees can plan their arrival.";
+            
+            formData.ticketTypes.forEach((tier, index) => {
+                if (!tier.name.trim()) errors[`ticketName_${index}`] = "Give this tier a name (e.g. VIP, Standard).";
+                if (tier.price < 0) errors[`ticketPrice_${index}`] = "Enter a valid ticket price (numbers only).";
+                if (tier.quantity < 1) errors[`ticketQty_${index}`] = "Specify at least 1 seat for this tier.";
+            });
+        } else {
+            formData.multiDayPlan.forEach((day, dayIdx) => {
+                if (!day.date) errors[`dayDate_${dayIdx}`] = `Select a date for Day ${dayIdx + 1}.`;
+                day.plans.forEach((plan, planIdx) => {
+                    if (plan.price < 0) errors[`dayPrice_${dayIdx}_${planIdx}`] = "Enter a valid price.";
+                    if (plan.quantity < 1) errors[`dayQty_${dayIdx}_${planIdx}`] = "Seats must be at least 1.";
+                });
+            });
+        }
+
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleSubmit = async (e, finalStatus = 'pending') => {
         if (e) e.preventDefault();
+        
+        // Skip validation for draft if user wants, but required for pending
+        if (finalStatus === 'pending' && !validateForm()) {
+            // Scroll and focus the first error
+            const firstErrorField = document.querySelector('.is-invalid');
+            if (firstErrorField) {
+                firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => firstErrorField.focus(), 500);
+            }
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const submissionData = { ...formData, status: finalStatus };
+            let submissionData;
+            const finalData = { ...formData, status: finalStatus };
+
+            // Logic to handle Multi-Day vs Single-Day data synchronization
+            if (finalData.isMultiDay) {
+                // If Multi-Day, use the first date of the plan for the main 'date' field (backend requirement)
+                if (finalData.multiDayPlan && finalData.multiDayPlan.length > 0) {
+                    finalData.date = finalData.multiDayPlan[0].date;
+                }
+                // Single-day ticketTypes are not needed for Multi-Day
+                finalData.ticketTypes = []; 
+            } else {
+                // If Single-Day, clear Multi-Day plan to prevent data pollution
+                finalData.multiDayPlan = [];
+            }
+            
+            if (formData.eventImage) {
+                submissionData = new FormData();
+                Object.keys(finalData).forEach(key => {
+                    if (key === 'ticketTypes' || key === 'multiDayPlan') {
+                        submissionData.append(key, JSON.stringify(finalData[key]));
+                    } else if (key !== 'eventImagePreview' && key !== 'eventImage') {
+                        submissionData.append(key, finalData[key]);
+                    }
+                });
+                // Append the actual file
+                submissionData.append('eventImage', formData.eventImage);
+            } else {
+                submissionData = finalData;
+            }
+
             if (id) {
                 await eventApi.updateEvent(id, submissionData);
             } else {
@@ -122,7 +212,14 @@ const CreateEvent = () => {
             }
             navigate('/organizer/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Error synchronizing event node');
+            console.error("Submission Error:", err.response?.data);
+            const backendError = err.response?.data?.message || 'Error synchronizing event node';
+            setError(backendError);
+            
+            // If backend provides field-specific errors, map them
+            if (err.response?.data?.errors) {
+                setValidationErrors(prev => ({ ...prev, ...err.response.data.errors }));
+            }
         } finally {
             setLoading(false);
         }
@@ -156,8 +253,9 @@ const CreateEvent = () => {
                             placeholder="e.g. Premium Makeup Seminar"
                             value={formData.title}
                             onChange={handleChange}
-                            required
+                            isInvalid={!!validationErrors.title}
                         />
+                        <Form.Control.Feedback type="invalid">{validationErrors.title}</Form.Control.Feedback>
                     </Form.Group>
 
                     <div className="form-row">
@@ -167,8 +265,9 @@ const CreateEvent = () => {
                                 type="date"
                                 value={formData.date}
                                 onChange={handleChange}
-                                required
+                                isInvalid={!!validationErrors.date}
                             />
+                            <Form.Control.Feedback type="invalid">{validationErrors.date}</Form.Control.Feedback>
                         </Form.Group>
                         <Form.Group controlId="time">
                             <Form.Label>Start Time</Form.Label>
@@ -176,8 +275,9 @@ const CreateEvent = () => {
                                 type="time"
                                 value={formData.time}
                                 onChange={handleChange}
-                                required
+                                isInvalid={!!validationErrors.time}
                             />
+                            <Form.Control.Feedback type="invalid">{validationErrors.time}</Form.Control.Feedback>
                         </Form.Group>
                     </div>
 
@@ -200,8 +300,9 @@ const CreateEvent = () => {
                                 placeholder="Enter venue..."
                                 value={formData.venue}
                                 onChange={handleChange}
-                                required
+                                isInvalid={!!validationErrors.venue}
                             />
+                            <Form.Control.Feedback type="invalid">{validationErrors.venue}</Form.Control.Feedback>
                         </Form.Group>
                     </div>
 
@@ -215,6 +316,36 @@ const CreateEvent = () => {
                         />
                     </Form.Group>
 
+                    <Form.Group className="mb-4">
+                        <Form.Label className="d-flex align-items-center gap-2">
+                            Event Image <span className="text-muted small">(Camera/Gallery)</span>
+                        </Form.Label>
+                        <div className="custom-image-upload-wrapper">
+                            <Form.Control
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                onChange={handleImageChange}
+                                className="mb-2"
+                            />
+                            {formData.eventImagePreview && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="mt-2 text-center"
+                                >
+                                    <img 
+                                        src={formData.eventImagePreview} 
+                                        alt="Preview" 
+                                        className="img-fluid rounded-4 shadow-lg" 
+                                        style={{ maxHeight: '150px', border: '2px solid var(--glass-border)' }}
+                                    />
+                                    <div className="mt-1 small text-pink fw-bold">Image Selected</div>
+                                </motion.div>
+                            )}
+                        </div>
+                    </Form.Group>
+
                     <Form.Group className="mb-3" controlId="description">
                         <Form.Label>Description</Form.Label>
                         <Form.Control
@@ -222,8 +353,9 @@ const CreateEvent = () => {
                             placeholder="Tell users what to expect..."
                             value={formData.description}
                             onChange={handleChange}
-                            required
+                            isInvalid={!!validationErrors.description}
                         />
+                        <Form.Control.Feedback type="invalid">{validationErrors.description}</Form.Control.Feedback>
                     </Form.Group>
 
                     <div className="d-flex justify-content-between align-items-center mt-4 mb-2">
@@ -259,8 +391,9 @@ const CreateEvent = () => {
                                                     placeholder="e.g. VIP"
                                                     value={ticket.name}
                                                     onChange={(e) => handleTicketChange(index, e)}
-                                                    required
+                                                    isInvalid={!!validationErrors[`ticketName_${index}`]}
                                                 />
+                                                <Form.Control.Feedback type="invalid">{validationErrors[`ticketName_${index}`]}</Form.Control.Feedback>
                                             </div>
                                             <div>
                                                 <Form.Label className="small">Price (₹)</Form.Label>
@@ -269,8 +402,9 @@ const CreateEvent = () => {
                                                     name="price"
                                                     value={ticket.price}
                                                     onChange={(e) => handleTicketChange(index, e)}
-                                                    required
+                                                    isInvalid={!!validationErrors[`ticketPrice_${index}`]}
                                                 />
+                                                <Form.Control.Feedback type="invalid">{validationErrors[`ticketPrice_${index}`]}</Form.Control.Feedback>
                                             </div>
                                             <div>
                                                 <Form.Label className="small">Seats</Form.Label>
@@ -279,8 +413,9 @@ const CreateEvent = () => {
                                                     name="quantity"
                                                     value={ticket.quantity}
                                                     onChange={(e) => handleTicketChange(index, e)}
-                                                    required
+                                                    isInvalid={!!validationErrors[`ticketQty_${index}`]}
                                                 />
+                                                <Form.Control.Feedback type="invalid">{validationErrors[`ticketQty_${index}`]}</Form.Control.Feedback>
                                             </div>
                                             <div className="d-flex align-items-end mb-3">
                                                 <Button
@@ -309,12 +444,12 @@ const CreateEvent = () => {
                                             <div className="day-index-circle">{dayIdx + 1}</div>
                                             <Form.Control 
                                                 type="date" 
-                                                className="bg-light border-0 fw-bold py-1 px-2"
+                                                className={`bg-light border-0 fw-bold py-1 px-2 ${validationErrors[`dayDate_${dayIdx}`] ? 'is-invalid' : ''}`}
                                                 style={{ fontSize: '13px' }}
                                                 value={day.date}
                                                 onChange={(e) => handleDayDateChange(dayIdx, e.target.value)}
-                                                required
                                             />
+                                            {validationErrors[`dayDate_${dayIdx}`] && <div className="invalid-feedback d-block">{validationErrors[`dayDate_${dayIdx}`]}</div>}
                                         </div>
                                         <Button variant="link" className="text-pink p-0" onClick={() => removeEventDay(dayIdx)} disabled={formData.multiDayPlan.length === 1}>
                                             <FaTrash size={14} />
@@ -331,23 +466,23 @@ const CreateEvent = () => {
                                                             <label className="small text-muted mb-0">Price</label>
                                                             <Form.Control 
                                                                 type="number" 
-                                                                className="py-1 px-2"
+                                                                className={`py-1 px-2 ${validationErrors[`dayPrice_${dayIdx}_${planIdx}`] ? 'is-invalid' : ''}`}
                                                                 style={{ fontSize: '12px' }}
                                                                 value={plan.price}
                                                                 onChange={(e) => handleDayPlanChange(dayIdx, planIdx, 'price', e.target.value)}
-                                                                required
                                                             />
+                                                            {validationErrors[`dayPrice_${dayIdx}_${planIdx}`] && <div className="invalid-feedback d-block" style={{fontSize: '10px'}}>{validationErrors[`dayPrice_${dayIdx}_${planIdx}`]}</div>}
                                                         </div>
                                                         <div className="mb-0">
                                                             <label className="small text-muted mb-0">Seats</label>
                                                             <Form.Control 
                                                                 type="number" 
-                                                                className="py-1 px-2"
+                                                                className={`py-1 px-2 ${validationErrors[`dayQty_${dayIdx}_${planIdx}`] ? 'is-invalid' : ''}`}
                                                                 style={{ fontSize: '12px' }}
                                                                 value={plan.quantity}
                                                                 onChange={(e) => handleDayPlanChange(dayIdx, planIdx, 'quantity', e.target.value)}
-                                                                required
                                                             />
+                                                            {validationErrors[`dayQty_${dayIdx}_${planIdx}`] && <div className="invalid-feedback d-block" style={{fontSize: '10px'}}>{validationErrors[`dayQty_${dayIdx}_${planIdx}`]}</div>}
                                                         </div>
                                                     </div>
                                                 </div>

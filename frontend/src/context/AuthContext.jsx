@@ -7,9 +7,9 @@ const isLocalhost = window.location.hostname === 'localhost' || window.location.
 const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(window.location.hostname);
 
 // For Netlify/Production, use the VITE_API_URL env var if available
-const apiURL = import.meta.env.VITE_API_URL;
+const apiURL = import.meta.env.VITE_API_URL || 'https://growthutsav2-o-1.onrender.com';
 
-axios.defaults.baseURL = apiURL || ((isLocalhost || isIP) ? `http://${window.location.hostname}:5000` : `${window.location.protocol}//${window.location.host}`);
+axios.defaults.baseURL = (isLocalhost || isIP) ? `http://${window.location.hostname}:5000` : apiURL;
 axios.defaults.withCredentials = true;
 
 const AuthContext = createContext();

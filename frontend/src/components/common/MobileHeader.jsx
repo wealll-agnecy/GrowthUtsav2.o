@@ -27,12 +27,6 @@ const MobileHeader = () => {
 
             <div className="d-flex align-items-center gap-2">
                 <button
-                    onClick={toggleTheme}
-                    className="theme-toggle-btn bg-transparent mobile-action-btn btn rounded-pill fw-medium px-4 py-2 btn-primary"
-                >
-                    {isLightMode ? <FaMoon size={18} /> : <FaSun size={18} />}
-                </button>
-                <button
                     onClick={() => navigate('/events')}
                     className="theme-toggle-btn bg-transparent mobile-action-btn btn rounded-pill fw-medium px-4 py-2 btn-primary"
                 >
