@@ -151,7 +151,7 @@ initScheduler();
 console.log("✅ Event Routes Loaded:", eventRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 console.log("✅ Booking Routes Loaded:", bookingRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 server.listen(PORT, () => {
     console.log(`🚀 [SERVER LIVE] [PORT: ${PORT}]`);

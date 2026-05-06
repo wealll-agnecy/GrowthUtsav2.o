@@ -42,6 +42,11 @@ const CheckoutFlow = () => {
     const [partialAmount, setPartialAmount] = useState('');
     const [contactEmail, setContactEmail] = useState(user?.email || '');
     
+    // Auto-scroll to top on step changes (Fixes issue where success page loads at bottom)
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [step]);
+    
     useEffect(() => {
         if (!state || !state.event) {
             navigate('/events');

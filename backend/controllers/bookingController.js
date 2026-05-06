@@ -1,4 +1,4 @@
-const Razorpay = require('razorpay');
+// Razorpay dependency removed
 const crypto = require('crypto');
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
