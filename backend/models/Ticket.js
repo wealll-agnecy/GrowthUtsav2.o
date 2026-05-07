@@ -95,4 +95,15 @@ const TicketSchema = new mongoose.Schema({
     }
 });
 
+// --- PRODUCTION INDEXES ---
+TicketSchema.index({ uuid: 1 });
+TicketSchema.index({ ticketCode: 1 });
+TicketSchema.index({ status: 1 });
+TicketSchema.index({ isScanned: 1 });
+TicketSchema.index({ booking: 1 });
+TicketSchema.index({ user: 1 });
+TicketSchema.index({ event: 1 });
+TicketSchema.index({ bookedAt: -1 });
+
 module.exports = mongoose.model('Ticket', TicketSchema);
+

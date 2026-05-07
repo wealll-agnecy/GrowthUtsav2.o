@@ -59,7 +59,7 @@ export const toggleLive = async (id) => {
 };
 
 export const updateLiveStatus = async (id, isLive) => {
-    const status = isLive ? 'live' : 'approved';
-    console.log(`🌐 [API CALL]: PUT ${API_URL}/${id} (Legacy Update)`, { isLive, status });
-    return await axios.put(`${API_URL}/${id}`, { isLive, status });
+    console.log(`🌐 [API CALL]: PUT ${API_URL}/set-live/${id}`, { isLive });
+    return await axios.put(`${API_URL}/set-live/${id}`, { isLive });
 };
+

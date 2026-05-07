@@ -3,82 +3,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
+// --- BASE USER SCHEMA ---
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Please add a name']
+        required: [true, 'Please add a name'],
+        trim: true
     },
     email: {
         type: String,
         required: [true, 'Please add an email'],
         unique: true,
+        lowercase: true,
         match: [
             /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
             'Please add a valid email'
         ]
-    },
-    role: {
-        type: String,
-        enum: ['attendee', 'organizer', 'admin', 'staff'],
-        default: 'attendee'
-    },
-    staffRole: {
-        type: String,
-        enum: ['gate staff', 'coordinator', 'support']
-    },
-    assignedEvents: [{
-        type: mongoose.Schema.ObjectId,
-        ref: 'Event'
-    }],
-    status: {
-        type: String,
-        enum: ['pending', 'verified'],
-        default: function() {
-            return this.role === 'organizer' ? 'pending' : 'verified';
-        }
-    },
-    // Organizer approval status — false until admin approves
-    isApproved: {
-        type: Boolean,
-        default: true
-    },
-    isRejected: {
-        type: Boolean,
-        default: false
-    },
-    rejectionReason: {
-        type: String
-    },
-    // Extra info organizer provides on registration
-    organizationDetails: {
-        companyName: String,
-        registrationNumber: String,
-        eventIntent: String,
-        phone: String,
-        website: String,
-        logo: String,
-        address: String,
-        selectedEventTypes: [String]
-    },
-    phone: {
-        type: String,
-        unique: true,
-        sparse: true,
-        match: [/^\+?[1-9]\d{1,14}$/, 'Please add a valid phone number']
-    },
-    address: {
-        type: String
-    },
-    avatar: {
-        type: String,
-        default: 'no-avatar.jpg'
-    },
-    servicePlan: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'ServicePlan'
-    },
-    planExpiry: {
-        type: Date
     },
     password: {
         type: String,
@@ -86,22 +26,46 @@ const UserSchema = new mongoose.Schema({
         minlength: 6,
         select: false
     },
+    phone: {
+        type: String,
+        unique: true,
+        sparse: true,
+        match: [/^\+?[1-9]\d{1,14}$/, 'Please add a valid phone number']
+    },
+    role: {
+        type: String,
+        enum: ['attendee', 'organizer', 'admin', 'staff'],
+        default: 'attendee',
+        required: true
+    },
+    avatar: {
+        type: String,
+        default: 'no-avatar.jpg'
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'verified', 'suspended'],
+        default: 'verified'
+    },
+    fcmToken: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    fcmToken: {
-        type: String // Token for Firebase Cloud Messaging
-    },
     createdAt: {
         type: Date,
         default: Date.now
-    },
-    createdBy: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
     }
+}, {
+    discriminatorKey: 'role', // This handles the logical separation
+    timestamps: true
 });
 
-// Encrypt password using bcrypt
+// --- PRODUCTION INDEXES ---
+UserSchema.index({ email: 1 });
+UserSchema.index({ phone: 1 });
+UserSchema.index({ role: 1 });
+UserSchema.index({ status: 1 });
+
+// --- AUTH LOGIC ---
 UserSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         next();
@@ -110,33 +74,66 @@ UserSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
     return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE
     });
 };
 
-// Match user entered password to hashed password in database
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Generate and hash password token
 UserSchema.methods.getResetPasswordToken = function () {
-    // Generate token
     const resetToken = crypto.randomBytes(20).toString('hex');
-
-    // Hash token and set to resetPasswordToken field
-    this.resetPasswordToken = crypto
-        .createHash('sha256')
-        .update(resetToken)
-        .digest('hex');
-
-    // Set expire
+    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
-
     return resetToken;
 };
 
-module.exports = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
+
+// --- ROLE-SPECIFIC DISCRIMINATORS (PRO SEPARATION) ---
+
+// 1. Organizer Schema
+const Organizer = User.discriminator('organizer', new mongoose.Schema({
+    isApproved: { type: Boolean, default: false },
+    isRejected: { type: Boolean, default: false },
+    rejectionReason: String,
+    organizationDetails: {
+        companyName: String,
+        registrationNumber: String,
+        eventIntent: String,
+        website: String,
+        logo: String,
+        address: String,
+        selectedEventTypes: [String]
+    },
+    servicePlan: { type: mongoose.Schema.ObjectId, ref: 'ServicePlan' },
+    planExpiry: Date
+}));
+
+// 2. Staff Schema
+const Staff = User.discriminator('staff', new mongoose.Schema({
+    staffRole: {
+        type: String,
+        enum: ['gate staff', 'coordinator', 'support'],
+        required: true
+    },
+    assignedEvents: [{ type: mongoose.Schema.ObjectId, ref: 'Event' }],
+    createdBy: { type: mongoose.Schema.ObjectId, ref: 'User' }
+}));
+
+// 3. Admin Schema
+const Admin = User.discriminator('admin', new mongoose.Schema({
+    permissions: [String]
+}));
+
+// 4. Attendee Schema
+const Attendee = User.discriminator('attendee', new mongoose.Schema({
+    interests: [String],
+    address: String
+}));
+
+module.exports = User;
+
