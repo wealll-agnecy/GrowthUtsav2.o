@@ -52,7 +52,8 @@ initFirebase();
 app.set('trust proxy', 1); // trust first proxy
 app.use(helmet({
     contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
 }));
 
 // Rate limiting
@@ -140,7 +141,7 @@ app.get("/test-mail", async (req, res) => {
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-    app.get('*', (req, res) => {
+    app.get('/*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
     });
 }

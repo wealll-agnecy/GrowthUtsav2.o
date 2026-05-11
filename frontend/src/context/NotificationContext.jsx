@@ -45,7 +45,7 @@ export const NotificationProvider = ({ children }) => {
         });
 
         newSocket.on('connect', () => {
-            console.log('ðŸ”Œ Connected to Notification Stream');
+            console.log('[SOCKET] Connected to Notification Stream');
             newSocket.emit('join', user._id || user.id);
         });
 
@@ -59,7 +59,7 @@ export const NotificationProvider = ({ children }) => {
         };
 
         newSocket.on('notification', (notif) => {
-            console.log('ðŸ”” New Real-time Notification:', notif);
+            console.log('[SIGNAL] New Real-time Notification:', notif);
             setNotifications(prev => [notif, ...prev]);
             setUnreadCount(prev => prev + 1);
             
@@ -68,7 +68,7 @@ export const NotificationProvider = ({ children }) => {
             
             // Extract Event ID for redirection
             const eventId = notif.eventId?._id || notif.eventId || notif.event?._id || notif.event;
-
+ 
             // Show Clickable Premium Toast
             toast((t) => (
                 <div 
@@ -83,7 +83,7 @@ export const NotificationProvider = ({ children }) => {
                     }}
                 >
                     <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>ðŸ””</span> {notif.title || 'New Signal'}
+                        <span>[!]</span> {notif.title || 'New Signal'}
                     </div>
                     <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>{notif.message}</div>
                 </div>

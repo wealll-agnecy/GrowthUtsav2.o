@@ -12,12 +12,12 @@ const initSocket = (server) => {
     });
 
     io.on('connection', (socket) => {
-        console.log('ðŸ”Œ [SOCKET]: New connection:', socket.id);
+        console.log('[SOCKET] [SOCKET]: New connection:', socket.id);
 
         socket.on('join', (userId) => {
             if (userId) {
                 userSockets.set(userId.toString(), socket.id);
-                console.log(`ðŸ‘¤ [SOCKET]: User ${userId} joined with socket ${socket.id}`);
+                console.log(`[USER] [SOCKET]: User ${userId} joined with socket ${socket.id}`);
             }
         });
 
@@ -26,7 +26,7 @@ const initSocket = (server) => {
             for (let [userId, socketId] of userSockets.entries()) {
                 if (socketId === socket.id) {
                     userSockets.delete(userId);
-                    console.log(`ðŸ‘‹ [SOCKET]: User ${userId} disconnected`);
+                    console.log(`[BYE] [SOCKET]: User ${userId} disconnected`);
                     break;
                 }
             }
@@ -43,7 +43,7 @@ const sendToUser = (userId, event, data) => {
             io.to(socketId).emit(event, data);
             console.log(`âœ‰ï¸ [SOCKET]: Sent notification to user ${userId}`);
         } else {
-            console.log(`ðŸ“´ [SOCKET]: User ${userId} is offline, skipping real-time delivery`);
+            console.log(`[OFFLINE] [SOCKET]: User ${userId} is offline, skipping real-time delivery`);
         }
     }
 };
@@ -51,7 +51,7 @@ const sendToUser = (userId, event, data) => {
 const broadcast = (event, data) => {
     if (io) {
         io.emit(event, data);
-        console.log(`ðŸ“¢ [SOCKET]: Broadcasted event: ${event}`);
+        console.log(`[ANNOUNCE] [SOCKET]: Broadcasted event: ${event}`);
     }
 };
 

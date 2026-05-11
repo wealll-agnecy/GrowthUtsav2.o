@@ -10,7 +10,7 @@ export const useClickSound = () => {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        console.log('ðŸ“¡ [SOUND_SYSTEM]: Initializing global audio listener...');
+        console.log('[SIGNAL] [SOUND_SYSTEM]: Initializing global audio listener...');
         
         // Preload sound
         const audio = new Audio(CLICK_SOUND_URL);

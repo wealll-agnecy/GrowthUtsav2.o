@@ -13,7 +13,7 @@ const initFirebase = () => {
             credential: admin.credential.cert(serviceAccount)
         });
 
-        console.log('ðŸ”¥ [FIREBASE]: Admin initialized successfully');
+        console.log('[FIREBASE] [FIREBASE]: Admin initialized successfully');
         return admin;
     } catch (err) {
         console.error('âŒ [FIREBASE]: Initialization failed:', err.message);

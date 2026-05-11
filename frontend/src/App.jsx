@@ -120,7 +120,7 @@ const AppContent = () => {
                             <Route path="/admin" element={<AdminSecretLogin />} />
                             <Route path="/admin-login" element={<AdminSecretLogin />} />
 
-                            <Route path="/attendee/dashboard" element={<ProtectedRoute roles={['user', 'admin']}><DashboardWrapper role="attendee"><AttendeeDashboard /></DashboardWrapper></ProtectedRoute>} />
+
                             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
                             {/* Organizer Dashboard Routes */}

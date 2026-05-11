@@ -139,7 +139,7 @@ const Profile = () => {
                                     <div className="d-flex flex-column gap-2">
                                         <Button 
                                             as={Link} 
-                                            to={user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'organizer' ? '/organizer/dashboard' : '/attendee/dashboard'} 
+                                            to={user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'organizer' ? '/organizer/dashboard' : '/my-bookings'} 
                                             className="btn btn-pink w-100 rounded-pill fw-bold py-2 shadow-sm"
                                         >
                                             Access Dashboard

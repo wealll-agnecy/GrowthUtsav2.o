@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from './apiClient';
 
 const API_URL = '/api/v1/tickets';
 
@@ -6,7 +6,7 @@ const API_URL = '/api/v1/tickets';
  * Fetch ticket details from the backend
  */
 export const getTicket = async (id) => {
-    return await axios.get(`${API_URL}/${id}`);
+    return await apiClient.get(`${API_URL}/${id}`);
 };
 
 /**
@@ -14,7 +14,7 @@ export const getTicket = async (id) => {
  */
 export const downloadTicketPDF = async (id) => {
     try {
-        const response = await axios.get(`${API_URL}/${id}/download`, {
+        const response = await apiClient.get(`${API_URL}/${id}/download`, {
             responseType: 'blob', // Important for binary data
         });
 
@@ -43,5 +43,5 @@ export const downloadTicketPDF = async (id) => {
  * Publicly verify a ticket ID (used by the scanning page)
  */
 export const verifyTicketForScanner = async (uuid) => {
-    return await axios.get(`/api/ticket/verify/${uuid}`);
+    return await apiClient.get(`/api/ticket/verify/${uuid}`);
 };

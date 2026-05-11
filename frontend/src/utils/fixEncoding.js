@@ -12,7 +12,7 @@ export const fixEncoding = (text) => {
         .replace(/â‚¹/g, '₹')
         .replace(/âœ…/g, '✅')
         .replace(/ðŸš€/g, '🚀')
-        .replace(/ðŸ” /g, '🔒')
+        .replace(/[SEARCH]/g, '🔒')
         .replace(/ðŸŒ /g, '🌐')
         .replace(/ðŸš¨/g, '🚨')
         .replace(/ðŸ“§/g, '📧')

@@ -1,7 +1,7 @@
-import axios from 'axios';
+import apiClient from './apiClient';
 
 const API_URL = '/api/v1/tickets';
 
 export const verifyTicket = async (ticketPayload) => {
-    return await axios.post(`${API_URL}/verify`, ticketPayload);
+    return await apiClient.post(`${API_URL}/verify`, ticketPayload);
 };

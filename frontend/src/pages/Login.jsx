@@ -23,7 +23,7 @@ const Login = () => {
                 if (user.status === 'pending') navigate('/pending-verification');
                 else navigate('/organizer/dashboard');
             }
-            else if (user.role === 'attendee') navigate('/attendee/dashboard');
+            else if (user.role === 'attendee') navigate('/');
             else if (user.role === 'staff') navigate('/staff/dashboard');
             else navigate('/');
 

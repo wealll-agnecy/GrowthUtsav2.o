@@ -25,7 +25,7 @@ const DashboardLayout = ({ children, role }) => {
         if (role === 'admin') {
             try {
                 const res = await axios.get('/api/v1/notifications/count');
-                console.log('ðŸ”” Notification Counts:', res.data);
+                console.log('[NOTIF] Notification Counts:', res.data);
                 setPendingOrgCount(res.data.requests || 0);
                 setEnquiryCount(res.data.enquiries || 0);
             } catch (err) {
@@ -72,7 +72,6 @@ const DashboardLayout = ({ children, role }) => {
     ];
 
     const attendeeLinks = [
-        { name: 'My Hub', path: '/attendee/dashboard', icon: <FaThLarge /> },
         { name: 'My Tickets', path: '/my-bookings', icon: <FaTicketAlt /> },
         { name: 'Explore', path: '/events', icon: <FaCalendarAlt /> },
         { name: 'Profile', path: '/profile', icon: <FaCog /> },

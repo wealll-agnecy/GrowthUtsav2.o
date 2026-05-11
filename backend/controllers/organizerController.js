@@ -77,7 +77,7 @@ exports.approveOrganizer = async (req, res) => {
         // Send Notification
         await notificationQueue.add('alert', {
             userId: user._id,
-            title: 'Account Verified! ðŸŽŠ',
+            title: 'Account Verified! [PARTY]',
             message: 'Your organizer account has been approved. You can now create and manage events.',
             type: 'system'
         });

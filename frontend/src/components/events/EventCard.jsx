@@ -3,7 +3,7 @@ import { FaMapMarkerAlt, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import './EventCard.css';
 import API_BASE_URL from '../../config/apiConfig';
 
-import { formatCurrency } from '../../utils/formatUtils';
+import { formatCurrency, resolveImageUrl } from '../../utils/formatUtils';
 
 const EventCard = ({ event }) => {
     const navigate = useNavigate();
@@ -16,13 +16,7 @@ const EventCard = ({ event }) => {
     const ticketPrices = event?.ticketTypes?.map(t => t.price) || [0];
     const minPrice = ticketPrices.length > 0 ? Math.min(...ticketPrices) : 0;
 
-    const bannerUrl = event?.eventImage
-        ? (event.eventImage.startsWith('http') ? event.eventImage : `${API_BASE_URL.replace(/\/api\/v1$/, '')}${event.eventImage}`)
-        : (event?.bannerImage && event?.bannerImage !== 'no-photo.jpg' && !event?.bannerImage.startsWith('http'))
-            ? `${API_BASE_URL.replace(/\/api\/v1$/, '')}/uploads/${event.bannerImage}`
-            : (event?.bannerImage && event?.bannerImage.startsWith('http'))
-                ? event.bannerImage
-                : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1000';
+    const bannerUrl = resolveImageUrl(event?.eventImage || event?.bannerImage);
 
     return (
         <div 

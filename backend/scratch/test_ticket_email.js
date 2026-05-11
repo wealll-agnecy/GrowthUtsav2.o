@@ -11,7 +11,7 @@ dotenv.config();
 
 async function testDelivery() {
     try {
-        console.log("ðŸ”— Connecting to MongoDB...");
+        console.log("[LINK] Connecting to MongoDB...");
         await mongoose.connect(process.env.MONGO_URI);
         console.log("✅ Connected.");
 
@@ -23,16 +23,16 @@ async function testDelivery() {
             process.exit(1);
         }
 
-        console.log(`ðŸŽ« Found Ticket: ${ticket.ticketCode} for event ${ticket.event.title}`);
-        console.log(`ðŸ‘¤ Attendee: ${ticket.name} (${ticket.email})`);
+        console.log(`[TICKET] Found Ticket: ${ticket.ticketCode} for event ${ticket.event.title}`);
+        console.log(`[USER] Attendee: ${ticket.name} (${ticket.email})`);
 
         // 2. Generate PDF
-        console.log("ðŸ“„ Generating PDF buffer...");
+        console.log("[PDF] Generating PDF buffer...");
         const pdfBuffer = await generateTicketPDF(ticket._id);
         console.log("✅ PDF Generated successfully.");
 
         // 3. Send Email
-        console.log(`ðŸ“© Dispatching email to ${ticket.user.email}...`);
+        console.log(`[EMAIL] Dispatching email to ${ticket.user.email}...`);
         await sendBookingConfirmation(ticket.user, ticket.event, pdfBuffer, {
             ticketType: ticket.ticketType,
             quantity: ticket.booking?.quantity || 1,
@@ -45,7 +45,7 @@ async function testDelivery() {
         console.error("🚨 Test failed:", err.message);
     } finally {
         await mongoose.disconnect();
-        console.log("ðŸ”Œ Disconnected from DB.");
+        console.log("[SOCKET] Disconnected from DB.");
     }
 }
 

@@ -103,7 +103,7 @@ exports.verifyPayment = async (req, res) => {
         console.log(`✅ [PAYMENT] Verified! Amount: ${amountFromOrder}, Booking: ${bookingId}`);
         await booking.save();
 
-        console.log(`ðŸ“„ [PDF] Generating ticket for booking ${booking._id}...`);
+        console.log(`[PDF] [PDF] Generating ticket for booking ${booking._id}...`);
         const ticket = await createTicketAfterPayment(booking._id, booking.event._id, req.user.id);
         console.log(`✅ [PDF] Ticket generated successfully: ${ticket._id}`);
 
@@ -114,7 +114,7 @@ exports.verifyPayment = async (req, res) => {
         // AUTO EMAIL with PDF
         if (booking.paymentStatus === 'completed') {
             try {
-                console.log(`ðŸ“© [EMAIL] Preparing to dispatch ticket to: ${booking.contactEmail || req.user.email}`);
+                console.log(`[EMAIL] [EMAIL] Preparing to dispatch ticket to: ${booking.contactEmail || req.user.email}`);
                 const pdfBuffer = await generateTicketPDF(ticket._id);
                 await sendBookingConfirmation(
                     { name: req.user.name, email: booking.contactEmail || req.user.email },
@@ -304,7 +304,7 @@ exports.verifyInstallment = async (req, res) => {
 
         // Sync Ticket Financials
         if (booking.ticketId) {
-            console.log(`ðŸ“„ [PDF] Regenerating ticket for booking ${booking._id} (Installment update)...`);
+            console.log(`[PDF] [PDF] Regenerating ticket for booking ${booking._id} (Installment update)...`);
             const Ticket = require('../models/Ticket');
             const ticket = await Ticket.findByIdAndUpdate(booking.ticketId, {
                 amountPaid: booking.amountPaid,
@@ -370,7 +370,7 @@ exports.resendTicketEmail = async (req, res) => {
             return res.status(400).json({ success: false, message: "No ticket record found for this booking." });
         }
 
-        console.log(`ðŸ“„ [RESEND] Regenerating PDF for Ticket: ${booking.ticketId}`);
+        console.log(`[PDF] [RESEND] Regenerating PDF for Ticket: ${booking.ticketId}`);
         const pdfBuffer = await generateTicketPDF(booking.ticketId);
         await sendBookingConfirmation(
             { name: req.user.name, email: booking.contactEmail || req.user.email },

@@ -52,7 +52,7 @@ const sendTicketMail = async (args) => {
       });
     }
 
-    console.log("ðŸ“© Sending email to:", to);
+    console.log("[EMAIL] Sending email to:", to);
 
     const info = await transporter.sendMail({
       from: `"Growth Utsav" <${process.env.EMAIL_USER}>`,

@@ -13,7 +13,7 @@ import { motion } from 'framer-motion';
 import EventCard from '../components/events/EventCard';
 import './EventDetails.css';
 import API_BASE_URL from '../config/apiConfig';
-import { formatCurrency } from '../utils/formatUtils';
+import { formatCurrency, resolveImageUrl } from '../utils/formatUtils';
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -176,11 +176,7 @@ const EventDetails = () => {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
     });
 
-    const bannerUrl = event.eventImage
-        ? (event.eventImage.startsWith('http') ? event.eventImage : `${API_BASE_URL.replace(/\/api\/v1$/, '')}${event.eventImage}`)
-        : (event.bannerImage && event.bannerImage !== 'no-photo.jpg')
-            ? (event.bannerImage.startsWith('http') ? event.bannerImage : `${API_BASE_URL.replace(/\/api\/v1$/, '')}/uploads/${event.bannerImage}`)
-            : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=2000';
+    const bannerUrl = resolveImageUrl(event.eventImage || event.bannerImage);
 
     let selectedTicket;
     let currentPlans = [];
@@ -280,7 +276,7 @@ const EventDetails = () => {
                                         <div className="host-avatar-wrapper shadow-glow">
                                             {event.organizer?.avatar && event.organizer.avatar !== 'no-avatar.jpg' ? (
                                                 <img 
-                                                    src={event.organizer.avatar.startsWith('http') ? event.organizer.avatar : `${axios.defaults.baseURL}${event.organizer.avatar}`} 
+                                                    src={resolveImageUrl(event.organizer.avatar, 'avatar')} 
                                                     alt="Host" 
                                                     className="rounded-circle border border-3 border-pink shadow"
                                                     style={{ width: '80px', height: '80px', objectFit: 'cover' }}

@@ -4,7 +4,7 @@ import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaArrowRight, FaClock } from 'r
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../../config/apiConfig';
-import { formatCurrency } from '../../utils/formatUtils';
+import { formatCurrency, resolveImageUrl } from '../../utils/formatUtils';
 
 const OrganizerEventCard = ({ event }) => {
     const navigate = useNavigate();
@@ -23,7 +23,7 @@ const OrganizerEventCard = ({ event }) => {
             <div className="dashboard-card shadow-sm overflow-hidden p-0 border-0 h-100">
                 <div className="position-relative" style={{ height: '180px' }}>
                     <img
-                        src={(event.bannerImage && event.bannerImage !== 'no-photo.jpg' && !event.bannerImage.startsWith('http')) ? `${API_BASE_URL}/uploads/${event.bannerImage}` : (event.bannerImage && event.bannerImage.startsWith('http')) ? event.bannerImage : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'}
+                        src={resolveImageUrl(event.bannerImage || event.eventImage)}
                         className="h-100 w-100 object-fit-cover"
                         alt={event.title}
                     />

@@ -346,7 +346,7 @@ exports.verifyTicketForStaff = async (req, res) => {
 // This is used by booking control flow
 exports.createTicketAfterPayment = async (bookingId, eventId, userId) => {
     try {
-        console.log("ðŸŽ« STEP: Initiating createTicketAfterPayment");
+        console.log("[TICKET] STEP: Initiating createTicketAfterPayment");
         
         // STRICT OBJECTID ENFORCEMENT: Remove manual virtual-admin string bypasses.
         const userDoc = await User.findById(userId);

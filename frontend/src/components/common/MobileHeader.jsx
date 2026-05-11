@@ -32,7 +32,7 @@ const MobileHeader = () => {
                     <FaSearch size={18} />
                 </button>
                 <Link
-                    to={user ? (user.role === 'admin' ? '/admin/dashboard' : '/attendee/dashboard') : '/login'}
+                    to={user ? (user.role === 'admin' ? '/admin/dashboard' : '/profile') : '/login'}
                     className="profile-avatar-node shadow-glow-hover d-flex align-items-center justify-content-center mobile-profile-node"
                 >
                     <FaUserCircle size={24} color="#fff" />

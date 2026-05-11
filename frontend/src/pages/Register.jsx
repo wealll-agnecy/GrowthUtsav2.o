@@ -28,7 +28,7 @@ const Register = () => {
         if (user) {
             if (user.role === 'admin') navigate('/admin/dashboard');
             else if (user.role === 'organizer') navigate('/organizer/dashboard');
-            else navigate('/attendee/dashboard');
+            else navigate('/');
         }
         return () => setError(null);
     }, [user, navigate, setError]);

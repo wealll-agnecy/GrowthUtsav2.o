@@ -52,7 +52,7 @@ const REDIS_ENABLED = process.env.REDIS_URL || process.env.ENABLE_REDIS === 'tru
 
 let notificationQueue = { 
     add: async (name, data) => {
-        console.log(`ðŸ“¡ [QUEUE-OFFLINE]: Processing ${name} immediately (Redis disabled)`);
+        console.log(`[SIGNAL] [QUEUE-OFFLINE]: Processing ${name} immediately (Redis disabled)`);
         await processNotificationAction(data);
     },
     getJob: async () => null,
@@ -86,7 +86,7 @@ if (REDIS_ENABLED) {
         });
 
         worker = new Worker('notificationQueue', async (job) => {
-            console.log(`ðŸ“¦ [QUEUE]: Processing job ${job.id} (${job.name})`);
+            console.log(`[QUEUE] [QUEUE]: Processing job ${job.id} (${job.name})`);
             await processNotificationAction(job.data);
         }, { connection });
 
@@ -96,7 +96,7 @@ if (REDIS_ENABLED) {
         console.error('âŒ [QUEUE]: Initialization error:', err.message);
     }
 } else {
-    console.log('ðŸ’¡ [REDIS]: Offline mode active. Real-time notifications used via relay.');
+    console.log('[TIP] [REDIS]: Offline mode active. Real-time notifications used via relay.');
 }
 
 const scheduleReminders = async (userId, eventId, eventDate) => {
