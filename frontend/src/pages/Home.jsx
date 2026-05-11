@@ -186,7 +186,7 @@ const Home = () => {
     return (
         <div className="homepage-beauty-wrapper">
 
-            {/* ═══════════ HERO SECTION ═══════════ */}
+            {/* â•â•â•â•â•â•â•â•â•â•â• HERO SECTION â•â•â•â•â•â•â•â•â•â•â• */}
             <section className="hero-section d-flex align-items-center">
                 <div className="container-premium">
                     <Row className="align-items-center">
@@ -243,7 +243,7 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ SECTION 1: CURATED EXPERIENCES ═══════════ */}
+            {/* â•â•â•â•â•â•â•â•â•â•â• SECTION 1: CURATED EXPERIENCES â•â•â•â•â•â•â•â•â•â•â• */}
             <section className="curated-section">
                 <div className="container-premium py-4 py-lg-5">
                     <div className="d-flex justify-content-between align-items-end mb-5">
@@ -279,7 +279,7 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ HISTORY IN MOTION: 3D BOOK FLIP SHOWCASE ═══════════ */}
+            {/* â•â•â•â•â•â•â•â•â•â•â• HISTORY IN MOTION: 3D BOOK FLIP SHOWCASE â•â•â•â•â•â•â•â•â•â•â• */}
             <section className="history-book-section py-5">
                 <div className="container-premium text-center mb-5">
                     <span className="section-tag-premium">History in Motion</span>
@@ -291,7 +291,7 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ SECTION 2: THE DIFFERENCE ═══════════ */}
+            {/* â•â•â•â•â•â•â•â•â•â•â• SECTION 2: THE DIFFERENCE â•â•â•â•â•â•â•â•â•â•â• */}
             <section className="difference-section">
                 <div className="container-premium py-4 py-lg-5">
                     <div className="text-center mb-5">
@@ -317,7 +317,7 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ SECTION 3: OUR SUCCESSFUL EVENTS ═══════════ */}
+            {/* â•â•â•â•â•â•â•â•â•â•â• SECTION 3: OUR SUCCESSFUL EVENTS â•â•â•â•â•â•â•â•â•â•â• */}
             <section className="successful-events-section">
                 <div className="container-premium py-4 py-lg-5">
                     <div className="text-center mb-5">
@@ -351,7 +351,7 @@ const Home = () => {
             </section>
 
 
-            {/* ═══════════ TESTIMONIALS ═══════════ */}
+            {/* â•â•â•â•â•â•â•â•â•â•â• TESTIMONIALS â•â•â•â•â•â•â•â•â•â•â• */}
             <section className="testimonials-section">
                 <div className="container-premium py-4 py-lg-5">
                     <div className="text-center mb-5">
@@ -375,7 +375,7 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ═══════════ CTA SECTION ═══════════ */}
+            {/* â•â•â•â•â•â•â•â•â•â•â• CTA SECTION â•â•â•â•â•â•â•â•â•â•â• */}
             <section className="cta-beauty-section">
                 <div className="container-premium">
                     <motion.div

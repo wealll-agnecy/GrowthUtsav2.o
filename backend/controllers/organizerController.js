@@ -77,7 +77,7 @@ exports.approveOrganizer = async (req, res) => {
         // Send Notification
         await notificationQueue.add('alert', {
             userId: user._id,
-            title: 'Account Verified! 🎊',
+            title: 'Account Verified! ðŸŽŠ',
             message: 'Your organizer account has been approved. You can now create and manage events.',
             type: 'system'
         });
@@ -114,7 +114,7 @@ exports.rejectOrganizer = async (req, res) => {
         // Send Notification
         await notificationQueue.add('alert', {
             userId: user._id,
-            title: 'Account Update ⚠️',
+            title: 'Account Update âš ï¸',
             message: `Your organizer application was not approved. Reason: ${reason || 'Incomplete profile'}`,
             type: 'system'
         });

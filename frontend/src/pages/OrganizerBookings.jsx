@@ -3,6 +3,7 @@ import { Container, Table, Badge, Spinner, Alert, Card, Row, Col } from 'react-b
 import axios from 'axios';
 import { FaTicketAlt, FaWallet, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import '../css/dashboard.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 const OrganizerBookings = () => {
     const [bookings, setBookings] = useState([]);
@@ -46,15 +47,15 @@ const OrganizerBookings = () => {
                 <div className="stats-grid-saas mb-5">
                     <div className="dashboard-card shadow-sm">
                         <span className="card-title-sm">Gross Sales</span>
-                        <h3 className="card-value-lg">₹{totalExpected.toLocaleString()}</h3>
+                        <h3 className="card-value-lg">{formatCurrency(totalExpected)}</h3>
                     </div>
                     <div className="dashboard-card shadow-sm">
                         <span className="card-title-sm">Collected</span>
-                        <h3 className="card-value-lg text-success">₹{totalCollected.toLocaleString()}</h3>
+                        <h3 className="card-value-lg text-success">{formatCurrency(totalCollected)}</h3>
                     </div>
                     <div className="dashboard-card shadow-sm">
                         <span className="card-title-sm">Pending Dues</span>
-                        <h3 className="card-value-lg text-warning">₹{totalPending.toLocaleString()}</h3>
+                        <h3 className="card-value-lg text-warning">{formatCurrency(totalPending)}</h3>
                     </div>
                 </div>
 
@@ -85,8 +86,8 @@ const OrganizerBookings = () => {
                                         </td>
                                         <td className="py-3" style={{ minWidth: '180px' }}>
                                             <div className="d-flex justify-content-between mb-1 tiny-text fw-bold">
-                                                <span>₹{booking.amountPaid || 0} Paid</span>
-                                                <span className="text-danger">₹{(booking.totalAmount - (booking.amountPaid || 0))} Due</span>
+                                                <span>{formatCurrency(booking.amountPaid || 0)} Paid</span>
+                                                <span className="text-danger">{formatCurrency(booking.totalAmount - (booking.amountPaid || 0))} Due</span>
                                             </div>
                                             <div className="progress mb-1" style={{ height: '6px', borderRadius: '10px' }}>
                                                 <div 
@@ -95,7 +96,7 @@ const OrganizerBookings = () => {
                                                     style={{ width: `${((booking.amountPaid || 0) / booking.totalAmount) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="tiny-text text-muted">Total: ₹{booking.totalAmount}</div>
+                                            <div className="tiny-text text-muted">Total: {formatCurrency(booking.totalAmount)}</div>
                                         </td>
                                         <td className="py-3">
                                             {(booking.amountPaid || 0) >= booking.totalAmount ? (
@@ -109,7 +110,7 @@ const OrganizerBookings = () => {
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-end fw-black h5 m-0">
-                                            ₹{booking.totalAmount.toLocaleString()}
+                                            {formatCurrency(booking.totalAmount)}
                                         </td>
                                     </tr>
                                 ))}

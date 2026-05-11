@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import * as bookingApi from "../api/bookingApi";
 import toast from "react-hot-toast";
 import { playSound } from "../utils/soundManager";
+import { formatCurrency } from "../utils/formatUtils";
 
 const RemainingPaymentPage = () => {
     const { bookingId } = useParams();
@@ -38,7 +39,7 @@ const RemainingPaymentPage = () => {
     const initiatePaymentFlow = async (amount) => {
         try {
             setProcessing(true);
-            const loadToast = toast.loading(`Initiating payment for ₹${amount}...`);
+            const loadToast = toast.loading(`Initiating payment for ${formatCurrency(amount)}...`);
 
             // 1. Initiate Order
             await bookingApi.initiateInstallment(bookingId, amount);
@@ -88,7 +89,7 @@ const RemainingPaymentPage = () => {
         }
 
         if (amount > due) {
-            toast.error(`Amount exceeds the remaining due of ₹${due}`);
+            toast.error(`Amount exceeds the remaining due of ${formatCurrency(due)}`);
             return;
         }
 
@@ -129,15 +130,15 @@ const RemainingPaymentPage = () => {
                 <div className="amount-box">
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                         <span style={{ fontWeight: "600", color: "#475569" }}>Total Amount:</span>
-                        <span style={{ fontWeight: "800" }}>₹{totalAmount}</span>
+                        <span style={{ fontWeight: "800" }}>{formatCurrency(totalAmount)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                         <span style={{ fontWeight: "600", color: "#475569" }}>Paid So Far:</span>
-                        <span style={{ fontWeight: "800", color: "#16a34a" }}>₹{paidAmount}</span>
+                        <span style={{ fontWeight: "800", color: "#16a34a" }}>{formatCurrency(paidAmount)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(236,72,153,0.1)", paddingTop: "12px", marginTop: "4px" }}>
                         <span style={{ fontWeight: "700", color: "#0f172a" }}>Remaining Due:</span>
-                        <span style={{ fontWeight: "900", color: "#dc2626", fontSize: "1.2rem" }}>₹{dueAmount}</span>
+                        <span style={{ fontWeight: "900", color: "#dc2626", fontSize: "1.2rem" }}>{formatCurrency(dueAmount)}</span>
                     </div>
                 </div>
 
@@ -150,7 +151,7 @@ const RemainingPaymentPage = () => {
                         onClick={handleFullPayment}
                         disabled={processing || dueAmount <= 0}
                     >
-                        {processing ? "Processing..." : `Pay Full Due Amount (₹${dueAmount})`}
+                        {processing ? "Processing..." : `Pay Full Due Amount (${formatCurrency(dueAmount)})`}
                     </button>
                 </div>
 
@@ -169,7 +170,7 @@ const RemainingPaymentPage = () => {
                             style={{ 
                                 width: "100%", 
                                 height: "54px", 
-                                padding: "0 16px 0 32px", 
+                                padding: "0 16px 0 45px", 
                                 borderRadius: "16px", 
                                 border: "2px solid #f1f5f9", 
                                 background: "#f8fafc",

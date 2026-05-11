@@ -25,7 +25,7 @@ const DashboardLayout = ({ children, role }) => {
         if (role === 'admin') {
             try {
                 const res = await axios.get('/api/v1/notifications/count');
-                console.log('🔔 Notification Counts:', res.data);
+                console.log('ðŸ”” Notification Counts:', res.data);
                 setPendingOrgCount(res.data.requests || 0);
                 setEnquiryCount(res.data.enquiries || 0);
             } catch (err) {
@@ -106,7 +106,7 @@ const DashboardLayout = ({ children, role }) => {
 
     const SidebarContent = () => (
         <div className="d-flex flex-column h-100 py-4 dashboard_left_sidebar">
-            <div className="px-4 mb-4 d-flex align-items-center justify-content-between logo-section-sidebar">
+            <div className="px-3 mb-4 d-flex align-items-center justify-content-between logo-section-sidebar">
                 <Link to="/" className="logo-container text-decoration-none">
                     {collapsed ? (
                         <motion.div 
@@ -158,7 +158,7 @@ const DashboardLayout = ({ children, role }) => {
                         as={Link}
                         to={link.path}
                         onClick={() => setShowMobileSidebar(false)}
-                        className={`d-flex align-items-center gap-3 px-3 py-3 rounded-4 transition-premium overflow-visible-nav ${isActive(link.path) ? 'bg-primary text-white shadow-glow' : 'text-white-50 hover-bg-white/5 hover-text-white'}`}
+                        className={`d-flex align-items-center gap-3 px-3 py-3 rounded-4 transition-premium overflow-visible-nav ${isActive(link.path) ? 'bg-primary text-white shadow-glow' : 'text-secondary hover-bg-white/5 hover-text-primary'}`}
                     >
                         <span className={`nav-icon-box ${isActive(link.path) ? 'text-white' : 'text-primary-light'}`}>
                             {link.icon}
@@ -168,7 +168,7 @@ const DashboardLayout = ({ children, role }) => {
                             <motion.span
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="small fw-black text-uppercase tracking-widest link-text-label"
+                                className="small fw-semibold text-uppercase tracking-widest link-text-label"
                             >
                                 {link.name}
                             </motion.span>
@@ -177,17 +177,17 @@ const DashboardLayout = ({ children, role }) => {
                 ))}
             </Nav>
 
-            <div className="px-3 mt-auto pt-4 border-top border-white/5">
+            <div className="px-3 mt-auto pt-4 border-top border-dark/5">
                 <div className={`d-flex align-items-center gap-3 p-2 rounded-4 user-drawer-info ${collapsed ? 'justify-content-center' : ''}`}>
                     <div
-                        className="rounded-circle bg-gradient-premium d-flex align-items-center justify-content-center fw-black text-white shadow-lg user-avatar-badge"
+                        className="rounded-circle bg-gradient-premium d-flex align-items-center justify-content-center fw-bold text-white shadow-lg user-avatar-badge"
                     >
                         {user?.name?.charAt(0) || role?.charAt(0).toUpperCase()}
                     </div>
                     {!collapsed && (
                         <div className="overflow-hidden">
-                            <p className="m-0 small fw-black text-white text-truncate user-name-label">{user?.name || 'Active User'}</p>
-                            <p className="m-0 text-white-50 text-truncate uppercase tracking-tighter user-role-label">{role} node</p>
+                            <p className="m-0 small fw-bold text-dark text-truncate user-name-label">{user?.name || 'Active User'}</p>
+                            <p className="m-0 text-secondary text-truncate uppercase tracking-tighter user-role-label">{role} node</p>
                         </div>
                     )}
                 </div>
@@ -197,7 +197,7 @@ const DashboardLayout = ({ children, role }) => {
                     className={`w-100 mt-3 d-flex align-items-center gap-3 text-danger hover-bg-danger/10 shadow-none transition-all ${collapsed ? 'justify-content-center' : ''} btn rounded-pill fw-medium px-4 py-2`}
                 >
                     <FaSignOutAlt />
-                    {!collapsed && <span className="small fw-black uppercase tracking-widest logout-label-text">Disconnect</span>}
+                    {!collapsed && <span className="small fw-semibold uppercase tracking-widest logout-label-text">Disconnect</span>}
                 </Button>
             </div>
         </div>
@@ -209,7 +209,7 @@ const DashboardLayout = ({ children, role }) => {
             <motion.div
                 animate={{ width: collapsed ? '80px' : '280px' }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="d-none d-lg-block border-end border-white/5 bg-dark-space desktop-sidebar-box"
+                className="d-none d-lg-block border-end border-dark/5 bg-white desktop-sidebar-box"
             >
                 <SidebarContent />
             </motion.div>
@@ -222,10 +222,10 @@ const DashboardLayout = ({ children, role }) => {
             <Offcanvas
                 show={showMobileSidebar}
                 onHide={() => setShowMobileSidebar(false)}
-                className="bg-dark-space text-white border-0 offcanvas-sidebar-box"
+                className="bg-white text-dark border-0 offcanvas-sidebar-box"
                 placement="start"
             >
-                <Offcanvas.Header closeButton closeVariant="white" className="border-bottom border-white/5" />
+                <Offcanvas.Header closeButton className="border-bottom border-dark/5" />
 
                 <Offcanvas.Body className="p-0 overflow-hidden">
                     <SidebarContent />

@@ -15,7 +15,7 @@ exports.getNotificationCounts = async (req, res) => {
             isRejected: { $ne: true }
         });
 
-        console.log(`📊 [NOTIF COUNT]: Enquiries: ${enquiries}, Requests: ${requests}`);
+        console.log(`ðŸ“Š [NOTIF COUNT]: Enquiries: ${enquiries}, Requests: ${requests}`);
 
         res.status(200).json({
             success: true,
@@ -87,7 +87,7 @@ exports.notifyAllUsers = async (title, message, eventId) => {
             removeOnComplete: true,
             jobId: `new-event-${eventId}` // Prevent duplicate broadcasts for same event
         });
-        console.log(`📡 [CONTROLLER]: Queued broadcast for event ${eventId}`);
+        console.log(`ðŸ“¡ [CONTROLLER]: Queued broadcast for event ${eventId}`);
     } catch (err) {
         console.error('Failed to queue broadcast:', err.message);
     }

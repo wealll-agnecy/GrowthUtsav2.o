@@ -42,20 +42,20 @@ const AdminSecretLogin = () => {
     };
 
     return (
-        <div className="page-wrapper d-flex align-items-center" style={{ minHeight: '100vh', paddingBottom: '3rem', background: '#020617' }}>
+        <div className="page-wrapper d-flex align-items-center" style={{ minHeight: '100vh', paddingBottom: '3rem', background: '#f8fafc' }}>
             <Container fluid className="position-relative px-md-5" style={{ zIndex: 1, maxWidth: '450px' }}>
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4 }}
-                    className="glass-panel p-5 rounded-4 position-relative overflow-hidden"
-                    style={{ border: '1px solid rgba(239,68,68,0.3)', boxShadow: '0 25px 50px -12px rgba(239,68,68,0.25)' }}
+                    className="glass-panel p-5 rounded-4 position-relative overflow-hidden bg-white shadow-2xl"
+                    style={{ border: '1px solid rgba(239,68,68,0.2)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.1)' }}
                 >
                     <div className="position-absolute top-0 start-0 w-100" style={{ height: '4px', background: 'linear-gradient(90deg, #ef4444, #991b1b)' }} />
 
                     <div className="text-center mb-5">
-                        <h2 className="fw-black text-white mb-2 tracking-tighter uppercase h3">Security <span className="text-danger">Protocol</span></h2>
-                        <p className="small text-white-50 fw-bold font-monospace tracking-widest opacity-60 uppercase">Clearance Level 10 Required</p>
+                        <h2 className="text-dark fw-black mb-2 tracking-tighter uppercase h3">Security <span className="text-danger">Protocol</span></h2>
+                        <p className="small text-secondary fw-bold font-monospace tracking-widest opacity-60 uppercase">Clearance Level 10 Required</p>
                     </div>
 
                     {localError && (
@@ -81,7 +81,7 @@ const AdminSecretLogin = () => {
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
                             <Form.Label className="small fw-semibold text-secondary text-uppercase tracking-wider">Clearance ID (Email)</Form.Label>
-                            <Form.Control type="text" required value={email} onChange={(e) => { setEmail(e.target.value); if (setError) setError(null); setLocalError(''); }} className="bg-dark border-secondary text-white py-2" />
+                            <Form.Control type="text" required value={email} onChange={(e) => { setEmail(e.target.value); if (setError) setError(null); setLocalError(''); }} className="bg-light border-light-subtle text-dark py-2" />
 
                         </Form.Group>
 
@@ -93,7 +93,7 @@ const AdminSecretLogin = () => {
                                     required
                                     value={password}
                                     onChange={(e) => { setPassword(e.target.value); if (setError) setError(null); setLocalError(''); }}
-                                    className="bg-dark border-secondary text-white py-2 pe-5"
+                                    className="bg-light border-light-subtle text-dark py-2 pe-5"
                                 />
 
                                 <Button
@@ -116,8 +116,8 @@ const AdminSecretLogin = () => {
                         </Button>
                     </Form>
 
-                    <div className="text-center mt-4 pt-3 border-top border-secondary">
-                        <Link to="/" className="small text-secondary text-decoration-none fw-medium">
+                    <div className="text-center mt-4 pt-3 border-top border-light-subtle">
+                        <Link to="/" className="small text-secondary text-decoration-none fw-medium hover-text-primary">
                             Return to public sector
                         </Link>
                     </div>

@@ -1,7 +1,7 @@
-/* ═══════════ LIGHT PINK + GOLD LUXURY SIDEBAR ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• LIGHT PINK + GOLD LUXURY SIDEBAR â•â•â•â•â•â•â•â•â•â•â• */
 .desktop-sidebar-box, 
 .offcanvas-sidebar-box,
-.bg-dark-space {
+.bg-sidebar-premium {
     background: #ffffff !important;
     border-right: 2px solid #fef3c7 !important; /* Light Gold/Amber Border */
     box-shadow: 10px 0 30px rgba(212, 175, 55, 0.05) !important;
@@ -99,20 +99,20 @@
 }
 
 .user-name-label {
-    font-size: 0.8rem;
-    font-weight: 800;
+    font-size: 0.85rem;
+    font-weight: 600;
     color: #000000 !important;
 }
 
 .user-role-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #000000 !important; /* Removed gold role for black consistency */
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #64748b !important;
 }
 
 .logout-label-text {
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 /* LAYOUT & BEHAVIOR */
@@ -172,22 +172,23 @@
 }
 
 .sidebar-logo-expanded .logo-text {
-    font-size: 24px !important;
+    font-size: 28px !important;
     font-weight: 800;
     margin: 0;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Outfit', sans-serif;
     display: flex;
     align-items: baseline;
-    letter-spacing: -1px;
+    letter-spacing: -1.5px;
+    white-space: nowrap;
 }
 
 .sidebar-logo-expanded .tagline {
     font-size: 8px !important;
-    margin-top: 1px !important;
-    letter-spacing: 1.5px !important;
-    color: #64748b !important;
+    margin-top: 2px !important;
+    letter-spacing: 2px !important;
+    color: #94a3b8 !important;
     text-transform: uppercase;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .sidebar-logo-min {
@@ -206,8 +207,8 @@
 }
 
 .logo-section-sidebar {
-    height: 50px;
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
 }
 
 .hover-text-pink:hover {

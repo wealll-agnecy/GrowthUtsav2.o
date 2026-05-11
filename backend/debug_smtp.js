@@ -6,13 +6,13 @@ const path = require('path');
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 async function debugSMTP() {
-    console.log("🛠️ --- SMTP DEBUGGER ---");
-    console.log("📍 Path:", __dirname);
+    console.log("ðŸ› ï¸ --- SMTP DEBUGGER ---");
+    console.log("ðŸ“ Path:", __dirname);
     console.log("📧 EMAIL_USER:", process.env.EMAIL_USER || "MISSING");
-    console.log("🔑 EMAIL_PASS:", process.env.EMAIL_PASS ? "PRESENT (Hidden)" : "MISSING");
+    console.log("ðŸ”‘ EMAIL_PASS:", process.env.EMAIL_PASS ? "PRESENT (Hidden)" : "MISSING");
     
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error("❌ Error: Missing credentials in .env file.");
+        console.error("âŒ Error: Missing credentials in .env file.");
         return;
     }
 
@@ -25,11 +25,11 @@ async function debugSMTP() {
     });
 
     try {
-        console.log("🔍 Attempting to verify SMTP connection...");
+        console.log("ðŸ” Attempting to verify SMTP connection...");
         await transporter.verify();
         console.log("✅ SUCCESS: SMTP is correctly configured and ready to send emails.");
         
-        console.log("🧪 Sending a test email to yourself...");
+        console.log("ðŸ§ª Sending a test email to yourself...");
         const info = await transporter.sendMail({
             from: `"SMTP Debugger" <${process.env.EMAIL_USER}>`,
             to: process.env.EMAIL_USER,
@@ -39,13 +39,13 @@ async function debugSMTP() {
         });
         
         console.log("✅ TEST EMAIL SENT!");
-        console.log("🆔 Message ID:", info.messageId);
+        console.log("ðŸ†” Message ID:", info.messageId);
     } catch (error) {
-        console.error("❌ FAILED: SMTP Connection Error.");
+        console.error("âŒ FAILED: SMTP Connection Error.");
         console.error("Message:", error.message);
         
         if (error.message.includes('Invalid login')) {
-            console.error("\n💡 TIP: 'Invalid login' usually means:");
+            console.error("\nðŸ’¡ TIP: 'Invalid login' usually means:");
             console.error("1. You haven't enabled 2-Step Verification on your Google Account.");
             console.error("2. You are using your regular password instead of an 'App Password'.");
             console.error("3. There is a typo in your EMAIL_USER.");

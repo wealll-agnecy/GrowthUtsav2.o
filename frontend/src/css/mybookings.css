@@ -1,4 +1,4 @@
-/* ═══════════ MY BOOKINGS PREMIUM UI (STRIPE/APPLE STYLE) ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• MY BOOKINGS PREMIUM UI (STRIPE/APPLE STYLE) â•â•â•â•â•â•â•â•â•â•â• */
 
 /* Page wrapper */
 .mybooking-wrapper {
@@ -10,7 +10,7 @@
 /* Header Section */
 .mybooking-header h1 {
   font-size: clamp(2rem, 5vw, 3rem) !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   color: var(--text-primary) !important;
   letter-spacing: -0.03em !important;
   margin-bottom: 0.5rem !important;
@@ -42,7 +42,7 @@
 /* Title */
 .booking-title {
   font-size: 1.25rem !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   color: #ad1457 !important;
   margin-bottom: 12px !important;
   line-height: 1.2 !important;
@@ -126,7 +126,7 @@
   color: #111827 !important;
 }
 
-/* ─── Minimalistic Booking Card ─── */
+/* â”€â”€â”€ Minimalistic Booking Card â”€â”€â”€ */
 .booking-card {
   background: var(--bg-card) !important;
   border-radius: 16px !important;
@@ -328,7 +328,7 @@
 
 .no-booking-title {
   font-size: 24px !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   color: #374151 !important;
   margin-bottom: 12px !important;
 }
@@ -359,7 +359,7 @@
   cursor: not-allowed;
 }
 
-/* ─── STEP 1: FORCE OVERRIDE CSS (WHITE CRM STYLE) ─── */
+/* â”€â”€â”€ STEP 1: FORCE OVERRIDE CSS (WHITE CRM STYLE) â”€â”€â”€ */
 .modal-content {
   background: var(--bg-card) !important;
   color: var(--text-primary) !important;

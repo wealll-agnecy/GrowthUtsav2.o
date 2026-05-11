@@ -12,6 +12,7 @@ import * as eventApi from '../api/eventApi';
 import StatsCard from '../components/analytics/StatsCard';
 import { RevenueChart } from '../components/analytics/DashboardCharts';
 import toast from 'react-hot-toast';
+import { formatCurrency } from '../utils/formatUtils';
 
 const FinanceDashboard = () => {
     const [loading, setLoading] = useState(true);
@@ -90,7 +91,7 @@ const FinanceDashboard = () => {
 
     return (
         <div className="dashboard-content-premium">
-            {/* ─── Header ─── */}
+            {/* â”€â”€â”€ Header â”€â”€â”€ */}
             <div className="mb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4 pt-1">
                 <div className="flex-grow-1">
                     <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small shadow-2xl">
@@ -116,12 +117,12 @@ const FinanceDashboard = () => {
                 </div>
             </div>
 
-            {/* ─── Mission Critical Stats ─── */}
+            {/* â”€â”€â”€ Mission Critical Stats â”€â”€â”€ */}
             <Row className="g-4 mb-3">
                 <Col lg={4}>
                     <StatsCard 
                         title="Aggregated Revenue" 
-                        value={`₹${overall.totalRevenue.toLocaleString()}`} 
+                        value={formatCurrency(overall.totalRevenue)} 
                         icon={<FaChartLine />} 
                         color="#8b5cf6" 
                         delay={0.1}
@@ -130,7 +131,7 @@ const FinanceDashboard = () => {
                 <Col lg={4}>
                     <StatsCard 
                         title="Operational Leak" 
-                        value={`₹${overall.totalExpenses.toLocaleString()}`} 
+                        value={formatCurrency(overall.totalExpenses)} 
                         icon={<FaMoneyBillWave />} 
                         color="#ec4899" 
                         delay={0.2}
@@ -139,7 +140,7 @@ const FinanceDashboard = () => {
                 <Col lg={4}>
                     <StatsCard 
                         title="Net Clearance (Profit)" 
-                        value={`₹${overall.totalProfit.toLocaleString()}`} 
+                        value={formatCurrency(overall.totalProfit)} 
                         growth={`${overall.margin}% MARGIN`}
                         icon={<FaWallet />} 
                         color="#06b6d4" 
@@ -149,7 +150,7 @@ const FinanceDashboard = () => {
             </Row>
 
             <Row className="g-4 mb-3">
-                {/* ─── Revenue Visualization ─── */}
+                {/* â”€â”€â”€ Revenue Visualization â”€â”€â”€ */}
                 <Col lg={8}>
                     <Card className="saas-card p-5 border-0 shadow-2xl h-100 overflow-hidden">
                         <div className="d-flex justify-content-between align-items-center mb-5">
@@ -166,7 +167,7 @@ const FinanceDashboard = () => {
                     </Card>
                 </Col>
                 
-                {/* ─── Top Profitable Nodes ─── */}
+                {/* â”€â”€â”€ Top Profitable Nodes â”€â”€â”€ */}
                 <Col lg={4}>
                     <Card className="saas-card p-5 border-0 shadow-2xl h-100">
                         <h5 className="text-white fw-black m-0 mb-5 uppercase tracking-widest">Node Performance</h5>
@@ -176,10 +177,10 @@ const FinanceDashboard = () => {
                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                         <div className="text-bright fw-black small truncate pe-3">{node.title}</div>
                                         <Badge bg={node.profit >= 0 ? 'success-subtle' : 'danger-subtle'} text={node.profit >= 0 ? 'success' : 'danger'} className="fw-black px-2 py-1 small">
-                                            ₹{Math.abs(node.profit).toLocaleString()}
+                                            {formatCurrency(Math.abs(node.profit))}
                                         </Badge>
                                     </div>
-                                    <div className="small text-white-50 opacity-60">Rev: ₹{node.revenue.toLocaleString()} | Exp: ₹{node.expenses.toLocaleString()}</div>
+                                    <div className="small text-white-50 opacity-60">Rev: {formatCurrency(node.revenue)} | Exp: {formatCurrency(node.expenses)}</div>
                                 </div>
                             ))}
                         </div>
@@ -187,7 +188,7 @@ const FinanceDashboard = () => {
                 </Col>
             </Row>
 
-            {/* ─── Financial Ledger ─── */}
+            {/* â”€â”€â”€ Financial Ledger â”€â”€â”€ */}
             <Card className="saas-card border-0 rounded-5 overflow-hidden shadow-2xl mb-5">
                 <Card.Header className="bg-white/2 border-bottom border-white/5 p-4 d-flex justify-content-between align-items-center">
                     <h5 className="text-white fw-black m-0 uppercase tracking-widest">Master Expenditure Ledger</h5>
@@ -203,7 +204,7 @@ const FinanceDashboard = () => {
                                 <th className="py-4">Sector</th>
                                 <th className="py-4">Association (Node)</th>
                                 <th className="py-4">Timestamp</th>
-                                <th className="py-4 text-end">Volume (₹)</th>
+                                <th className="py-4 text-end">Volume</th>
                                 <th className="py-4 text-end px-5">Protocol</th>
                             </tr>
                         </thead>
@@ -226,7 +227,7 @@ const FinanceDashboard = () => {
                                             {new Date(exp.date).toLocaleDateString()}
                                         </td>
                                         <td className="py-4 text-end text-danger fw-black fs-5">
-                                            -₹{exp.amount.toLocaleString()}
+                                            -{formatCurrency(exp.amount)}
                                         </td>
                                         <td className="py-4 text-end px-5">
                                             <Button 
@@ -244,7 +245,7 @@ const FinanceDashboard = () => {
                 </div>
             </Card>
 
-            {/* ─── Add Expense Modal ─── */}
+            {/* â”€â”€â”€ Add Expense Modal â”€â”€â”€ */}
             <Modal 
                 show={showAddModal} 
                 onHide={() => setShowAddModal(false)} 
@@ -268,7 +269,7 @@ const FinanceDashboard = () => {
                         </Form.Group>
                         <Row className="g-4 mb-4">
                             <Col md={6}>
-                                <Form.Label className="small fw-black text-white-50 tracking-widest uppercase">Amount (₹)</Form.Label>
+                                <Form.Label className="small fw-black text-white-50 tracking-widest uppercase">Amount (INR)</Form.Label>
                                 <Form.Control 
                                     type="number" 
                                     className="bg-white/5 border-white/10 text-white rounded-4 p-3 shadow-none focus-border-primary"

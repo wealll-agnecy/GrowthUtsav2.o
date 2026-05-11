@@ -1,4 +1,4 @@
-/* ═══════════ LUXURY HERO SECTION ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• LUXURY HERO SECTION â•â•â•â•â•â•â•â•â•â•â• */
 .hero-section {
   min-height: 85vh;
   background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1920');
@@ -15,7 +15,7 @@
 /* TEXT */
 .hero-title {
   font-size: clamp(2rem, 7vw, 4.5rem);
-  font-weight: 800;
+  font-weight: 700;
   color: #FFFFFF !important;
   line-height: 1.1;
   letter-spacing: -0.04em;
@@ -289,7 +289,7 @@
   max-width: 800px;
 }
 
-/* 📱 Home Responsive Overrides */
+/* ðŸ“± Home Responsive Overrides */
 @media (max-width: 768px) {
   .hero-section-main {
     min-height: 75vh !important;

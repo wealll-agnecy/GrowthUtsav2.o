@@ -1,14 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { FaSearch, FaUserCircle, FaMoon, FaSun } from 'react-icons/fa';
+import { FaSearch, FaUserCircle } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { useState, useEffect } from 'react';
-import { useTheme } from '../../context/ThemeContext';
+
 import './MobileHeader.css';
 
 const MobileHeader = () => {
     const { user } = useAuth();
-    const { theme, toggleTheme } = useTheme();
-    const isLightMode = theme === 'light';
+
     const navigate = useNavigate();
 
 
@@ -46,7 +45,7 @@ const MobileHeader = () => {
             <div 
                 className="verification-pending-banner text-center py-2 fw-bold small text-uppercase tracking-widest d-lg-none verification-banner-mobile"
             >
-                Verification Pending ⏳
+                Verification Pending â³
             </div>
         )}
         </>

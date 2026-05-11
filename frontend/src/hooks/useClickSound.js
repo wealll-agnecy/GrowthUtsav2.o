@@ -10,7 +10,7 @@ export const useClickSound = () => {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        console.log('📡 [SOUND_SYSTEM]: Initializing global audio listener...');
+        console.log('ðŸ“¡ [SOUND_SYSTEM]: Initializing global audio listener...');
         
         // Preload sound
         const audio = new Audio(CLICK_SOUND_URL);
@@ -38,14 +38,14 @@ export const useClickSound = () => {
 
             if (checkInteractivity(target)) {
                 if (audioRef.current) {
-                    console.log('🔊 [SOUND_SYSTEM]: Play Triggered');
+                    console.log('ðŸ”Š [SOUND_SYSTEM]: Play Triggered');
                     // Reset and play
                     audioRef.current.currentTime = 0;
                     const playPromise = audioRef.current.play();
                     
                     if (playPromise !== undefined) {
                         playPromise.catch(error => {
-                            console.warn('⚠️ [SOUND_SYSTEM]: Autoplay blocked or interrupted', error.message);
+                            console.warn('âš ï¸ [SOUND_SYSTEM]: Autoplay blocked or interrupted', error.message);
                         });
                     }
                 }

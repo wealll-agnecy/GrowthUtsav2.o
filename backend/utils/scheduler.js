@@ -6,7 +6,7 @@ const sendEmail = require('./sendEmail');
 const sendWhatsApp = require('./sendWhatsApp');
 
 const initScheduler = () => {
-    // ── Daily Countdown Reminders (10:00 AM) ─────────────────────
+    // â”€â”€ Daily Countdown Reminders (10:00 AM) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     cron.schedule('0 10 * * *', async () => {
         console.log('Running daily countdown reminder job...');
         
@@ -52,7 +52,7 @@ const initScheduler = () => {
         }
     });
 
-    // ── Final 2-Hour Reminder (Every 30 mins) ──────────────────
+    // â”€â”€ Final 2-Hour Reminder (Every 30 mins) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     cron.schedule('*/30 * * * *', async () => {
         console.log('Running final 2-hour alert job...');
         

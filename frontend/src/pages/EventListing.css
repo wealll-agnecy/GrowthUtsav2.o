@@ -42,7 +42,7 @@
   gap: 28px;
 }
 
-/* ─── Premium Glass Panel Fix ─── */
+/* â”€â”€â”€ Premium Glass Panel Fix â”€â”€â”€ */
 .glass-panel {
   background: linear-gradient(
     135deg,
@@ -65,7 +65,7 @@
     color: #666 !important;
 }
 
-/* ─── Zomato District Filter Bar ─── */
+/* â”€â”€â”€ Zomato District Filter Bar â”€â”€â”€ */
 .filter-bar-sticky {
   position: sticky;
   top: 72px; /* Adjust based on navbar height */

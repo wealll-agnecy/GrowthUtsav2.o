@@ -253,7 +253,6 @@ const AdminOrganizerRequests = () => {
                     <button className="close-btn" onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
                         <FaTimes size={16} />
                     </button>
-
                     <div className="popup-content">
                         <div className="d-flex align-items-center gap-3 mb-4">
                             <div className="modal-icon-header">
@@ -264,7 +263,6 @@ const AdminOrganizerRequests = () => {
                                 <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Verification Protocol Active</p>
                             </div>
                         </div>
-
                         {selectedOrg && (
                             <div className="info-grid">
                                 {/* Personal Segment */}
@@ -286,7 +284,6 @@ const AdminOrganizerRequests = () => {
                                         <div className="value">{selectedOrg.phone || 'Protocol Hidden'}</div>
                                     </div>
                                 </div>
-
                                 {/* Org Segment */}
                                 <div className="section-card m-0">
                                     <div className="section-header-mini">
@@ -316,7 +313,6 @@ const AdminOrganizerRequests = () => {
                                         <div className="value text-capitalize">{selectedOrg.role || 'Organizer'}</div>
                                     </div>
                                 </div>
-
                                 {/* Mission Segment */}
                                 <div className="section-card m-0" style={{ gridColumn: 'span 2' }}>
                                     <div className="section-header-mini">
@@ -327,7 +323,6 @@ const AdminOrganizerRequests = () => {
                                         <p className="m-0" style={{ color: 'var(--text-primary)' }}>{selectedOrg.organizationDetails?.eventIntent || 'No specific mission parameters provided for this application node.'}</p>
                                     </div>
                                 </div>
-
                                 {/* Rejection Intel Segment (Only for Rejected) */}
                                 {selectedOrg.rejectionReason && (
                                     <div className="section-card m-0 border-danger bg-danger-subtle bg-opacity-10" style={{ gridColumn: 'span 2' }}>
@@ -343,12 +338,10 @@ const AdminOrganizerRequests = () => {
                                 )}
                             </div>
                         )}
-
                         <div className="d-flex justify-content-end gap-3 mt-4">
                             <Button variant="light" className="rounded-pill px-4 fw-bold" onClick={() => setShowModal(false)}>
                                 Dismiss
                             </Button>
-                            
                             {activeTab === 'pending' && selectedOrg && (
                                 <>
                                     <Button 

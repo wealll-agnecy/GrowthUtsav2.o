@@ -8,6 +8,7 @@ import OrganizerEventCard from '../components/events/OrganizerEventCard';
 import StatsCard from '../components/analytics/StatsCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaSatellite, FaRocket, FaWallet, FaTicketAlt, FaCalendarCheck } from 'react-icons/fa';
+import { formatCurrency } from '../utils/formatUtils';
 
 import '../css/OrganizerEvents.css';
 
@@ -114,7 +115,7 @@ const OrganizerEvents = () => {
                 <div className="stats-grid-saas mb-5">
                     <div className="dashboard-card shadow-sm">
                         <span className="card-title-sm">Aggregate Revenue</span>
-                        <h3 className="card-value-lg">₹{(orgStats.totalRevenue || 0).toLocaleString()}</h3>
+                        <h3 className="card-value-lg">{formatCurrency(orgStats.totalRevenue)}</h3>
                         <div className="mt-2 text-success small fw-bold">Global Balance</div>
                     </div>
                     <div className="dashboard-card shadow-sm">

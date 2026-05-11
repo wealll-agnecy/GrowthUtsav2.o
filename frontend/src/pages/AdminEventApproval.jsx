@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { playSound } from '../utils/soundManager';
 import '../css/admin-pages.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 const API_BASE = `http://${window.location.hostname}:5000`;
 
@@ -285,7 +286,7 @@ const AdminEventApproval = () => {
                                         {selectedEvent.ticketTypes.map((t, i) => (
                                             <div key={i} style={{ background: 'rgba(236,72,153,0.05)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '10px 16px' }}>
                                                 <div className="tiny-text uppercase tracking-widest text-pink fw-bold">{t.name}</div>
-                                                <div className="fw-black h5 m-0" style={{ color: 'var(--text-primary)' }}>₹{t.price}</div>
+                                                <div className="fw-black h5 m-0" style={{ color: 'var(--text-primary)' }}>{formatCurrency(t.price)}</div>
                                                 <div className="small text-muted">{t.quantity - (t.sold || 0)} left</div>
                                             </div>
                                         ))}

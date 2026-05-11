@@ -13,6 +13,7 @@ import { motion } from 'framer-motion';
 import EventCard from '../components/events/EventCard';
 import './EventDetails.css';
 import API_BASE_URL from '../config/apiConfig';
+import { formatCurrency } from '../utils/formatUtils';
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -328,7 +329,7 @@ const EventDetails = () => {
                                     transition={{ duration: 0.6, delay: 0.4 }}
                                     className="booking-card"
                                 >
-                                    <span className="booking-price">₹{displayPricePerPerson}</span>
+                                    <span className="booking-price">{formatCurrency(displayPricePerPerson)}</span>
                                     <p className="text-muted small fw-bold">Per Person</p>
                                     
                                     <ul className="booking-details">
@@ -408,7 +409,7 @@ const EventDetails = () => {
                                                             <div className={`plan-radio ${selectedTier === tier.name ? 'checked' : ''}`}></div>
                                                             <span className="plan-name">{tier.name}</span>
                                                         </div>
-                                                        <span className="plan-price-tag">₹{tier.price}</span>
+                                                        <span className="plan-price-tag">{formatCurrency(tier.price)}</span>
                                                     </div>
                                                 </div>
                                             ))}
@@ -429,7 +430,7 @@ const EventDetails = () => {
 
                                     <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-3">
                                         <span className="fw-bold text-muted">Total</span>
-                                        <span className="h4 fw-bold text-pink mb-0">₹{computedTotalPrice}</span>
+                                        <span className="h4 fw-bold text-pink mb-0">{formatCurrency(computedTotalPrice)}</span>
                                     </div>
 
                                     {user && (user.role === 'staff' || user.role === 'organizer') ? (

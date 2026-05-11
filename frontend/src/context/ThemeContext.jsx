@@ -3,41 +3,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-    const isMobile = () => window.innerWidth < 992; // lg breakpoint in bootstrap
-
-    const [theme, setTheme] = useState(() => {
-        if (isMobile()) return 'light';
-        return localStorage.getItem('theme') || 'dark';
-    });
+    const theme = 'light';
+    const toggleTheme = () => {}; // No-op as dark mode is removed
 
     useEffect(() => {
-        const handleResize = () => {
-            if (isMobile()) {
-                setTheme('light');
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-        
         const body = document.body;
-        if (theme === 'dark' && !isMobile()) {
-            body.classList.add('dark-mode');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            body.classList.remove('dark-mode');
-            if (!isMobile()) localStorage.setItem('theme', 'light');
-        }
-
-        return () => window.removeEventListener('resize', handleResize);
-    }, [theme]);
-
-    const toggleTheme = () => {
-        if (isMobile()) return; // Disable toggling on mobile
-        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-    };
+        body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
+    }, []);
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme, isMobile: isMobile() }}>
+        <ThemeContext.Provider value={{ theme, toggleTheme, isMobile: true }}>
             {children}
         </ThemeContext.Provider>
     );

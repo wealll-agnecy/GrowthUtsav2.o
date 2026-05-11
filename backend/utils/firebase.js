@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 const initFirebase = () => {
     try {
         if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-            console.warn('⚠️ [FIREBASE]: Missing FIREBASE_SERVICE_ACCOUNT env. Push notifications disabled.');
+            console.warn('âš ï¸ [FIREBASE]: Missing FIREBASE_SERVICE_ACCOUNT env. Push notifications disabled.');
             return null;
         }
 
@@ -13,10 +13,10 @@ const initFirebase = () => {
             credential: admin.credential.cert(serviceAccount)
         });
 
-        console.log('🔥 [FIREBASE]: Admin initialized successfully');
+        console.log('ðŸ”¥ [FIREBASE]: Admin initialized successfully');
         return admin;
     } catch (err) {
-        console.error('❌ [FIREBASE]: Initialization failed:', err.message);
+        console.error('âŒ [FIREBASE]: Initialization failed:', err.message);
         return null;
     }
 };
@@ -38,7 +38,7 @@ const sendPushNotification = async (token, title, body, data = {}) => {
         console.log('✅ [FIREBASE]: Push sent successfully:', response);
         return response;
     } catch (err) {
-        console.error('❌ [FIREBASE]: Push failed:', err.message);
+        console.error('âŒ [FIREBASE]: Push failed:', err.message);
     }
 };
 

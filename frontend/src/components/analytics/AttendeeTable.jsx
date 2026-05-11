@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Table, Form, InputGroup, Badge, Button } from 'react-bootstrap';
 import { FaSearch, FaDownload, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const AttendeeTable = ({ attendees, exportToCSV }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -46,7 +47,7 @@ const AttendeeTable = ({ attendees, exportToCSV }) => {
                             <th className="py-4">Digital Identity</th>
                             <th className="py-4">Ticket Clearance</th>
                             <th className="py-4">Protocol Status</th>
-                            <th className="text-end px-5 py-4">Total (₹)</th>
+                            <th className="text-end px-5 py-4">Total</th>
                         </tr>
                     </thead>
                     <tbody className="border-0">
@@ -87,7 +88,7 @@ const AttendeeTable = ({ attendees, exportToCSV }) => {
                                             </Badge>
                                         )}
                                     </td>
-                                    <td className="text-end px-5 py-4 fw-black text-primary gradient-text h4">₹{a.totalAmount}</td>
+                                    <td className="text-end px-5 py-4 fw-black text-primary gradient-text h4">{formatCurrency(a.totalAmount)}</td>
                                 </motion.tr>
                             ))
                         )}

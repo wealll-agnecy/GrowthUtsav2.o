@@ -1,5 +1,6 @@
 import axios from 'axios';
 import API_BASE_URL from '../config/apiConfig';
+import { sanitizeObject } from '../utils/fixEncoding';
 
 // Create a professional Axios instance
 const apiClient = axios.create({
@@ -25,11 +26,17 @@ apiClient.interceptors.request.use(
 
 // Response Interceptor: Handle Global Errors (like 401 Unauthorized)
 apiClient.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // Global Encoding Sanitization: Ensure NO corrupted data renders anywhere
+        if (response && response.data) {
+            response.data = sanitizeObject(response.data);
+        }
+        return response;
+    },
     (error) => {
         // Handle session expiry
         if (error.response?.status === 401) {
-            console.warn("🔐 Connectivity Protocol Breach: Auto-purging stale identifiers.");
+            console.warn("🔒 Connectivity Protocol Breach: Auto-purging stale identifiers.");
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             

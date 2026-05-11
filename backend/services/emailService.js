@@ -78,7 +78,7 @@ exports.sendBookingConfirmation = async (user, event, pdfBuffer, bookingDetails)
 
         console.log(`✅ Confirmation email sent to ${user.email}`);
     } catch (err) {
-        console.error("❌ [EMAIL SERVICE ERROR]:", {
+        console.error("âŒ [EMAIL SERVICE ERROR]:", {
             message: err.message,
             stack: err.stack,
             recipient: user.email,

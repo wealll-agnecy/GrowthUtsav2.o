@@ -4,6 +4,7 @@ import { FaUsers, FaQrcode } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import '../css/dashboard.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 const StaffDashboard = () => {
     const [attendees, setAttendees] = useState([]);
@@ -86,8 +87,8 @@ const StaffDashboard = () => {
                                                             <td className="py-3 small">{item.event}</td>
                                                             <td className="py-3">
                                                                 <div className="payment-box">
-                                                                    <h6 className="m-0 fw-bold">₹{paid} / ₹{total}</h6>
-                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{isFullyPaid ? '0' : due}</p>
+                                                                    <h6 className="m-0 fw-bold">{formatCurrency(paid)} / {formatCurrency(total)}</h6>
+                                                                    <p className="m-0 tiny-text text-muted">Due: {isFullyPaid ? formatCurrency(0) : formatCurrency(due)}</p>
                                                                     {isFullyPaid ? (
                                                                         <span className="paid-status full">FULLY PAID</span>
                                                                     ) : isPartial ? (
@@ -136,8 +137,8 @@ const StaffDashboard = () => {
                                                             <td className="py-3 small">{attendee.eventName || attendee.event?.title}</td>
                                                             <td className="py-3">
                                                                 <div className="payment-box">
-                                                                    <h6 className="m-0 fw-bold">₹{paid} / ₹{total}</h6>
-                                                                    <p className="m-0 tiny-text text-muted">Due: ₹{isFullyPaid ? '0' : due}</p>
+                                                                    <h6 className="m-0 fw-bold">{formatCurrency(paid)} / {formatCurrency(total)}</h6>
+                                                                    <p className="m-0 tiny-text text-muted">Due: {isFullyPaid ? formatCurrency(0) : formatCurrency(due)}</p>
                                                                     {isFullyPaid ? (
                                                                         <span className="paid-status full">FULLY PAID</span>
                                                                     ) : isPartial ? (

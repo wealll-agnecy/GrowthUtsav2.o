@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as adminApi from '../api/adminApi';
 import { Container, Row, Col, Card, Button, Badge, Table, Spinner } from 'react-bootstrap';
-import { 
+import {
     FaWallet, FaUsers, FaTicketAlt, FaShieldAlt, FaEye, FaCheck, FaTimes,
     FaCalendarCheck, FaShoppingBag, FaBolt, FaChevronRight, FaChartLine,
     FaEllipsisV, FaCheckCircle
@@ -16,21 +16,22 @@ import toast from 'react-hot-toast';
 import { FaTrash, FaPlus, FaMoneyBillWave, FaChartPie } from 'react-icons/fa';
 import '../css/dashboard.css';
 import '../css/global.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
-    const [liveStats, setLiveStats] = useState({ 
-        revenue: 0, 
-        profit: 0, 
+    const [liveStats, setLiveStats] = useState({
+        revenue: 0,
+        profit: 0,
         netProfit: 0,
-        totalOrganizers: 0, 
-        totalStaff: 0, 
-        totalEvents: 0, 
-        ticketsSold: 0, 
+        totalOrganizers: 0,
+        totalStaff: 0,
+        totalEvents: 0,
+        ticketsSold: 0,
         expenses: 0,
-        activities: [] 
+        activities: []
     });
     const [profitSummary, setProfitSummary] = useState({ totalRevenue: 0, totalExpenses: 0, netProfit: 0, margin: 0 });
     const [expenses, setExpenses] = useState([]);
@@ -38,7 +39,7 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [expenseLoading, setExpenseLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState({});
-    
+
     // New Expense Form State
     const [newExpense, setNewExpense] = useState({ title: '', amount: '', category: 'Other' });
 
@@ -138,7 +139,7 @@ const AdminDashboard = () => {
                 {/* ─── Header ─── */}
                 <div className="dashboard-header overview-section mb-3">
                     <h2 className="dashboard-title-main mb-1">Overview</h2>
-                    <p className="dashboard-subtext m-0">Analytics, finances and platform management nodes.</p>
+                    <p className="dashboard-subtext m-0">Analytics, finances and platform management portal.</p>
                 </div>
 
                 {/* ─── Stats Grid ─── */}
@@ -172,30 +173,30 @@ const AdminDashboard = () => {
                             <div>
                                 <span className="card-title-sm opacity-75">Net Profit</span>
                                 <h2 className="card-value-lg my-2">
-                                    ₹{(liveStats?.profit || liveStats?.netProfit || 0).toLocaleString()}
+                                    {formatCurrency(liveStats?.profit || liveStats?.netProfit)}
                                 </h2>
-                                <p className="small opacity-75 m-0 mb-4">Master Ledger Calculation</p>
+                                <p className="small opacity-75 m-0 mb-4">Master Calculation</p>
                             </div>
                             <div className="pt-4 border-top border-white/20">
                                 <div className="d-flex justify-content-between mb-2">
                                     <span className="small opacity-80">Gross Volume:</span>
-                                    <span className="fw-bold">₹{(liveStats?.revenue || 0).toLocaleString()}</span>
+                                    <span className="fw-bold">{formatCurrency(liveStats?.revenue)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between">
                                     <span className="small opacity-80">Operational Leak:</span>
-                                    <span className="fw-bold">-₹{(liveStats?.expenses || 0).toLocaleString()}</span>
+                                    <span className="fw-bold">-{formatCurrency(liveStats?.expenses)}</span>
                                 </div>
                             </div>
                         </div>
                     </Col>
-                    
+
                     <Col lg={8}>
                         <div className="dashboard-card">
                             <div className="d-flex justify-content-between align-items-center mb-4">
-                                <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Financial Ledger</h5>
+                                <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Add Expenses</h5>
                                 <span className="status-badge">{expenses.length} Entries</span>
                             </div>
-                            
+
                             <div className="data-list audit-feed-scroll overflow-auto mb-4" style={{ maxHeight: '280px', paddingRight: '5px' }}>
                                 {expenses.length === 0 ? (
                                     <div className="text-center py-5 text-slate opacity-50 small">No transactions recorded.</div>
@@ -207,7 +208,7 @@ const AdminDashboard = () => {
                                                 <p>{exp.category || 'General'}</p>
                                             </div>
                                             <div className="d-flex align-items-center gap-4">
-                                                <span className="fw-bold text-danger">₹{(exp.amount || 0).toLocaleString()}</span>
+                                                <span className="fw-bold text-danger">{formatCurrency(exp.amount)}</span>
                                                 <button onClick={() => handleDeleteExpense(exp._id)} className="btn btn-link p-0 text-slate hover-text-danger transition-all">
                                                     <FaTrash size={14} />
                                                 </button>
@@ -219,13 +220,13 @@ const AdminDashboard = () => {
 
                             <form onSubmit={handleAddExpense} className="row g-2 pt-3 border-top">
                                 <div className="col-md-5">
-                                    <input type="text" className="form-control rounded-8 border-slate-200" placeholder="Description" required value={newExpense.title} onChange={e => setNewExpense({...newExpense, title: e.target.value})} />
+                                    <input type="text" className="form-control rounded-8 border-slate-200" placeholder="Description" required value={newExpense.title} onChange={e => setNewExpense({ ...newExpense, title: e.target.value })} />
                                 </div>
                                 <div className="col-md-2">
-                                    <input type="number" className="form-control rounded-8 border-slate-200" placeholder="Amount" required value={newExpense.amount} onChange={e => setNewExpense({...newExpense, amount: e.target.value})} />
+                                    <input type="number" className="form-control rounded-8 border-slate-200" placeholder="Amount" required value={newExpense.amount} onChange={e => setNewExpense({ ...newExpense, amount: e.target.value })} />
                                 </div>
                                 <div className="col-md-3">
-                                    <select className="form-select rounded-8 border-slate-200" value={newExpense.category} onChange={e => setNewExpense({...newExpense, category: e.target.value})}>
+                                    <select className="form-select rounded-8 border-slate-200" value={newExpense.category} onChange={e => setNewExpense({ ...newExpense, category: e.target.value })}>
                                         <option value="Server">Server</option>
                                         <option value="Marketing">Marketing</option>
                                         <option value="Staff">Staff</option>
@@ -235,7 +236,7 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="col-md-2">
                                     <button type="submit" className="btn btn-pink w-100 fw-bold py-2" disabled={expenseLoading}>
-                                        {expenseLoading ? <Spinner size="sm" /> : 'Log Entry'}
+                                        {expenseLoading ? <Spinner size="sm" /> : 'Add'}
                                     </button>
                                 </div>
                             </form>

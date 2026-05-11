@@ -1,4 +1,4 @@
-/* ═══════════ PREMIUM EVENT PASS DESIGN (STRIPE/APPLE LEVEL) ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• PREMIUM EVENT PASS DESIGN (STRIPE/APPLE LEVEL) â•â•â•â•â•â•â•â•â•â•â• */
 
 /* Ticket Container */
 .premium-ticket-container {
@@ -32,10 +32,7 @@
   border: 1px solid var(--border) !important;
 }
 
-.dark-mode .ticket-pass-card {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-  border-color: rgba(212, 175, 55, 0.3) !important;
-}
+
 
 .ticket-pass-card:hover {
   transform: translateY(-8px) !important;
@@ -103,7 +100,7 @@
 /* Typography */
 .pass-category {
   font-size: 0.75rem !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.2em !important;
   color: #ec407a !important; /* Premium Pink */
@@ -112,7 +109,7 @@
 
 .pass-title {
   font-size: 2.2rem !important;
-  font-weight: 900 !important;
+  font-weight: 700 !important;
   margin-bottom: 24px !important;
   line-height: 1 !important;
   letter-spacing: -0.04em !important;
@@ -167,7 +164,7 @@
   padding: 8px 20px !important;
   border-radius: 99px !important;
   font-size: 0.7rem !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.12em !important;
   box-shadow: 0 4px 15px rgba(236, 64, 122, 0.3) !important;
@@ -244,7 +241,7 @@
     }
 }
 
-/* ═══════════ SUCCESS OVERLAY ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• SUCCESS OVERLAY â•â•â•â•â•â•â•â•â•â•â• */
 .success-celebration-overlay {
     position: fixed !important;
     top: 0 !important;
@@ -288,7 +285,7 @@
 
 .success-title {
     font-size: 2.5rem !important;
-    font-weight: 900 !important;
+    font-weight: 700 !important;
     color: var(--text-primary) !important;
     margin-bottom: 20px !important;
     letter-spacing: -0.02em !important;

@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
 // Verify SMTP connection on startup
 transporter.verify((error, success) => {
   if (error) {
-    console.log("❌ SMTP ERROR:", error);
+    console.log("âŒ SMTP ERROR:", error);
   } else {
     console.log("✅ SMTP SERVER READY");
   }
@@ -52,7 +52,7 @@ const sendTicketMail = async (args) => {
       });
     }
 
-    console.log("📩 Sending email to:", to);
+    console.log("ðŸ“© Sending email to:", to);
 
     const info = await transporter.sendMail({
       from: `"Growth Utsav" <${process.env.EMAIL_USER}>`,
@@ -66,7 +66,7 @@ const sendTicketMail = async (args) => {
     return info;
 
   } catch (error) {
-    console.error("❌ EMAIL FAILED:", error);
+    console.error("âŒ EMAIL FAILED:", error);
     throw error;
   }
 };

@@ -108,7 +108,7 @@ const Login = () => {
                             </div>
                         </div>
 
-                        <div className="d-flex justify-content-between align-items-center mb-4">
+                        <div className="d-flex justify-content-between align-items-center mt-4 mb-4">
                             <Form.Check type="checkbox" label="Remember me" className="remember-me-beauty" />
                             <Link to="/forgot-password" size="sm" className="forgot-password-link">Forgot Password?</Link>
                         </div>
@@ -124,7 +124,7 @@ const Login = () => {
                         </div>
                     </Form>
 
-                    <div className="auth-footer">
+                    <div className="auth-footer mt-3">
                         <p>New to GrowthUtsav? <Link to={`/register?role=${roleParam}`}>Register</Link></p>
                     </div>
 

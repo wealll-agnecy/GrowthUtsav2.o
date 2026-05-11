@@ -396,7 +396,7 @@ const CreateEvent = () => {
                                                 <Form.Control.Feedback type="invalid">{validationErrors[`ticketName_${index}`]}</Form.Control.Feedback>
                                             </div>
                                             <div>
-                                                <Form.Label className="small">Price (₹)</Form.Label>
+                                                <Form.Label className="small">Price (INR)</Form.Label>
                                                 <Form.Control
                                                     type="number"
                                                     name="price"

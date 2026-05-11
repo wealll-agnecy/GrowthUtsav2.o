@@ -3,7 +3,7 @@ import { FaCommentDots, FaTimes, FaPaperPlane, FaEnvelope, FaWhatsapp, FaRobot, 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
-// ─── Predefined FAQ Responses ────────────────────────────────────────────────
+// â”€â”€â”€ Predefined FAQ Responses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const FAQ_RESPONSES = [
     {
         keywords: ['create event', 'host event', 'make event', 'new event', 'add event', 'organize event'],
@@ -19,7 +19,7 @@ const FAQ_RESPONSES = [
     },
     {
         keywords: ['contact', 'support', 'help', 'reach out', 'email', 'whatsapp', 'phone', 'talk to someone'],
-        answer: `📞 **Contact Our Support Team**\n\nWe're here to help! Reach us through:\n\n• 📧 **Email:** support@growthutsav.com\n• 💬 **WhatsApp:** Click the **Contact** button in the navbar for quick access.\n\n⏰ Support hours: Mon–Sat, 9 AM – 7 PM IST.`,
+        answer: `📞 **Contact Our Support Team**\n\nWe're here to help! Reach us through:\n\n• 📧 **Email:** support@growthutsav.com\n• 💬 **WhatsApp:** Click the **Contact** button in the navbar for quick access.\n\n🕙 Support hours: Mon–Sat, 9 AM – 7 PM IST.`,
     },
     {
         keywords: ['organizer', 'become organizer', 'organizer account', 'organizer request', 'host account'],
@@ -39,7 +39,7 @@ const FAQ_RESPONSES = [
     },
     {
         keywords: ['login', 'sign in', 'password', 'forgot password', 'account', 'register', 'sign up'],
-        answer: `🔐 **Account & Login Help**\n\n• **Forgot password?** Click **"Forgot Password"** on the login page to reset via email.\n• **Can't log in?** Make sure you're using the correct email and password.\n• **New user?** Click **"Get Started"** to register a free account.\n\nFor account issues, contact support@growthutsav.com.`,
+        answer: `🔍 **Account & Login Help**\n\n• **Forgot password?** Click **"Forgot Password"** on the login page to reset via email.\n• **Can't log in?** Make sure you're using the correct email and password.\n• **New user?** Click **"Get Started"** to register a free account.\n\nFor account issues, contact support@growthutsav.com.`,
     },
 ];
 
@@ -72,7 +72,7 @@ function renderAnswer(text) {
     );
 }
 
-// ─── Contact Modal ───────────────────────────────────────────────────────────
+// ————————————————————————————————————————————————————————————————————————————————
 export function ContactModal({ show, onClose }) {
     if (!show) return null;
     return (
@@ -131,7 +131,7 @@ export function ContactModal({ show, onClose }) {
                             </a>
                         </div>
                         <p className="contact-modal-footer-note">
-                            ⏰ Available Mon–Sat, 9 AM – 7 PM IST
+                            🕙 Available Mon–Sat, 9 AM – 7 PM IST
                         </p>
                     </motion.div>
                 </motion.div>
@@ -140,7 +140,7 @@ export function ContactModal({ show, onClose }) {
     );
 }
 
-// ─── Main Help Chatbot Floating Widget ───────────────────────────────────────
+// â”€â”€â”€ Main Help Chatbot Floating Widget â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const HelpChatbot = () => {
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
@@ -193,7 +193,7 @@ const HelpChatbot = () => {
 
     return (
         <>
-            {/* ── Floating Button ─────────────────────────────── */}
+            {/* â”€â”€ Floating Button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <AnimatePresence>
                 {!isOpen && (
                     <div className="chatbot-fab-container">
@@ -249,14 +249,14 @@ const HelpChatbot = () => {
                                 justifyContent: 'center'
                             }}
                         >
-                            {isHovered ? '😊' : '🙂'}
+                            {isHovered ? <FaRobot /> : <FaCommentDots />}
                             <span className="chatbot-fab-label">Help</span>
                         </motion.button>
                     </div>
                 )}
             </AnimatePresence>
 
-            {/* ── Chatbot Panel ────────────────────────────────── */}
+            {/* â”€â”€ Chatbot Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
@@ -272,12 +272,12 @@ const HelpChatbot = () => {
                         <div className="chatbot-header">
                             <div className="chatbot-header-info">
                                 <div className="chatbot-avatar" style={{ fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff1f2' }}>
-                                    🙂
+                                    <FaRobot className="text-primary" size={24} />
                                     <span className="chatbot-status-dot" />
                                 </div>
                                 <div>
                                     <div className="chatbot-name">Laila | Support</div>
-                                    <div className="chatbot-status">Online · Usually replies instantly</div>
+                                    <div className="chatbot-status">Online • Usually replies instantly</div>
                                 </div>
                             </div>
                             <button
@@ -301,7 +301,7 @@ const HelpChatbot = () => {
                                 >
                                     {msg.from === 'bot' && (
                                         <span className="bubble-avatar bot-bubble-avatar" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-                                            🙂
+                                            <FaRobot className="text-primary" size={12} />
                                         </span>
                                     )}
                                     <div className={`chatbot-bubble ${msg.from === 'user' ? 'user-bubble' : 'bot-bubble'}`}>
@@ -328,7 +328,7 @@ const HelpChatbot = () => {
                                     className="chatbot-bubble-row bot-row"
                                 >
                                     <span className="bubble-avatar bot-bubble-avatar" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-                                        🙂
+                                        <FaRobot className="text-primary" size={12} />
                                     </span>
                                     <div className="chatbot-bubble bot-bubble typing-bubble">
                                         <span className="typing-dot" />
@@ -359,7 +359,7 @@ const HelpChatbot = () => {
                                 ref={inputRef}
                                 type="text"
                                 className="chatbot-input"
-                                placeholder="Ask me anything…"
+                                placeholder="Ask me anything..."
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyDown={handleKeyDown}

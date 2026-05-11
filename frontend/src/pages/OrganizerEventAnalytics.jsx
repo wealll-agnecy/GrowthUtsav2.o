@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import DashboardSkeleton from '../components/analytics/DashboardSkeleton';
 import '../css/dashboard.css';
 import '../css/global.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 const EventDetails = () => {
     const { id } = useParams();
@@ -157,7 +158,7 @@ const EventDetails = () => {
                             />
                         </div>
                         <div className="col-md-2">
-                            <label className="form-label small fw-bold">Amount (₹)</label>
+                            <label className="form-label small fw-bold">Amount (INR)</label>
                             <input 
                                 type="number" 
                                 className="form-control rounded-3" 
@@ -229,16 +230,16 @@ const EventDetails = () => {
                     </div>
                     <div className="dashboard-card shadow-sm">
                         <span className="card-title-sm">Total Revenue</span>
-                        <h3 className="card-value-lg text-success">₹{(totalRevenue || 0).toLocaleString()}</h3>
+                        <h3 className="card-value-lg text-success">{formatCurrency(totalRevenue)}</h3>
                     </div>
                     <div className="dashboard-card shadow-sm">
                         <span className="card-title-sm">Total Expenses</span>
-                        <h3 className="card-value-lg text-danger">₹{(totalExpenses || 0).toLocaleString()}</h3>
+                        <h3 className="card-value-lg text-danger">{formatCurrency(totalExpenses)}</h3>
                     </div>
                     <div className={`dashboard-card shadow-sm ${profit > 0 ? '' : (profit < 0 ? 'highlight-card' : '')}`}>
                         <span className="card-title-sm">{profit < 0 ? 'Net Loss' : 'Net Profit'}</span>
                         <h3 className={`card-value-lg ${profit > 0 ? 'text-success' : (profit < 0 ? 'text-danger' : '')}`}>
-                            ₹{Math.abs(profit).toLocaleString()}
+                            {formatCurrency(Math.abs(profit))}
                         </h3>
                     </div>
                 </div>
@@ -262,7 +263,7 @@ const EventDetails = () => {
                                             <tr key={idx} className="border-bottom border-slate-100">
                                                 <td className="px-4 py-3 fw-bold">{sales.date}</td>
                                                 <td className="py-3 text-end">{sales.ticketsSold.toLocaleString()}</td>
-                                                <td className="px-4 py-3 text-end fw-bold text-success">₹{(sales.revenue || 0).toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-end fw-bold text-success">{formatCurrency(sales.revenue)}</td>
                                             </tr>
                                         )) : (
                                             <tr><td colSpan={3} className="text-center py-4 text-muted small">No tickets sold yet.</td></tr>
@@ -293,7 +294,7 @@ const EventDetails = () => {
                                                     <span className="status-badge badge-pink">{plan.planName.toUpperCase()}</span>
                                                 </td>
                                                 <td className="py-3 text-end">{plan.ticketsSold.toLocaleString()}</td>
-                                                <td className="px-4 py-3 text-end fw-bold text-success">₹{(plan.revenue || 0).toLocaleString()}</td>
+                                                <td className="px-4 py-3 text-end fw-bold text-success">{formatCurrency(plan.revenue)}</td>
                                             </tr>
                                         )) : (
                                             <tr><td colSpan={3} className="text-center py-4 text-muted small">No plans matched.</td></tr>
@@ -311,7 +312,7 @@ const EventDetails = () => {
                         <h5 className="dashboard-title-main m-0" style={{ fontSize: '1.25rem' }}>Expense History</h5>
                         <div className="text-end">
                             <span className="small text-muted d-block">Total Event Expenses</span>
-                            <span className="fw-bold text-danger h5 m-0">₹{(totalExpenses || 0).toLocaleString()}</span>
+                            <span className="fw-bold text-danger h5 m-0">{formatCurrency(totalExpenses)}</span>
                         </div>
                     </div>
                     <div className="table-responsive rounded-4 border overflow-hidden shadow-sm">
@@ -346,7 +347,7 @@ const EventDetails = () => {
                                             </span>
                                         </td>
                                         <td className="py-3 text-muted">{new Date(exp.date).toLocaleDateString()}</td>
-                                        <td className="px-4 py-3 text-end fw-bold text-danger">₹{(exp.amount || 0).toLocaleString()}</td>
+                                        <td className="px-4 py-3 text-end fw-bold text-danger">{formatCurrency(exp.amount)}</td>
                                         <td className="px-4 py-3 text-center">
                                             <div className="d-flex justify-content-center gap-2">
                                                 <button 

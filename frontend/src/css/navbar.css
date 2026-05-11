@@ -33,7 +33,7 @@
 
 /* PREMIUM BRAND LOGO */
 .navbar-brand {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   font-size: 1.5rem;
@@ -50,7 +50,7 @@
 /* ELITE NAV LINKS */
 .nav-link-premium {
   position: relative;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 500;
   font-size: 0.95rem;
   color: var(--text-primary) !important;
@@ -189,11 +189,7 @@
   transform-origin: top right;
 }
 
-.dark-mode .notification-dropdown {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--premium-shadow) !important;
-}
+
 
 .premium-notif-panel {
   pointer-events: auto;
@@ -451,11 +447,7 @@ textarea {
   overflow: hidden;
 }
 
-.dark-mode .profile-dropdown-mobile {
-  background: var(--bg-card) !important;
-  border-color: var(--border) !important;
-  box-shadow: var(--premium-shadow) !important;
-}
+
 
 .dropdown-item-mobile {
   display: block !important;
@@ -489,10 +481,7 @@ textarea {
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
 }
 
-.dark-mode .mobile-search-popup {
-  background: var(--bg-card) !important;
-  border-color: var(--border) !important;
-}
+
 
 .search-inner-mobile {
   display: flex !important;
@@ -502,9 +491,7 @@ textarea {
   height: 44px !important;
 }
 
-.dark-mode .search-inner-mobile {
-  background: rgba(255, 255, 255, 0.05) !important;
-}
+
 
 .search-input-mobile {
   flex: 1 !important;
@@ -515,8 +502,4 @@ textarea {
   font-weight: 500 !important;
   outline: none !important;
   color: #111827 !important;
-}
-
-.dark-mode .search-input-mobile {
-  color: white !important;
 }

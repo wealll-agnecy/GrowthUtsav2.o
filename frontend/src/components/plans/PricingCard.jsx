@@ -1,6 +1,7 @@
 import { Card, Button, ListGroup, Badge } from 'react-bootstrap';
 import { FaCheckCircle, FaCrown, FaRocket, FaShieldAlt, FaStar, FaGem, FaBolt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const PricingCard = ({ plan, onSelect, currentPlanId, loading }) => {
     const isCurrent = currentPlanId === plan._id || currentPlanId === plan.name;
@@ -27,7 +28,7 @@ const PricingCard = ({ plan, onSelect, currentPlanId, loading }) => {
                 <h2 className="dashboard-title-main mb-2" style={{ fontSize: '2rem' }}>{plan.name}</h2>
                 <div className="mb-4">
                     <div className="d-flex justify-content-center align-items-end">
-                        <span className="display-5 fw-bold text-pink">₹{plan.price}</span>
+                        <span className="display-5 fw-bold text-pink">{formatCurrency(plan.price)}</span>
                         <span className="text-slate fw-bold ms-2 mb-2 small tracking-tight opacity-50">/MONTH</span>
                     </div>
                 </div>

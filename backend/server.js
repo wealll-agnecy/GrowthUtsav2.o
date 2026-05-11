@@ -63,14 +63,20 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(cookieParser());
+
+// Force UTF-8 for all JSON responses
+app.use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    next();
+});
+
 app.use((req, res, next) => {
     console.log(`📡 [REQUEST]: ${req.method} ${req.path}`);
     next();
 });
-
-app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(cookieParser());
 
 const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [];
 app.use(cors({
@@ -88,7 +94,7 @@ app.use(cors({
 
 const { updateLiveStatus } = require('./controllers/eventController');
 
-// ── EMERGENCY LIVE TOGGLE ROUTES (MOUNTED BEFORE ROUTERS) ──
+// â”€â”€ EMERGENCY LIVE TOGGLE ROUTES (MOUNTED BEFORE ROUTERS) â”€â”€
 app.put('/api/v1/event-live/:id', protect, updateLiveStatus);
 app.put('/api/v1/events/set-live/:id', protect, updateLiveStatus);
 app.put('/api/v1/events/:id/live', protect, updateLiveStatus);
@@ -130,6 +136,15 @@ app.get("/test-mail", async (req, res) => {
     }
 });
 
+// --- SERVE FRONTEND IN PRODUCTION ---
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
+    });
+}
+
 app.use((req, res, next) => {
     console.log(`❌ [404 ERROR]: ${req.method} ${req.originalUrl} - No route matched`);
     res.status(404).json({
@@ -151,7 +166,7 @@ initScheduler();
 console.log("✅ Event Routes Loaded:", eventRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 console.log("✅ Booking Routes Loaded:", bookingRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 
 server.listen(PORT, () => {
     console.log(`🚀 [SERVER LIVE] [PORT: ${PORT}]`);

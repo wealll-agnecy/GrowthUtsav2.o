@@ -39,7 +39,7 @@ const processNotificationAction = async (data) => {
             if (user?.fcmToken) sendPushNotification(user.fcmToken, title, message, { eventId: eventIdStr });
         }
     } catch (err) {
-        console.error(`❌ [NOTIFICATION_PROCESSOR]: Failed:`, err.message);
+        console.error(`âŒ [NOTIFICATION_PROCESSOR]: Failed:`, err.message);
         throw err;
     }
 };
@@ -52,7 +52,7 @@ const REDIS_ENABLED = process.env.REDIS_URL || process.env.ENABLE_REDIS === 'tru
 
 let notificationQueue = { 
     add: async (name, data) => {
-        console.log(`📡 [QUEUE-OFFLINE]: Processing ${name} immediately (Redis disabled)`);
+        console.log(`ðŸ“¡ [QUEUE-OFFLINE]: Processing ${name} immediately (Redis disabled)`);
         await processNotificationAction(data);
     },
     getJob: async () => null,
@@ -71,7 +71,7 @@ if (REDIS_ENABLED) {
 
     connection.on('error', (err) => {
         if (err.code === 'ECONNREFUSED') {
-            console.warn('⚠️ [REDIS]: Service unavailable. Switching to real-time relay mode.');
+            console.warn('âš ï¸ [REDIS]: Service unavailable. Switching to real-time relay mode.');
             // Downgrade to offline mode if connection fails
             notificationQueue.add = async (name, data) => {
                 await processNotificationAction(data);
@@ -86,17 +86,17 @@ if (REDIS_ENABLED) {
         });
 
         worker = new Worker('notificationQueue', async (job) => {
-            console.log(`📦 [QUEUE]: Processing job ${job.id} (${job.name})`);
+            console.log(`ðŸ“¦ [QUEUE]: Processing job ${job.id} (${job.name})`);
             await processNotificationAction(job.data);
         }, { connection });
 
         worker.on('completed', (job) => console.log(`✅ [QUEUE]: Job ${job.id} completed`));
         worker.on('failed', (job, err) => console.error(`🚨 [QUEUE]: Job ${job.id} failed: ${err.message}`));
     } catch (err) {
-        console.error('❌ [QUEUE]: Initialization error:', err.message);
+        console.error('âŒ [QUEUE]: Initialization error:', err.message);
     }
 } else {
-    console.log('💡 [REDIS]: Offline mode active. Real-time notifications used via relay.');
+    console.log('ðŸ’¡ [REDIS]: Offline mode active. Real-time notifications used via relay.');
 }
 
 const scheduleReminders = async (userId, eventId, eventDate) => {

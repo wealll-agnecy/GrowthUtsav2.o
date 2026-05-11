@@ -80,7 +80,7 @@ exports.getEvents = async (req, res, next) => {
             reqQuery.title = { $regex: req.query.search, $options: 'i' };
         }
 
-        console.log('🔍 [GET EVENTS]: Querying with:', reqQuery);
+        console.log('ðŸ” [GET EVENTS]: Querying with:', reqQuery);
         query = Event.find(reqQuery).populate('organizer', 'name email');
 
         // Pagination

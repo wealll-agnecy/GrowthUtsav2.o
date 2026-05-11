@@ -50,7 +50,7 @@ const ContactUs = () => {
                     transition={{ duration: 0.8 }}
                 >
                     <h1>Get in Touch</h1>
-                    <p>Elevate your artistry journey. Let’s collaborate to create world-class beauty experiences.</p>
+                    <p>Elevate your artistry journey. Let's collaborate to create world-class beauty experiences.</p>
                 </motion.div>
             </div>
 

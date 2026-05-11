@@ -59,7 +59,7 @@ export const toggleLive = async (id) => {
 };
 
 export const updateLiveStatus = async (id, isLive) => {
-    console.log(`🌐 [API CALL]: PUT ${API_URL}/set-live/${id}`, { isLive });
+    console.log(`ðŸŒ [API CALL]: PUT ${API_URL}/set-live/${id}`, { isLive });
     return await axios.put(`${API_URL}/set-live/${id}`, { isLive });
 };
 

@@ -13,7 +13,7 @@ const AdminEnquiryDetails = () => {
 
     useEffect(() => {
         if (!id || id === 'undefined') {
-            console.error("🕵️ [CLIENT]: Detected invalid 'undefined' ID in URL");
+            console.error("[CLIENT]: Detected invalid 'undefined' ID in URL");
             setLoading(false);
             return;
         }

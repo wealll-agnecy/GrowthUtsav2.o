@@ -41,7 +41,7 @@ const ForgotPassword = () => {
                 >
                     <h3 className="forgot-title">Forgot Password</h3>
                     <p className="forgot-subtitle">
-                        Enter your email and we’ll send you reset instructions.
+                        Enter your email and we'll send you reset instructions.
                     </p>
 
                     {message && (

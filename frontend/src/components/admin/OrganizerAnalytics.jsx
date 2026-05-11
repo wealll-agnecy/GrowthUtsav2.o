@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaTicketAlt, FaMoneyBillWave, FaChartLine, FaStar, FaClock, FaHistory } from 'react-icons/fa';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import * as analyticsApi from '../../api/analyticsApi';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const OrganizerAnalytics = ({ eventId, organizerId, totalCapacity = 0 }) => {
     const [stats, setStats] = useState(null);
@@ -175,7 +176,7 @@ const OrganizerAnalytics = ({ eventId, organizerId, totalCapacity = 0 }) => {
             <Row className="g-3 mb-4">
                 {[
                     { title: 'Total Tickets Sold', value: displayStats.totalTickets, icon: <FaTicketAlt />, color: '#6a11cb' },
-                    { title: 'Total Revenue', value: `₹${(displayStats.totalRevenue || 0).toLocaleString()}`, icon: <FaMoneyBillWave />, color: '#2575fc' },
+                    { title: 'Total Revenue', value: formatCurrency(displayStats.totalRevenue), icon: <FaMoneyBillWave />, color: '#2575fc' },
                     { title: 'Most Sold', value: displayStats.mostSold, icon: <FaStar />, color: '#f59e0b' },
                     { title: 'Pulse Status', value: displayStats.status, icon: <FaClock />, color: '#10b981' }
                 ].map((stat, idx) => (
@@ -248,8 +249,8 @@ const OrganizerAnalytics = ({ eventId, organizerId, totalCapacity = 0 }) => {
                 {/* 4. Recent Bookings */}
                 <Col lg={12}>
                     <Card className="card-ui overflow-hidden p-0">
-                        <div className="p-4 bg-light-subtle d-flex justify-content-between align-items-center">
-                            <h6 className="fw-bold m-0 text-bright"><FaHistory className="me-2 opacity-50" /> Recent Bookings</h6>
+                        <div className="p-4 bg-light d-flex justify-content-between align-items-center">
+                            <h6 className="fw-bold m-0 text-dark"><FaHistory className="me-2 opacity-50" /> Recent Bookings</h6>
                             <Badge bg="primary-subtle" className="text-primary fw-black">REAL-TIME FEED</Badge>
                         </div>
                         <Table responsive hover className="m-0 align-middle">
@@ -268,14 +269,14 @@ const OrganizerAnalytics = ({ eventId, organizerId, totalCapacity = 0 }) => {
                                     </tr>
                                 ) : (
                                     bookings.map(booking => (
-                                        <tr key={booking.id} className="border-bottom border-white/5">
+                                        <tr key={booking.id} className="border-bottom border-dark/5">
                                             <td className="py-3 px-4">
-                                                <div className="fw-bold text-white">{booking.name}</div>
+                                                <div className="fw-bold text-dark">{booking.name}</div>
                                             </td>
                                             <td className="py-3">
-                                                <Badge style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>{booking.type}</Badge>
+                                                <Badge style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.1)', color: '#000' }}>{booking.type}</Badge>
                                             </td>
-                                            <td className="py-3 fw-black text-primary">{booking.amount}</td>
+                                            <td className="py-3 fw-black text-primary">{formatCurrency(booking.amount)}</td>
                                             <td className="py-3 px-4 text-end text-muted small">
                                                 {new Date(booking.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </td>
@@ -302,7 +303,7 @@ const OrganizerAnalytics = ({ eventId, organizerId, totalCapacity = 0 }) => {
                 }
                 .custom-bar {
                     height: 6px;
-                    background: var(--bg-dark);
+                    background: #f1f5f9;
                     border-radius: 100px;
                     overflow: visible;
                 }

@@ -19,7 +19,7 @@
     font-family: 'Outfit', sans-serif;
 }
 
-/* ═══════════ PREMIUM BACKGROUND ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• PREMIUM BACKGROUND â•â•â•â•â•â•â•â•â•â•â• */
 .checkout-bg-decoration {
     position: fixed;
     top: 0;
@@ -64,7 +64,7 @@
     z-index: 1;
 }
 
-/* ═══════════ MODERN STEPPER ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• MODERN STEPPER â•â•â•â•â•â•â•â•â•â•â• */
 .modern-stepper {
     display: flex;
     justify-content: center;
@@ -111,7 +111,7 @@
     background: rgba(0,0,0,0.05);
 }
 
-/* ═══════════ GLASS CARD ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• GLASS CARD â•â•â•â•â•â•â•â•â•â•â• */
 .checkout-premium-card {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
@@ -140,7 +140,7 @@
     padding: 50px;
 }
 
-/* ═══════════ CART VIEW ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• CART VIEW â•â•â•â•â•â•â•â•â•â•â• */
 .event-mini-preview {
     display: flex;
     gap: 20px;
@@ -217,7 +217,7 @@
     color: var(--text-main);
 }
 
-/* ═══════════ INPUTS ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• INPUTS â•â•â•â•â•â•â•â•â•â•â• */
 .premium-input {
     background: rgba(255,255,255,0.8) !important;
     border: 2px solid transparent !important;
@@ -260,7 +260,7 @@
     margin-bottom: 20px;
 }
 
-/* ═══════════ SUCCESS ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• SUCCESS â•â•â•â•â•â•â•â•â•â•â• */
 .success-glow-wrap {
     position: relative;
     display: inline-block;
@@ -279,7 +279,7 @@
     z-index: -1;
 }
 
-/* ═══════════ MULTI-DAY PLAN SECTIONS ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• MULTI-DAY PLAN SECTIONS â•â•â•â•â•â•â•â•â•â•â• */
 .day-plan-section {
     margin-top: 24px;
     padding: 24px;

@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AttendeeTable from '../components/analytics/AttendeeTable';
 import { RevenueChart, TicketDistributionChart } from '../components/analytics/DashboardCharts';
 import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/formatUtils';
 
 const OrganizerEventDashboard = () => {
     const { id } = useParams();
@@ -229,7 +230,7 @@ const OrganizerEventDashboard = () => {
                                     <div className="stats-grid-saas mb-4">
                                         <div className="dashboard-card shadow-sm border-slate-100 p-4 h-100">
                                             <span className="card-title-sm">Aggregate Revenue</span>
-                                            <h3 className="card-value-lg text-pink">₹{totalRevenue.toLocaleString()}</h3>
+                                            <h3 className="card-value-lg text-pink">{formatCurrency(totalRevenue)}</h3>
                                             <div className="mt-2 text-success small fw-bold">+12.4% Performance</div>
                                         </div>
                                         <div className="dashboard-card shadow-sm border-slate-100 p-4 h-100">
@@ -277,7 +278,7 @@ const OrganizerEventDashboard = () => {
                                         <thead className="bg-light">
                                             <tr className="small text-uppercase fw-bold text-slate tracking-widest">
                                                 <th className="px-4 py-4">Tier Name</th>
-                                                <th className="py-4">Unit Price (₹)</th>
+                                                <th className="py-4">Unit Price (INR)</th>
                                                 <th className="py-4">Max Capacity</th>
                                                 <th className="py-4">Sold Count</th>
                                                 <th className="text-end px-4 py-4">Status</th>

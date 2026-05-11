@@ -45,7 +45,7 @@ export const NotificationProvider = ({ children }) => {
         });
 
         newSocket.on('connect', () => {
-            console.log('🔌 Connected to Notification Stream');
+            console.log('ðŸ”Œ Connected to Notification Stream');
             newSocket.emit('join', user._id || user.id);
         });
 
@@ -59,7 +59,7 @@ export const NotificationProvider = ({ children }) => {
         };
 
         newSocket.on('notification', (notif) => {
-            console.log('🔔 New Real-time Notification:', notif);
+            console.log('ðŸ”” New Real-time Notification:', notif);
             setNotifications(prev => [notif, ...prev]);
             setUnreadCount(prev => prev + 1);
             
@@ -83,7 +83,7 @@ export const NotificationProvider = ({ children }) => {
                     }}
                 >
                     <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>🔔</span> {notif.title || 'New Signal'}
+                        <span>ðŸ””</span> {notif.title || 'New Signal'}
                     </div>
                     <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>{notif.message}</div>
                 </div>

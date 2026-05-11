@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import * as bookingApi from '../api/bookingApi';
 import toast from 'react-hot-toast';
 import { playSound } from '../utils/soundManager';
+import { formatCurrency } from '../utils/formatUtils';
 import './CheckoutFlow.css';
 
 const CheckoutFlow = () => {
@@ -248,7 +249,7 @@ const CheckoutFlow = () => {
                                                                                 </div>
                                                                                 <div className="plan-details-mini">
                                                                                     <div className="plan-name-mini">{plan.name}</div>
-                                                                                    <div className="plan-price-mini">₹{plan.price}</div>
+                                                                                    <div className="plan-price-mini">{formatCurrency(plan.price)}</div>
                                                                                 </div>
                                                                             </div>
                                                                         ))}
@@ -289,15 +290,15 @@ const CheckoutFlow = () => {
                                                     <h5 className="fw-black mb-4">Order Summary</h5>
                                                     <div className="price-row">
                                                         <span>Subtotal ({quantity} Tickets)</span>
-                                                        <span>₹{subtotal}</span>
+                                                        <span>{formatCurrency(subtotal)}</span>
                                                     </div>
                                                     <div className="price-row">
                                                         <span>Platform Secure Fee</span>
-                                                        <span>₹{platformFee}</span>
+                                                        <span>{formatCurrency(platformFee)}</span>
                                                     </div>
                                                     <div className="price-row total">
                                                         <span>Total</span>
-                                                        <span>₹{totalAmount}</span>
+                                                        <span>{formatCurrency(totalAmount)}</span>
                                                     </div>
 
                                                     <div className="mt-4 p-4 rounded-4 bg-light border border-opacity-10">
@@ -321,7 +322,7 @@ const CheckoutFlow = () => {
                                                                     value={partialAmount}
                                                                     onChange={(e) => setPartialAmount(e.target.value)}
                                                                 />
-                                                                <p className="small text-muted mt-2">Balance of ₹{totalAmount - (parseFloat(partialAmount) || 0)} can be paid later.</p>
+                                                                  <p className="small text-muted mt-2">Balance of {formatCurrency(totalAmount - (parseFloat(partialAmount) || 0))} can be paid later.</p>
                                                             </motion.div>
                                                         )}
                                                     </div>

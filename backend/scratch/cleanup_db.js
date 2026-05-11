@@ -12,7 +12,7 @@ async function cleanupDatabase() {
     try {
         // Connect to your local MongoDB
         await mongoose.connect('mongodb://localhost:27017/growth_utsav');
-        console.log("🛠️ Starting Database Recovery...");
+        console.log("ðŸ› ï¸ Starting Database Recovery...");
 
         // 1. Remove all tickets with corrupted identifiers
         const deleteCount = await Ticket.deleteMany({ 
@@ -29,7 +29,7 @@ async function cleanupDatabase() {
             await Ticket.collection.dropIndex('ticketCode_1');
             console.log("✅ Successfully dropped stale index: ticketCode_1");
         } catch (err) {
-            console.log("ℹ️ Index ticketCode_1 not found or already dropped.");
+            console.log("â„¹ï¸ Index ticketCode_1 not found or already dropped.");
         }
 
         console.log("🚀 Database is now clean and ready for production logic.");

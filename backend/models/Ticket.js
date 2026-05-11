@@ -96,8 +96,6 @@ const TicketSchema = new mongoose.Schema({
 });
 
 // --- PRODUCTION INDEXES ---
-TicketSchema.index({ uuid: 1 });
-TicketSchema.index({ ticketCode: 1 });
 TicketSchema.index({ status: 1 });
 TicketSchema.index({ isScanned: 1 });
 TicketSchema.index({ booking: 1 });

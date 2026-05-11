@@ -60,8 +60,6 @@ const UserSchema = new mongoose.Schema({
 });
 
 // --- PRODUCTION INDEXES ---
-UserSchema.index({ email: 1 });
-UserSchema.index({ phone: 1 });
 UserSchema.index({ role: 1 });
 UserSchema.index({ status: 1 });
 

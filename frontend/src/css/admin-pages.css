@@ -40,7 +40,7 @@
     background: var(--bg-surface);
     padding: 16px 20px;
     font-size: 0.75rem;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
     color: var(--text-primary) !important;
     letter-spacing: 0.1em;
@@ -115,7 +115,7 @@
     padding: 4px 10px;
     border-radius: 8px;
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
     margin-top: 6px;
     letter-spacing: 0.5px;
@@ -415,7 +415,7 @@ html body .admin-search-wrapper .admin-search-input::placeholder {
 /* FIX MAIN TITLE */
 .enquiries-title {
     font-size: 34px !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     color: var(--text-primary) !important;
     /* Strong contrast */
     opacity: 1 !important;
@@ -555,7 +555,7 @@ html body .admin-search-wrapper .admin-search-input::placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 14px;
     box-shadow: 0 4px 10px rgba(236, 72, 153, 0.3);
 }
@@ -682,7 +682,7 @@ html body .admin-search-wrapper .admin-search-input::placeholder {
 
 .section-header-mini {
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: #94a3b8;
@@ -800,7 +800,7 @@ html body .admin-search-wrapper .admin-search-input::placeholder {
     border-radius: 12px !important;
 }
 
-/* ── PREMIUM AUDIT MODAL ── */
+/* â”€â”€ PREMIUM AUDIT MODAL â”€â”€ */
 .premium-audit-modal .modal-content {
     background: transparent !important;
     border: none !important;

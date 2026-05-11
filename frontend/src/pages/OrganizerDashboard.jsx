@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import '../css/dashboard.css';
 import '../css/global.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 
 const OrganizerDashboard = () => {
@@ -125,18 +126,18 @@ const OrganizerDashboard = () => {
                             <div>
                                 <span className="card-title-sm opacity-75">Net Profit</span>
                                 <h2 className="card-value-lg my-2">
-                                    ₹{netProfit.toLocaleString()}
+                                    {formatCurrency(netProfit)}
                                 </h2>
                                 <p className="small opacity-75 m-0 mb-4">Finalized Earnings</p>
                             </div>
                             <div className="pt-4 border-top border-white/20">
                                 <div className="d-flex justify-content-between mb-2">
                                     <span className="small opacity-80">Gross Revenue:</span>
-                                    <span className="fw-bold">₹{(stats?.totalRevenue || 0).toLocaleString()}</span>
+                                    <span className="fw-bold">{formatCurrency(stats?.totalRevenue)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-2">
                                     <span className="small opacity-80">Monthly Avg:</span>
-                                    <span className="fw-bold">₹{Math.round((stats?.totalRevenue || 0) / 12).toLocaleString()}</span>
+                                    <span className="fw-bold">{formatCurrency(Math.round((stats?.totalRevenue || 0) / 12))}</span>
                                 </div>
                             </div>
                         </div>

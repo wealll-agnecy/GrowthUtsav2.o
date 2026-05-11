@@ -13,6 +13,7 @@ import confetti from 'canvas-confetti';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import '../css/premium-ticket.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 const TicketView = () => {
     const { id } = useParams();
@@ -232,7 +233,7 @@ const TicketView = () => {
                                     <div className="d-flex align-items-center gap-3">
                                         <FaShieldAlt className="fs-4 flex-shrink-0" />
                                         <div>
-                                            ACCESS DENIED: Please pay the remaining balance of ₹{(ticket?.totalAmount || ticket?.booking?.totalAmount || 0) - (ticket?.amountPaid || ticket?.booking?.amountPaid || 0)} for entry clearance.
+                                            ACCESS DENIED: Please pay the remaining balance of {formatCurrency((ticket?.totalAmount || ticket?.booking?.totalAmount || 0) - (ticket?.amountPaid || ticket?.booking?.amountPaid || 0))} for entry clearance.
                                         </div>
                                     </div>
                                     <Button 
@@ -317,9 +318,9 @@ const TicketView = () => {
 
                                     <div className="text-center">
                                         <div className="pass-info-label mb-1">Pass Value</div>
-                                        <div className="h4 fw-black text-white m-0">₹{ticket?.totalAmount || ticket?.booking?.totalAmount || 0}</div>
+                                        <div className="h4 fw-black text-white m-0">{formatCurrency(ticket?.totalAmount || ticket?.booking?.totalAmount || 0)}</div>
                                         <div className="mt-2 small fw-bold" style={{ color: (ticket?.amountPaid || ticket?.booking?.amountPaid || 0) >= (ticket?.totalAmount || ticket?.booking?.totalAmount || 0) ? '#4caf50' : '#ff9800' }}>
-                                            Paid: ₹{ticket?.amountPaid || ticket?.booking?.amountPaid || 0}
+                                            Paid: {formatCurrency(ticket?.amountPaid || ticket?.booking?.amountPaid || 0)}
                                         </div>
                                         <div className="mt-3">
                                             <Badge bg={(ticket?.amountPaid || ticket?.booking?.amountPaid || 0) >= (ticket?.totalAmount || ticket?.booking?.totalAmount || 0) ? 'success' : 'warning'} className="pass-badge">

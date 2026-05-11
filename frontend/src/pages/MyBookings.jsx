@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Modal, Form, ProgressBar, Spinner } from 'react-bootstrap';
 import '../css/mybookings.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 const MyBookings = () => {
     const { user } = useAuth();
@@ -45,7 +46,7 @@ const MyBookings = () => {
 
         const remaining = selectedBooking.totalAmount - selectedBooking.amountPaid;
         if (parseFloat(installmentAmount) > remaining) {
-            return toast.error(`Amount exceeds remaining balance of ₹${remaining}`);
+            return toast.error(`Amount exceeds remaining balance of ${formatCurrency(remaining)}`);
         }
 
         setIsPaying(true);
@@ -132,7 +133,7 @@ const MyBookings = () => {
                             animate={{ scale: 1, opacity: 1 }}
                             className="no-booking-container"
                         >
-                            <div className="no-booking-icon">🎫</div>
+                            <div className="no-booking-icon">🎟️</div>
                             <h4 className="no-booking-title">No Bookings Yet</h4>
                             <p className="no-booking-text">
                                 You haven't booked any events. Explore hundreds of exciting events and secure your spot!
@@ -181,7 +182,7 @@ const MyBookings = () => {
                                                 <div className="booking-summary-mini">
                                                     <div className="ticket-line">
                                                         <span className="type">{booking.ticketType} × {booking.quantity}</span>
-                                                        <span className="price">₹{booking.totalAmount}</span>
+                                                        <span className="price">{formatCurrency(booking.totalAmount)}</span>
                                                     </div>
                                                     
                                                     <div className="payment-bar-mini">
@@ -195,8 +196,8 @@ const MyBookings = () => {
                                                             />
                                                         </div>
                                                         <div className="bar-labels">
-                                                            <span>Paid: ₹{booking.amountPaid || 0}</span>
-                                                            <span>Remaining: ₹{booking.totalAmount - (booking.amountPaid || 0)}</span>
+                                                            <span>Paid: {formatCurrency(booking.amountPaid || 0)}</span>
+                                                            <span>Remaining: {formatCurrency(booking.totalAmount - (booking.amountPaid || 0))}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -262,13 +263,13 @@ const MyBookings = () => {
 
                                     <h6 style={{ color: 'gray' }}>TRANSACTION DETAILS</h6>
                                     <p><b>Event:</b> {selectedBooking?.event?.title}</p>
-                                    <p><b>Remaining Balance:</b> ₹{selectedBooking?.totalAmount - (selectedBooking?.amountPaid || 0)}</p>
+                                    <p><b>Remaining Balance:</b> {formatCurrency(selectedBooking?.totalAmount - (selectedBooking?.amountPaid || 0))}</p>
 
                                     <h6 style={{ marginTop: '20px', color: 'gray' }}>AUTHORIZE PAYMENT</h6>
                                     <div className="force-message">
                                         <div className="mt-3 pt-3 border-top">
                                             <div className="input-group mb-3">
-                                                <span className="input-group-text bg-white">₹</span>
+                                                <span className="input-group-text bg-white">INR</span>
                                                 <input 
                                                     type="number"
                                                     className="form-control fw-bold"

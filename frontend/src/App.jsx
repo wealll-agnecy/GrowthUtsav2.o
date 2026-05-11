@@ -56,9 +56,9 @@ const HelpChatbot = lazy(() => import('./components/common/HelpChatbot'));
 
 // High-Fidelity Intelligence Loader
 const SectorLoader = () => (
-    <div className="d-flex flex-column justify-content-center align-items-center vh-100 bg-dark gap-4">
+    <div className="d-flex flex-column justify-content-center align-items-center vh-100 bg-white gap-4">
         <Spinner animation="border" variant="primary" style={{ width: '3rem', height: '3rem' }} />
-        <div className="text-white-50 small fw-black tracking-widest uppercase opacity-60">Synchronizing Sector Nodes...</div>
+        <div className="text-secondary small fw-black tracking-widest uppercase opacity-60">Synchronizing Sector Nodes...</div>
     </div>
 );
 

@@ -99,7 +99,7 @@ const EventListing = () => {
                 </div>
 
                 <Row className="g-4">
-                    {/* ─── Events Grid ─── */}
+                    {/* â”€â”€â”€ Events Grid â”€â”€â”€ */}
                     <Col lg={12}>
                         {/* Active filters + count */}
                         <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">

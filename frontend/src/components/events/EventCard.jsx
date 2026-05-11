@@ -3,6 +3,8 @@ import { FaMapMarkerAlt, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import './EventCard.css';
 import API_BASE_URL from '../../config/apiConfig';
 
+import { formatCurrency } from '../../utils/formatUtils';
+
 const EventCard = ({ event }) => {
     const navigate = useNavigate();
     
@@ -67,7 +69,7 @@ const EventCard = ({ event }) => {
                 <div className="event-footer">
                     <div className="event-price">
                         <span className="price-label">Starts from</span>
-                        <span className="price-value">₹{minPrice}</span>
+                        <span className="price-value">{formatCurrency(minPrice)}</span>
                     </div>
                     
                     <button 

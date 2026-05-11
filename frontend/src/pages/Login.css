@@ -1,4 +1,4 @@
-/* ═══════════ LUXURY BEAUTY AUTH SYSTEM ═══════════ */
+/* â•â•â•â•â•â•â•â•â•â•â• LUXURY BEAUTY AUTH SYSTEM â•â•â•â•â•â•â•â•â•â•â• */
 
 /* AUTH BACKGROUND */
 .auth-luxury-wrapper {
@@ -217,9 +217,7 @@
   background: rgba(0,0,0,0.03) !important;
 }
 
-.dark-mode .return-home-link {
-  background: rgba(255,255,255,0.03) !important;
-}
+
 
 .return-home-link:hover {
   opacity: 1 !important;

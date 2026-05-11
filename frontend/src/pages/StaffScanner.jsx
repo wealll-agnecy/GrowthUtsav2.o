@@ -7,6 +7,7 @@ import { FaCheckCircle, FaTimesCircle, FaBackward, FaQrcode } from 'react-icons/
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './StaffScanner.css';
+import { formatCurrency } from '../utils/formatUtils';
 
 const StaffScanner = () => {
     const [scanResult, setScanResult] = useState(null);
@@ -226,7 +227,7 @@ const StaffScanner = () => {
 
                                 <div className="info-row">
                                     <span>Amount Paid</span>
-                                    <b>₹{scanResult.ticket?.amountPaid || 0}</b>
+                                    <b>{formatCurrency(scanResult.ticket?.amountPaid || 0)}</b>
                                 </div>
 
                                 <div className="info-row">

@@ -4,6 +4,7 @@ import { FaCalendarAlt, FaMapMarkerAlt, FaUsers, FaArrowRight, FaClock } from 'r
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../../config/apiConfig';
+import { formatCurrency } from '../../utils/formatUtils';
 
 const OrganizerEventCard = ({ event }) => {
     const navigate = useNavigate();
@@ -57,7 +58,7 @@ const OrganizerEventCard = ({ event }) => {
                            <FaUsers className="text-slate opacity-40" />
                            <span className="fw-bold small">{sold} Sold</span>
                         </div>
-                        <div className="fw-black text-pink">₹{minPrice}</div>
+                        <div className="fw-black text-pink">{formatCurrency(minPrice)}</div>
                     </div>
                 </div>
             </div>

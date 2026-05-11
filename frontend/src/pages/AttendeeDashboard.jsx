@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as bookingApi from '../api/bookingApi';
+import { formatCurrency } from '../utils/formatUtils';
 
 const AttendeeDashboard = () => {
     const { user } = useAuth();
@@ -34,7 +35,7 @@ const AttendeeDashboard = () => {
     const stats = [
         { label: 'Active Tickets', value: activeTicketsCount, icon: <FaTicketAlt />, color: '#8b5cf6', delay: 0.1 },
         { label: 'Total Reservations', value: bookings.length, icon: <FaHistory />, color: '#ec4899', delay: 0.2 },
-        { label: 'Aggregate Spend', value: `₹${totalSpent}`, icon: <FaRocket />, color: '#06b6d4', delay: 0.3 }
+        { label: 'Aggregate Spend', value: formatCurrency(totalSpent), icon: <FaRocket />, color: '#06b6d4', delay: 0.3 }
     ];
 
     if (loading) return (
@@ -173,7 +174,7 @@ const AttendeeDashboard = () => {
                                                             {booking.paymentStatus}
                                                         </Badge>
                                                     </td>
-                                                    <td className="py-4 fw-black text-primary-light">₹{booking.totalAmount}</td>
+                                                    <td className="py-4 fw-black text-primary-light">{formatCurrency(booking.totalAmount)}</td>
                                                     <td className="px-4 py-4 text-end pe-5">
                                                         <Button 
                                                             as={Link} 

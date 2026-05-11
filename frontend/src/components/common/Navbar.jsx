@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
+
 import { Navbar as BsNavbar, Nav, Container, NavDropdown, Spinner } from 'react-bootstrap';
 import { 
-    FaSun, FaMoon, FaUserCircle,
+    FaUserCircle,
     FaHome, FaCalendarAlt, FaEnvelope, FaShieldAlt, 
     FaSignOutAlt, FaTicketAlt, FaCheckCircle, FaBell, FaClock
 } from 'react-icons/fa';
@@ -27,8 +27,7 @@ const Navbar = () => {
         fetchNotifications 
     } = useNotifications();
     
-    const { theme, toggleTheme } = useTheme();
-    const isLightMode = theme === 'light';
+    
     const navigate = useNavigate();
     const location = useLocation();
     const [scrolled, setScrolled] = useState(false);
@@ -117,7 +116,7 @@ const Navbar = () => {
         <BsNavbar 
             expand="lg" 
             fixed="top" 
-            className={`navbar-premium transition-all duration-300 m-0 p-lg-0 ${scrolled ? 'navbar-scrolled' : ''} ${isLightMode ? 'navbar-light bg-white shadow-sm' : 'navbar-dark bg-dark'}`}
+            className={`navbar-premium transition-all duration-300 m-0 p-lg-0 ${scrolled ? 'navbar-scrolled' : ''} navbar-light bg-white shadow-sm`}
         >
             <Container fluid className="px-lg-5">
                 {/* Brand Logo */}
@@ -132,7 +131,7 @@ const Navbar = () => {
                 {/* Mobile Icons (Visible only on mobile) */}
                 <div className="d-md-none d-flex align-items-center gap-2">
                     <div className="position-relative" ref={searchRef}>
-                        <div className="icon-wrapper text-white cursor-pointer" onClick={() => setIsSearchOpen(!isSearchOpen)}>
+                        <div className="icon-wrapper cursor-pointer" onClick={() => setIsSearchOpen(!isSearchOpen)}>
                             <BiSearch size={22} />
                         </div>
 
@@ -165,7 +164,7 @@ const Navbar = () => {
 
                     {user && (
                         <div className="position-relative" ref={mobileNotifRef}>
-                            <div className="icon-wrapper text-white cursor-pointer" onClick={toggleNotifs}>
+                            <div className="icon-wrapper cursor-pointer" onClick={toggleNotifs}>
                                 <BiBell size={22} />
                                 {unreadCount > 0 && <span className="badge-ping"></span>}
                             </div>
@@ -175,7 +174,7 @@ const Navbar = () => {
                     {user ? (
                         <div className="position-relative" ref={profileRef}>
                             <div 
-                                className="icon-wrapper text-white cursor-pointer" 
+                                className="icon-wrapper cursor-pointer" 
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                             >
                                 <BiUserCircle size={26} />
@@ -214,7 +213,7 @@ const Navbar = () => {
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to="/login" className="icon-wrapper text-white">
+                        <Link to="/login" className="icon-wrapper text-dark">
                             <FaUserCircle size={24} />
                         </Link>
                     )}

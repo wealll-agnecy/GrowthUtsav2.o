@@ -27,11 +27,11 @@ const StatsCard = ({ title, value, icon, color, subtitle, growth, delay = 0 }) =
                 </div>
                 
                 <div className="mb-1">
-                    <p className="text-muted uppercase tracking-widest fw-black mb-1 stats-title">{title}</p>
+                    <p className="text-muted uppercase tracking-widest fw-semibold mb-1 stats-title">{title}</p>
                     <div className="d-flex align-items-center gap-2">
-                        <h3 className="text-primary fw-black m-0 stats-value">{value}</h3>
+                        <h3 className="text-primary fw-bold m-0 stats-value">{value}</h3>
                         {growth && (
-                            <div className={`d-flex align-items-center gap-1 small fw-bold px-2 py-0 rounded-pill ${isPositive ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}`} style={{ fontSize: '0.7rem' }}>
+                            <div className={`d-flex align-items-center gap-1 small fw-semibold px-2 py-0 rounded-pill ${isPositive ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}`} style={{ fontSize: '0.7rem' }}>
                                 {isPositive ? <FaArrowUp size={8} /> : <FaArrowDown size={8} />}
                                 {growth}
                             </div>
