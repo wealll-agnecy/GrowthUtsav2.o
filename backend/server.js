@@ -96,8 +96,8 @@ app.use(cors({
         // allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
-        // In development, allow localhost origins easily
-        if (process.env.NODE_ENV === 'development' || origin.includes('localhost')) {
+        // Allow all growthutsav.in subdomains and variants
+        if (origin.includes('growthutsav.in') || origin.includes('localhost')) {
             return callback(null, true);
         }
 
