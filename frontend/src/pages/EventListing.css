@@ -1,39 +1,39 @@
 .listing-headline {
-    color: var(--text-primary);
-    font-size: clamp(2.5rem, 5vw, 4.5rem);
-    line-height: 0.9;
+  color: var(--text-primary);
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 0.9;
 }
 
 .event-count-text {
-    color: var(--primary-light);
-    font-weight: 700;
-    font-size: 0.82rem;
+  color: var(--primary-light);
+  font-weight: 700;
+  font-size: 0.82rem;
 }
 
 .filter-badge-item {
-    background: rgba(219, 39, 119, 0.2);
-    color: #db2777;
-    border: 1px solid rgba(219, 39, 119, 0.3);
-    font-weight: 600;
-    font-size: 0.78rem;
-    cursor: pointer;
+  background: rgba(219, 39, 119, 0.2);
+  color: #db2777;
+  border: 1px solid rgba(219, 39, 119, 0.3);
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
 }
 
 .loading-spinner-icon {
-    animation: spin-slow 2s linear infinite;
-    display: inline-block;
-    color: var(--primary-light);
-    margin-bottom: 1rem;
+  animation: spin-slow 2s linear infinite;
+  display: inline-block;
+  color: var(--primary-light);
+  margin-bottom: 1rem;
 }
 
 .loading-text-static {
-    color: #94a3b8;
-    font-weight: 600;
+  color: #94a3b8;
+  font-weight: 600;
 }
 
 .empty-state-icon-large {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
 
 .events-grid {
@@ -44,32 +44,32 @@
 
 /* â”€â”€â”€ Premium Glass Panel Fix â”€â”€â”€ */
 .glass-panel {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.85),
-    rgba(255, 240, 245, 0.6)
-  ) !important;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.85),
+      rgba(255, 240, 245, 0.6)) !important;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-radius: 20px;
   border: 1px solid rgba(255, 77, 141, 0.15) !important;
   box-shadow: 0 10px 30px rgba(255, 77, 141, 0.08) !important;
-  color: #1a1a1a !important; /* Ensure text is readable */
+  color: #1a1a1a !important;
+  /* Ensure text is readable */
 }
 
 .text-bright {
-    color: #1a1a1a !important;
+  color: #1a1a1a !important;
 }
 
 .text-soft {
-    color: #666 !important;
+  color: #666 !important;
 }
 
 /* â”€â”€â”€ Zomato District Filter Bar â”€â”€â”€ */
 .filter-bar-sticky {
   position: sticky;
-  top: 72px; /* Adjust based on navbar height */
-  background: var(--bg-main);
+  top: 72px;
+  /* Adjust based on navbar height */
+  /* background: var(--bg-main); */
   z-index: 90;
   padding: 12px 0;
   margin-top: -10px;
@@ -82,12 +82,15 @@
   overflow-x: auto;
   white-space: nowrap;
   padding-bottom: 5px;
-  scrollbar-width: none; /* Hide scrollbar Firefox */
-  -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+  scrollbar-width: none;
+  /* Hide scrollbar Firefox */
+  -ms-overflow-style: none;
+  /* Hide scrollbar IE/Edge */
 }
 
 .filter-scroll-container::-webkit-scrollbar {
-  display: none; /* Hide scrollbar Chrome/Safari */
+  display: none;
+  /* Hide scrollbar Chrome/Safari */
 }
 
 .filter-chip {
@@ -103,7 +106,7 @@
   color: #4b5563;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   gap: 8px;
 }
 
@@ -154,13 +157,13 @@
     padding-right: 15px !important;
     width: auto !important;
   }
-  
+
   .filter-chip {
     padding: 8px 14px !important;
     font-size: 0.85rem !important;
     flex-shrink: 0 !important;
   }
-  
+
   .listing-headline {
     font-size: 2.25rem !important;
   }

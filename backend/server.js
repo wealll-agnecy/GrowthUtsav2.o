@@ -203,6 +203,16 @@ server.on('error', (e) => {
     }
 });
 
-server.listen(PORT, () => {
+// --- PRODUCTION SAFETY NET ---
+process.on('unhandledRejection', (err, promise) => {
+    console.error(`🚨 [UNHANDLED REJECTION]: ${err.message}`);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error(`🚨 [UNCAUGHT EXCEPTION]: ${err.message}`);
+    // Optional: Graceful shutdown if needed, but for now we keep it alive
+});
+
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 [SERVER LIVE] [PORT: ${PORT}]`);
 });

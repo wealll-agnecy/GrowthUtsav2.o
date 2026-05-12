@@ -42,6 +42,11 @@ exports.register = async (req, res, next) => {
     }
 
     try {
+        // SECURITY: Never allow public registration as an admin
+        if (role === 'admin') {
+            return res.status(403).json({ success: false, message: 'Unauthorized role assignment.' });
+        }
+
         const checkFields = [{ email }];
         if (phone) checkFields.push({ phone });
 
@@ -77,6 +82,7 @@ exports.register = async (req, res, next) => {
 
         sendTokenResponse(user, 201, res, "Registered successfully");
     } catch (err) {
+        console.error("❌ [REGISTRATION ERROR]:", err.message);
         res.status(500).json({ success: false, message: err.message });
     }
 };
