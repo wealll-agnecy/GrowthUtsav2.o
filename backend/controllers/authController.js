@@ -82,8 +82,18 @@ exports.register = async (req, res, next) => {
 
         sendTokenResponse(user, 201, res, "Registered successfully");
     } catch (err) {
-        console.error("❌ [REGISTRATION ERROR]:", err.message);
-        res.status(500).json({ success: false, message: err.message });
+        console.error("❌ [REGISTRATION ERROR]:", err);
+        
+        let message = "An internal server error occurred.";
+        if (err.name === 'MongooseServerSelectionError') {
+            message = "Database connection timed out. Please check your Atlas IP whitelist.";
+        } else if (err.code === 11000) {
+            message = "This email or phone number is already registered.";
+        } else {
+            message = err.message;
+        }
+
+        res.status(500).json({ success: false, message });
     }
 };
 
