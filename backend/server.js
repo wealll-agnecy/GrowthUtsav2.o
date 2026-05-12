@@ -1,5 +1,17 @@
 const dotenv = require('dotenv');
-dotenv.config();
+const path = require('path');
+dotenv.config({ 
+    path: path.resolve(__dirname, '.env'),
+    quiet: true 
+});
+
+// Force UTF-8 for console output
+if (process.stdout.isTTY) {
+    process.stdout.setEncoding('utf8');
+}
+if (process.stderr.isTTY) {
+    process.stderr.setEncoding('utf8');
+}
 
 const express = require('express');
 const cors = require('cors');
@@ -25,7 +37,6 @@ const expenseRoutes = require('./routes/expenseRoutes');
 const enquiryRoutes = require('./routes/enquiryRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const eventInquiryRoutes = require('./routes/eventInquiryRoutes');
-const path = require('path');
 
 const initScheduler = require('./utils/scheduler');
 
@@ -79,23 +90,34 @@ app.use((req, res, next) => {
     next();
 });
 
-const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : [];
+const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(o => o.trim()) : [];
 app.use(cors({
     origin: function (origin, callback) {
         // allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+
+        // In development, allow localhost origins easily
+        if (process.env.NODE_ENV === 'development' || origin.includes('localhost')) {
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
             return callback(null, true);
         } else {
+            console.error(`🚨 [CORS REJECTED]: ${origin}`);
             return callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
 
 const { updateLiveStatus } = require('./controllers/eventController');
 
-// â”€â”€ EMERGENCY LIVE TOGGLE ROUTES (MOUNTED BEFORE ROUTERS) â”€â”€
+// ── EMERGENCY LIVE TOGGLE ROUTES (MOUNTED BEFORE ROUTERS) ──
 app.put('/api/v1/event-live/:id', protect, updateLiveStatus);
 app.put('/api/v1/events/set-live/:id', protect, updateLiveStatus);
 app.put('/api/v1/events/:id/live', protect, updateLiveStatus);
@@ -139,10 +161,15 @@ app.get("/test-mail", async (req, res) => {
 
 // --- SERVE FRONTEND IN PRODUCTION ---
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../frontend/dist')));
+    const distPath = path.join(__dirname, '../frontend/dist');
+    app.use(express.static(distPath));
 
-    app.get('/*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
+    // Safe SPA fallback for Express 5 (avoids path-to-regexp wildcard issues)
+    app.use((req, res, next) => {
+        if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.includes('.')) {
+            return res.sendFile(path.join(distPath, 'index.html'));
+        }
+        next();
     });
 }
 
@@ -168,6 +195,13 @@ console.log("✅ Event Routes Loaded:", eventRoutes.stack.filter(r => r.route).m
 console.log("✅ Booking Routes Loaded:", bookingRoutes.stack.filter(r => r.route).map(r => `${Object.keys(r.route.methods)} ${r.route.path}`));
 
 const PORT = process.env.PORT || 5002;
+
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.error(`❌ [SERVER ERROR]: Port ${PORT} is already in use.`);
+        process.exit(1);
+    }
+});
 
 server.listen(PORT, () => {
     console.log(`🚀 [SERVER LIVE] [PORT: ${PORT}]`);

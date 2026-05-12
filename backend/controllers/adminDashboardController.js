@@ -42,12 +42,14 @@ exports.getAdminStats = async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(3)
             .populate('user', 'name')
-            .populate('event', 'title');
+            .populate('event', 'title')
+            .lean();
 
         const recentEvents = await Event.find({})
             .sort({ createdAt: -1 })
             .limit(3)
-            .populate('organizer', 'name');
+            .populate('organizer', 'name')
+            .lean();
 
         const activities = [
             ...recentBookings.map(b => ({

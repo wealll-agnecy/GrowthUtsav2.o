@@ -134,7 +134,7 @@ router.get("/event/:id/details", async (req, res) => {
     });
 
     } catch (err) {
-    console.error("âŒ [ORGANIZER DETAILS ERROR]:", err);
+    console.error("❌ [ORGANIZER DETAILS ERROR]:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });

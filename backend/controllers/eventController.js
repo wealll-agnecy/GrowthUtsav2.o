@@ -80,8 +80,8 @@ exports.getEvents = async (req, res, next) => {
             reqQuery.title = { $regex: req.query.search, $options: 'i' };
         }
 
-        console.log('ðŸ” [GET EVENTS]: Querying with:', reqQuery);
-        query = Event.find(reqQuery).populate('organizer', 'name email');
+        console.log('🔍 [GET EVENTS]: Querying with:', reqQuery);
+        query = Event.find(reqQuery).populate('organizer', 'name email').lean();
 
         // Pagination
         const page = parseInt(req.query.page, 10) || 1;
@@ -126,7 +126,9 @@ exports.getEvents = async (req, res, next) => {
 // @access  Public
 exports.getEvent = async (req, res, next) => {
     try {
-        const event = await Event.findById(req.params.id).populate('organizer', 'name email _id avatar phone address organizationDetails');
+        const event = await Event.findById(req.params.id)
+            .populate('organizer', 'name email _id avatar phone address organizationDetails')
+            .lean();
 
         if (!event) {
             return res.status(404).json({
@@ -167,7 +169,7 @@ exports.getEvent = async (req, res, next) => {
 // @access  Private (Organizer)
 exports.getMyEvents = async (req, res, next) => {
     try {
-        const events = await Event.find({ organizer: req.user.id });
+        const events = await Event.find({ organizer: req.user.id }).lean();
 
         res.status(200).json({
             success: true,

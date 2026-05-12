@@ -1,8 +1,6 @@
 const nodemailer = require('nodemailer');
-const dotenv = require('dotenv');
 
-// Load environment variables immediately
-dotenv.config();
+// Environment variables are loaded in server.js
 
 /**
  * Transporter Setup (Production Gmail SMTP)

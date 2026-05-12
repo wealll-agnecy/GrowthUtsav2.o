@@ -24,9 +24,9 @@ exports.createEnquiry = async (req, res) => {
 };
 
 exports.getEnquiries = async (req, res) => {
-    console.log("ðŸ” [ADMIN]: Requesting full enquiry list...");
+    console.log("🔍 [ADMIN]: Requesting full enquiry list...");
     try {
-        const enquiries = await Enquiry.find().sort({ createdAt: -1 });
+        const enquiries = await Enquiry.find().sort({ createdAt: -1 }).lean();
         res.status(200).json(enquiries);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -35,7 +35,7 @@ exports.getEnquiries = async (req, res) => {
 
 exports.getEnquiryById = async (req, res) => {
     const { id } = req.params;
-    console.log(`ðŸ” [ADMIN]: Searching for Enquiry with ID: ${id}`);
+    console.log(`🔍 [ADMIN]: Searching for Enquiry with ID: ${id}`);
     
     try {
         const enquiry = await Enquiry.findByIdAndUpdate(
@@ -45,7 +45,7 @@ exports.getEnquiryById = async (req, res) => {
         );
 
         if (!enquiry) {
-            console.log(`â“ [ADMIN]: Enquiry NOT FOUND for ID: ${id}`);
+            console.log(`❓ [ADMIN]: Enquiry NOT FOUND for ID: ${id}`);
             return res.status(404).json({ message: 'Enquiry not found' });
         }
         console.log(`✅ [ADMIN]: Enquiry found and marked as read: ${enquiry.name}`);

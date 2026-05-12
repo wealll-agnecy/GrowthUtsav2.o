@@ -117,7 +117,7 @@ exports.verifyTicketForScanner = async (req, res) => {
         if (!ticket) {
             return res.status(200).json({ 
                 success: true, 
-                status: 'ACCESS DENIED â€” Invalid ticket',
+                status: 'ACCESS DENIED — Invalid ticket',
                 message: 'Ticket ID not found in database.' 
             });
         }
@@ -309,7 +309,7 @@ exports.verifyTicketForStaff = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 status: 'DENIED',
-                message: 'ACCESS DENIED: Full amount not paid âš ï¸',
+                message: 'ACCESS DENIED: Full amount not paid ⚠️',
                 ticket: details
             });
         }
@@ -415,7 +415,7 @@ exports.verifyTicket = async (req, res, next) => {
         if (!ticket) {
             return res.json({ 
                 success: true, 
-                status: "ACCESS DENIED â€” Invalid ticket", 
+                status: "ACCESS DENIED — Invalid ticket", 
                 message: "This identifier does not match any registered ticket." 
             });
         }
@@ -505,7 +505,7 @@ exports.verifyTicketScan = async (req, res) => {
         if (!ticket) {
             return res.json({ 
                 success: true, 
-                status: "ACCESS DENIED â€” Invalid ticket", 
+                status: "ACCESS DENIED — Invalid ticket", 
                 message: "This identifier does not match any registered ticket." 
             });
         }
@@ -590,7 +590,7 @@ exports.verifyTicketScan = async (req, res) => {
 
         // 2. Payment Pending
         if (!isPaid) {
-            console.log(`âš ï¸ [SCAN DENIED] Staff verification failed. Payment Incomplete for ${ticket.ticketCode}. Remaining: ${currentRemaining}`);
+            console.log(`⚠️ [SCAN DENIED] Staff verification failed. Payment Incomplete for ${ticket.ticketCode}. Remaining: ${currentRemaining}`);
             return res.json({
                 success: true,
                 status: "DENIED",

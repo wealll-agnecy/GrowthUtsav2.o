@@ -31,7 +31,7 @@ const router = express.Router();
 router.use(protect);
 router.use(authorize('admin'));
 
-// â”€â”€ Dashboard Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Dashboard Stats ───────────────────────────────────────
 router.get('/stats', getAdminStats);
 router.get('/total-revenue', getTotalRevenue);
 router.get('/net-profit', getNetProfit);
@@ -41,17 +41,17 @@ router.get('/total-events', require('../controllers/adminDashboardController').g
 router.get('/tickets-sold', require('../controllers/adminDashboardController').getTicketsSold);
 router.get('/pending-requests', getPendingRequests);
 
-// â”€â”€ Organizer Request Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Organizer Request Management ──────────────────────────
 router.get('/organizers/pending', getPendingOrganizers);
 router.get('/organizers/approved', getApprovedOrganizers);
 router.get('/organizers/rejected', getRejectedOrganizers);
 router.patch('/organizers/:id/approve', approveOrganizer);
 router.patch('/organizers/:id/reject', rejectOrganizer);
 
-// â”€â”€ User Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── User Management ───────────────────────────────────────
 router.get('/users', getAllUsers);
 
-// â”€â”€ Staff Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Staff Management ──────────────────────────────────────
 router.route('/staff')
     .get(getStaff)
     .post(createStaff);
@@ -61,7 +61,7 @@ router.route('/staff/:id')
 
 router.put('/staff/:id/assign', assignStaffToEvents);
 
-// â”€â”€ Event Moderation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Event Moderation ──────────────────────────────────────
 router.get('/events/pending', async (req, res) => {
     try {
         const events = await Event.find({ status: 'pending' }).populate('organizer', 'name email');

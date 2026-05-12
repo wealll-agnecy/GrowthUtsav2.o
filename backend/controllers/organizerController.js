@@ -13,7 +13,7 @@ exports.getPendingOrganizers = async (req, res) => {
             role: 'organizer',
             status: 'pending',
             isRejected: { $ne: true }
-        }).select('-password').sort({ createdAt: -1 });
+        }).select('-password').sort({ createdAt: -1 }).lean();
 
         res.status(200).json({ success: true, count: pending.length, data: pending });
     } catch (err) {
@@ -29,7 +29,7 @@ exports.getApprovedOrganizers = async (req, res) => {
         const approved = await User.find({
             role: 'organizer',
             status: 'verified'
-        }).select('-password').sort({ createdAt: -1 });
+        }).select('-password').sort({ createdAt: -1 }).lean();
 
         res.status(200).json({ success: true, count: approved.length, data: approved });
     } catch (err) {
@@ -77,7 +77,7 @@ exports.approveOrganizer = async (req, res) => {
         // Send Notification
         await notificationQueue.add('alert', {
             userId: user._id,
-            title: 'Account Verified! [PARTY]',
+            title: 'Account Verified! 🎉',
             message: 'Your organizer account has been approved. You can now create and manage events.',
             type: 'system'
         });
@@ -114,7 +114,7 @@ exports.rejectOrganizer = async (req, res) => {
         // Send Notification
         await notificationQueue.add('alert', {
             userId: user._id,
-            title: 'Account Update âš ï¸',
+            title: 'Account Update ⚠️',
             message: `Your organizer application was not approved. Reason: ${reason || 'Incomplete profile'}`,
             type: 'system'
         });
@@ -130,7 +130,7 @@ exports.rejectOrganizer = async (req, res) => {
 // @access  Private (Admin)
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+        const users = await User.find({}).select('-password').sort({ createdAt: -1 }).lean();
         res.status(200).json({ success: true, count: users.length, data: users });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

@@ -39,20 +39,21 @@ const processNotificationAction = async (data) => {
             if (user?.fcmToken) sendPushNotification(user.fcmToken, title, message, { eventId: eventIdStr });
         }
     } catch (err) {
-        console.error(`âŒ [NOTIFICATION_PROCESSOR]: Failed:`, err.message);
+        console.error(`❌ [NOTIFICATION_PROCESSOR]: Failed:`, err.message);
         throw err;
     }
 };
 
 /**
  * HIGH-FIDELITY REDIS ADAPTER
- * Silences all connection errors by performing an opt-in check.
+ * Detects Redis availability and falls back gracefully to real-time relay mode.
  */
-const REDIS_ENABLED = process.env.REDIS_URL || process.env.ENABLE_REDIS === 'true';
+const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const REDIS_ENABLED = process.env.ENABLE_REDIS !== 'false' && !!process.env.REDIS_URL;
 
 let notificationQueue = { 
     add: async (name, data) => {
-        console.log(`[SIGNAL] [QUEUE-OFFLINE]: Processing ${name} immediately (Redis disabled)`);
+        // Default fallback behavior
         await processNotificationAction(data);
     },
     getJob: async () => null,
@@ -60,43 +61,80 @@ let notificationQueue = {
 };
 
 let worker = null;
+let redisClient = null;
 
 if (REDIS_ENABLED) {
-    const connection = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+    console.log('📡 [REDIS]: Attempting connection...');
+    
+    redisClient = new IORedis(REDIS_URL, {
         maxRetriesPerRequest: null,
-        enableReadyCheck: false,
+        enableReadyCheck: true,
         showFriendlyErrorStack: false,
-        retryStrategy: (times) => Math.min(times * 500, 15000)
+        lazyConnect: true, // Don't block startup
+        retryStrategy: (times) => {
+            if (times > 3) {
+                // If we failed multiple times, stop spamming logs and stay in fallback mode
+                return null; 
+            }
+            return Math.min(times * 1000, 5000);
+        }
     });
 
-    connection.on('error', (err) => {
-        if (err.code === 'ECONNREFUSED') {
-            console.warn('âš ï¸ [REDIS]: Service unavailable. Switching to real-time relay mode.');
-            // Downgrade to offline mode if connection fails
-            notificationQueue.add = async (name, data) => {
-                await processNotificationAction(data);
-            };
+    redisClient.on('connect', () => {
+        console.log('✅ [REDIS]: Connection established successfully');
+    });
+
+    redisClient.on('error', (err) => {
+        if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+            // Log only once for connection refusal to keep console clean
+            if (notificationQueue.offlineMode !== true) {
+                console.warn('⚠️ [REDIS]: Service unavailable or refused connection. Operating in fallback relay mode.');
+                notificationQueue.offlineMode = true;
+            }
+        } else {
+            console.error('❌ [REDIS]: Connection error:', err.message);
         }
     });
 
     try {
         notificationQueue = new Queue('notificationQueue', { 
-            connection,
+            connection: redisClient,
             defaultJobOptions: { removeOnComplete: true, removeOnFail: 1000 }
         });
 
         worker = new Worker('notificationQueue', async (job) => {
-            console.log(`[QUEUE] [QUEUE]: Processing job ${job.id} (${job.name})`);
+            console.log(`[QUEUE]: Processing job ${job.id} (${job.name})`);
             await processNotificationAction(job.data);
-        }, { connection });
+        }, { 
+            connection: redisClient,
+            removeOnComplete: { count: 100 },
+            removeOnFail: { count: 100 }
+        });
 
         worker.on('completed', (job) => console.log(`✅ [QUEUE]: Job ${job.id} completed`));
         worker.on('failed', (job, err) => console.error(`🚨 [QUEUE]: Job ${job.id} failed: ${err.message}`));
+        
+        // Wrap add method to handle potential runtime Redis failures
+        const originalAdd = notificationQueue.add.bind(notificationQueue);
+        notificationQueue.add = async (name, data, opts) => {
+            try {
+                if (redisClient.status === 'ready') {
+                    return await originalAdd(name, data, opts);
+                }
+                throw new Error('Redis not ready');
+            } catch (err) {
+                console.log(`[SIGNAL]: Redis unavailable, processing ${name} via relay`);
+                await processNotificationAction(data);
+            }
+        };
+
     } catch (err) {
-        console.error('âŒ [QUEUE]: Initialization error:', err.message);
+        console.error('❌ [QUEUE]: Initialization error:', err.message);
+        notificationQueue.offlineMode = true;
     }
 } else {
-    console.log('[TIP] [REDIS]: Offline mode active. Real-time notifications used via relay.');
+    console.log('ℹ️ [REDIS]: Offline mode active. Using real-time relay for notifications.');
+    notificationQueue.offlineMode = true;
 }
 
 const scheduleReminders = async (userId, eventId, eventDate) => {
