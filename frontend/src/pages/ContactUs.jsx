@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Alert, Form, Spinner } from 'react-bootstrap';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { motion } from 'framer-motion';
 import '../css/contact.css';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaMagic } from 'react-icons/fa';
@@ -28,7 +28,7 @@ const ContactUs = () => {
         setSuccess(false);
 
         try {
-            await axios.post("/api/v1/enquiries", form);
+            await apiClient.post("/api/v1/enquiries", form);
             setSuccess(true);
             setForm({ name: "", phone: "", email: "", message: "" });
             // Using a more subtle toast or just the alert state

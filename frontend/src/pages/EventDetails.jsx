@@ -6,7 +6,7 @@ import { Container, Row, Col, Form, Spinner, Alert, Badge, Modal, Button } from 
 import {
     FaMapMarkerAlt, FaCalendarAlt, FaClock, FaCheckCircle,
     FaShoppingCart, FaArrowLeft, FaShieldAlt, FaTicketAlt,
-    FaPhone, FaUserCircle, FaEnvelope
+    FaPhone, FaUserCircle, FaEnvelope, FaUtensils
 } from 'react-icons/fa';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -39,14 +39,21 @@ const EventDetails = () => {
     const [inquirySuccess, setInquirySuccess] = useState(false);
 
     useEffect(() => {
+        if (!id || id === 'undefined') {
+            console.error("[CLIENT]: Detected invalid 'undefined' event ID in URL");
+            setLoading(false);
+            return;
+        }
+
         const fetchEventAndRelated = async () => {
             setLoading(true);
             try {
                 // Fetch current event
                 const res = await eventApi.getEvent(id);
                 const eventData = res.data.data;
+                console.log('DEBUG [EventDetails]: Food Settings:', eventData.foodSettings);
                 setEvent(eventData);
-                
+
                 if (eventData.isMultiDay && eventData.multiDayPlan.length > 0) {
                     const firstDay = eventData.multiDayPlan[0];
                     setSelectedDate(firstDay.date);
@@ -146,6 +153,13 @@ const EventDetails = () => {
         }
     };
 
+    const openMap = () => {
+        if (event && event.venue) {
+            const encodedVenue = encodeURIComponent(event.venue);
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodedVenue}`, '_blank');
+        }
+    };
+
     if (loading) {
         return (
             <div className="loader-screen-center">
@@ -190,7 +204,7 @@ const EventDetails = () => {
         const currentDay = event.multiDayPlan.find(d => d.date === referenceDate);
         currentPlans = currentDay?.plans || [];
         selectedTicket = currentPlans.find(p => p.name === selectedTier);
-        
+
         let anySoldOut = false;
         selectedDays.forEach(date => {
             const day = event.multiDayPlan.find(d => d.date === date);
@@ -214,12 +228,12 @@ const EventDetails = () => {
         <div className="event-details-page">
             {/* 1. HERO SECTION */}
             <section className="event-hero">
-                <img 
-                    src={bannerUrl} 
-                    alt={event.title} 
-                    className="hero-img" 
-                    loading="eager" 
-                    decoding="async" 
+                <img
+                    src={bannerUrl}
+                    alt={event.title}
+                    className="hero-img"
+                    loading="eager"
+                    decoding="async"
                 />
                 <div className="hero-overlay"></div>
 
@@ -230,14 +244,31 @@ const EventDetails = () => {
                         transition={{ duration: 0.6 }}
                     >
                         <span className="hero-tag">Featured Event</span>
+                        {/* Hero Food Banners */}
+                        {(event.foodSettings?.foodType === 'compulsory' || event.foodSettings?.type === 'compulsory') && (
+                            <div className="hero-food-banner compulsory">
+                                <FaUtensils className="me-2" /> FOOD INCLUDED
+                            </div>
+                        )}
+                        {(event.foodSettings?.foodType === 'multiple' || event.foodSettings?.type === 'multiple') && (
+                            <div className="hero-food-banner multiple">
+                                <FaUtensils className="me-2" /> YOU CAN SELECT YOUR MEAL
+                            </div>
+                        )}
                         <h1>{event.title}</h1>
                         <div className="hero-meta">
-                            <span><FaMapMarkerAlt className="me-2" /> {event.venue}</span>
+                            <span
+                                className="cursor-pointer hover-opacity-75 transition-all"
+                                onClick={openMap}
+                                title="View on Google Maps"
+                            >
+                                <FaMapMarkerAlt className="me-2" /> {event.venue}
+                            </span>
                             <span><FaCalendarAlt className="ms-3 me-2" /> {formattedDate}</span>
                         </div>
                     </motion.div>
                 </div>
-                
+
                 <Link to="/events" className="position-absolute top-0 start-0 m-4 text-white z-3 text-decoration-none d-flex align-items-center gap-2 small fw-bold">
                     <FaArrowLeft /> Back
                 </Link>
@@ -259,25 +290,69 @@ const EventDetails = () => {
                                     <div className="description-text">
                                         {event.description}
                                     </div>
+                                    {event.whatYouLearn && event.whatYouLearn.length > 0 && (
+                                        <>
+                                            <h4 className="mt-5">What You'll Learn</h4>
+                                            <ul className="highlights-list">
+                                                {event.whatYouLearn.map((item, idx) => (
+                                                    <li key={idx}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
 
-                                    <h4 className="mt-5">What You'll Learn</h4>
-                                    <ul className="highlights-list">
-                                        <li>Advanced Makeup Techniques & Layering</li>
-                                        <li>Professional Skin Preparation & Priming</li>
-                                        <li>Mastering the Art of Bridal Transformations</li>
-                                        <li>Industry-Specific Styling & Color Theory</li>
-                                        <li>Exclusive Insights from Lead Artists</li>
-                                    </ul>
+                                    {event.benefits && event.benefits.length > 0 && (
+                                        <>
+                                            <h4 className="mt-5">Benefits & Highlights</h4>
+                                            <ul className="highlights-list">
+                                                {event.benefits.map((benefit, idx) => (
+                                                    <li key={idx}>{benefit}</li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
                                 </div>
+
+                                {event.foodSettings && event.foodSettings.options && event.foodSettings.options.length > 0 && (
+                                    <div className="event-content-card mt-4">
+                                        <h3 className="d-flex align-items-center gap-2">
+                                            <FaUtensils className="text-pink" />
+                                            {(event.foodSettings.foodType === 'compulsory' || event.foodSettings.type === 'compulsory') ? 'Free Food Included' : 'Food & Catering'}
+                                        </h3>
+                                        <div className="food-display-grid mt-4">
+                                            <Row className="g-3">
+                                                {event.foodSettings.options.map((food, idx) => (
+                                                    <Col md={6} key={idx}>
+                                                        <div className="p-3 rounded-4 bg-light border border-pink-subtle h-100">
+                                                            <div className="d-flex justify-content-between align-items-start">
+                                                                <div className="fw-bold text-dark fs-5">
+                                                                    <span className="text-pink small uppercase me-1">[{food.category || 'Meal'}]</span>
+                                                                    {food.itemName}
+                                                                </div>
+                                                                <Badge bg={food.type === 'veg' ? 'success' : 'danger'} className="text-uppercase" style={{ fontSize: '10px' }}>
+                                                                    {food.type}
+                                                                </Badge>
+                                                            </div>
+                                                            <div className="text-muted small mt-2 d-flex align-items-center gap-2">
+                                                                <FaClock className="text-pink" size={12} />
+                                                                Distribution: <span className="fw-bold">{food.distributionTime}</span>
+                                                            </div>
+                                                        </div>
+                                                    </Col>
+                                                ))}
+                                            </Row>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="event-content-card mt-4">
                                     <h5 className="fw-black uppercase tracking-widest small mb-4 opacity-50">Host Infrastructure</h5>
                                     <div className="d-flex align-items-center gap-4 p-3 bg-white/2 rounded-4 border border-white/5">
                                         <div className="host-avatar-wrapper shadow-glow">
                                             {event.organizer?.avatar && event.organizer.avatar !== 'no-avatar.jpg' ? (
-                                                <img 
-                                                    src={resolveImageUrl(event.organizer.avatar, 'avatar')} 
-                                                    alt="Host" 
+                                                <img
+                                                    src={resolveImageUrl(event.organizer.avatar, 'avatar')}
+                                                    alt="Host"
                                                     className="rounded-circle border border-3 border-pink shadow"
                                                     style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                                                 />
@@ -304,7 +379,7 @@ const EventDetails = () => {
                                             </div>
                                         </div>
                                         <div className="d-none d-md-block">
-                                            <button 
+                                            <button
                                                 onClick={() => setShowInquiryModal(true)}
                                                 className="btn btn-outline-pink btn-sm rounded-pill px-4 fw-bold"
                                             >
@@ -327,10 +402,16 @@ const EventDetails = () => {
                                 >
                                     <span className="booking-price">{formatCurrency(displayPricePerPerson)}</span>
                                     <p className="text-muted small fw-bold">Per Person</p>
-                                    
+
                                     <ul className="booking-details">
                                         <li><FaCalendarAlt /> {event.isMultiDay ? `${selectedDays.length} Day(s) Selected` : formattedDate}</li>
-                                        <li><FaMapMarkerAlt /> {event.venue}</li>
+                                        <li
+                                            className="cursor-pointer hover-text-pink transition-all"
+                                            onClick={openMap}
+                                            title="View on Google Maps"
+                                        >
+                                            <FaMapMarkerAlt /> {event.venue}
+                                        </li>
                                         <li><FaClock /> {event.time}</li>
                                     </ul>
 
@@ -343,7 +424,7 @@ const EventDetails = () => {
                                                 </span>
                                             </div>
                                             <div className="date-selector-scroll d-flex gap-2 pb-2">
-                                                <div 
+                                                <div
                                                     className={`date-chip ${isAllDays ? 'active' : ''}`}
                                                     onClick={() => {
                                                         if (!isAllDays) {
@@ -361,7 +442,7 @@ const EventDetails = () => {
                                                 {event.multiDayPlan.map((day, idx) => {
                                                     const isSelected = selectedDays.includes(day.date);
                                                     return (
-                                                        <div 
+                                                        <div
                                                             key={idx}
                                                             className={`date-chip ${isSelected ? 'active' : ''}`}
                                                             onClick={() => {
@@ -395,7 +476,7 @@ const EventDetails = () => {
                                         </Form.Label>
                                         <div className="plan-selector d-flex flex-column gap-2">
                                             {currentPlans.map((tier, idx) => (
-                                                <div 
+                                                <div
                                                     key={idx}
                                                     className={`plan-option-card ${selectedTier === tier.name ? 'selected' : ''} ${tier.quantity - tier.sold <= 0 ? 'sold-out' : ''}`}
                                                     onClick={() => tier.quantity - tier.sold > 0 && setSelectedTier(tier.name)}
@@ -430,7 +511,7 @@ const EventDetails = () => {
                                     </div>
 
                                     {user && (user.role === 'staff' || user.role === 'organizer') ? (
-                                        <div className="text-center p-3 rounded-4 bg-danger bg-opacity-10 border border-danger border-opacity-20">
+                                        <div className="text-center p-3 rounded-4  bg-opacity-10 border border-danger border-opacity-20">
                                             <p className="small text-danger fw-bold m-0 uppercase tracking-widest">
                                                 Restricted
                                             </p>
@@ -469,7 +550,7 @@ const EventDetails = () => {
 
                     {/* EXTRA SECTION: Related Events */}
                     {relatedEvents.length > 0 && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -507,12 +588,12 @@ const EventDetails = () => {
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
                                         <Form.Label className="small fw-bold">Name</Form.Label>
-                                        <Form.Control 
-                                            type="text" 
+                                        <Form.Control
+                                            type="text"
                                             placeholder="Your Name"
                                             required
                                             value={inquiryData.name}
-                                            onChange={(e) => setInquiryData({...inquiryData, name: e.target.value})}
+                                            onChange={(e) => setInquiryData({ ...inquiryData, name: e.target.value })}
                                             className="rounded-3 border-light"
                                         />
                                     </Form.Group>
@@ -520,12 +601,12 @@ const EventDetails = () => {
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
                                         <Form.Label className="small fw-bold">Email</Form.Label>
-                                        <Form.Control 
-                                            type="email" 
+                                        <Form.Control
+                                            type="email"
                                             placeholder="Your Email"
                                             required
                                             value={inquiryData.email}
-                                            onChange={(e) => setInquiryData({...inquiryData, email: e.target.value})}
+                                            onChange={(e) => setInquiryData({ ...inquiryData, email: e.target.value })}
                                             className="rounded-3 border-light"
                                         />
                                     </Form.Group>
@@ -533,29 +614,29 @@ const EventDetails = () => {
                             </Row>
                             <Form.Group className="mb-3">
                                 <Form.Label className="small fw-bold">Phone Number</Form.Label>
-                                <Form.Control 
-                                    type="tel" 
+                                <Form.Control
+                                    type="tel"
                                     placeholder="Your Phone"
                                     required
                                     value={inquiryData.phone}
-                                    onChange={(e) => setInquiryData({...inquiryData, phone: e.target.value})}
+                                    onChange={(e) => setInquiryData({ ...inquiryData, phone: e.target.value })}
                                     className="rounded-3 border-light"
                                 />
                             </Form.Group>
                             <Form.Group className="mb-4">
                                 <Form.Label className="small fw-bold">Message</Form.Label>
-                                <Form.Control 
-                                    as="textarea" 
-                                    rows={4} 
+                                <Form.Control
+                                    as="textarea"
+                                    rows={4}
                                     placeholder="How can we help you?"
                                     required
                                     value={inquiryData.message}
-                                    onChange={(e) => setInquiryData({...inquiryData, message: e.target.value})}
+                                    onChange={(e) => setInquiryData({ ...inquiryData, message: e.target.value })}
                                     className="rounded-3 border-light"
                                 />
                             </Form.Group>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 className="btn-pink w-100 py-3 fw-bold rounded-3"
                                 disabled={inquiryLoading}
                             >

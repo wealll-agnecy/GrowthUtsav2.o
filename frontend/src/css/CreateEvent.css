@@ -152,10 +152,10 @@
     background: #ff4d8d;
     color: white;
     border: none;
-    padding: 12px 30px;
+    padding: 10px 24px;
     border-radius: 12px;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -215,4 +215,105 @@
       width: 100%;
       justify-content: center;
   }
+}
+
+/* Premium Food Selection Styles */
+.food-type-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.food-type-card:hover {
+  background: #f1f5f9;
+  transform: translateY(-2px);
+}
+
+.food-type-card.active {
+  background: #fff5f7;
+  border-color: #ff4d8d;
+  box-shadow: 0 4px 15px rgba(255, 77, 141, 0.1);
+}
+
+.type-icon {
+  width: 40px;
+  height: 40px;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4d8d;
+  font-size: 18px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.food-type-card.active .type-icon {
+  background: #ff4d8d;
+  color: white;
+}
+
+.type-info {
+  flex-grow: 1;
+}
+
+.type-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e0;
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.food-type-card.active .type-check {
+  background: #ff4d8d;
+  border-color: #ff4d8d;
+}
+
+.food-type-card.active .type-check::after {
+  content: 'âœ“';
+  color: white;
+  font-size: 12px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.food-item-premium-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+.food-item-premium-card:hover {
+  border-color: #f9a8d4;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.food-indicator {
+  width: 4px;
+  height: 30px;
+  border-radius: 2px;
+}
+
+.food-indicator.veg { background: #10b981; }
+.food-indicator.non-veg { background: #ef4444; }
+
+.tiny-badge {
+  font-size: 9px !important;
+  padding: 3px 6px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px;
 }

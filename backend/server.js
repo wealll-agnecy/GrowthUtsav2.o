@@ -29,7 +29,7 @@ const ticketRoutes = require('./routes/ticketRoutes');
 const automationRoutes = require('./routes/automationRoutes');
 const servicePlanRoutes = require('./routes/servicePlanRoutes');
 const logisticsRoutes = require('./routes/logisticsRoutes');
-const { protect } = require('./middleware/authMiddleware');
+const { protect, authorize } = require('./middleware/authMiddleware');
 const adminRoutes = require('./routes/adminRoutes');
 const organizerRoutes = require('./routes/organizerRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
@@ -42,8 +42,8 @@ const initScheduler = require('./utils/scheduler');
 
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 
-const { initSocket } = require('./utils/socket');
 const { initFirebase } = require('./utils/firebase');
 const http = require('http');
 
@@ -51,53 +51,16 @@ const http = require('http');
 require('./queue/notificationQueue');
 
 const app = express();
-const server = http.createServer(app);
 
-// Initialize Socket.io
-initSocket(server);
-
-// Initialize Firebase
-initFirebase();
-
-// Set security HTTP headers
-app.set('trust proxy', 1); // trust first proxy
-app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: false
-}));
-
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 1000, // increased for dev
-    message: 'Too many requests from this IP, please try again after 15 minutes'
-});
-app.use('/api', limiter);
-
-app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(cookieParser());
-
-// Force UTF-8 for all JSON responses
-app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    next();
-});
-
-app.use((req, res, next) => {
-    console.log(`📡 [REQUEST]: ${req.method} ${req.path}`);
-    next();
-});
-
+// --- CORS INITIALIZATION (Must be at the very top to set headers on 429 and 500 error responses) ---
 const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(o => o.trim()) : [];
 app.use(cors({
     origin: function (origin, callback) {
         // allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
-        // Allow all growthutsav.in subdomains and variants
-        if (origin.includes('growthutsav.in') || origin.includes('localhost')) {
+        // Allow exact growthutsav.in and its official subdomains, netlify.app, onrender.com plus local development
+        if (origin === 'https://growthutsav.in' || origin === 'https://www.growthutsav.in' || origin.endsWith('.growthutsav.in') || origin.endsWith('.netlify.app') || origin.endsWith('.onrender.com') || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
             return callback(null, true);
         }
 
@@ -115,12 +78,82 @@ app.use(cors({
     optionsSuccessStatus: 204
 }));
 
-const { updateLiveStatus } = require('./controllers/eventController');
+// --- GZIP COMPRESSION (reduces payload sizes by 70-85%) ---
+app.use(compression({
+    level: 6,           // Balanced: compression ratio vs CPU cost
+    threshold: 1024,    // Only compress responses > 1KB (skip tiny responses)
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) return false;
+        return compression.filter(req, res);
+    }
+}));
+const server = http.createServer(app);
 
-// ── EMERGENCY LIVE TOGGLE ROUTES (MOUNTED BEFORE ROUTERS) ──
-app.put('/api/v1/event-live/:id', protect, updateLiveStatus);
-app.put('/api/v1/events/set-live/:id', protect, updateLiveStatus);
-app.put('/api/v1/events/:id/live', protect, updateLiveStatus);
+// Initialize Firebase
+initFirebase();
+
+// Set security HTTP headers
+app.set('trust proxy', 1); // trust first proxy
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
+}));
+
+const isLoopbackRequest = (req) => {
+    const remoteAddress = req.socket?.remoteAddress || req.ip || '';
+
+    return [remoteAddress].some(value =>
+        value.includes('localhost') ||
+        value.includes('127.0.0.1') ||
+        value.includes('::1') ||
+        value.includes('::ffff:127.0.0.1')
+    );
+};
+
+// General API safety net. Local/dev traffic is skipped so Vite hot reload,
+// dashboard polling, and repeated manual testing never lock the app out.
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: process.env.NODE_ENV === 'production' ? 5000 : 100000,
+    skip: (req) => process.env.NODE_ENV !== 'production' || isLoopbackRequest(req),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        success: false,
+        message: 'Too many requests from this IP, please try again after 15 minutes'
+    }
+});
+app.use('/api', limiter);
+
+app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(cookieParser());
+
+// Force UTF-8 for all JSON API responses only
+app.use('/api', (req, res, next) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    next();
+});
+
+// --- PERFORMANCE MIDDLEWARE: Response Time Logger ---
+// Logs any API route that exceeds 200ms. Does NOT set headers after response.
+app.use('/api', (req, res, next) => {
+    const start = process.hrtime.bigint();
+    res.on('finish', () => {
+        const ms = Number(process.hrtime.bigint() - start) / 1_000_000;
+        if (ms > 200) {
+            console.warn(`⚠️  [SLOW_API >200ms]: ${req.method} ${req.path} — ${ms.toFixed(1)}ms`);
+        }
+    });
+    next();
+});
+
+const { updateLiveStatus, updateEventStatus } = require('./controllers/eventController');
+
+// Note: Emergency routes removed from here. They are now correctly handled within the router with proper authorization.
+app.put('/api/v1/events/set-live/:id', protect, authorize('organizer', 'admin'), updateLiveStatus);
+app.put('/api/v1/events/:id/status', protect, authorize('organizer', 'admin'), updateEventStatus);
 
 console.log("🚀 Mounting routers...");
 app.use('/api/v1/enquiries', enquiryRoutes);
@@ -142,8 +175,8 @@ const { downloadTicket, verifyTicketForScanner } = require('./controllers/ticket
 app.get('/api/ticket/download/:id', protect, downloadTicket);
 app.get('/api/ticket/verify/:id', verifyTicketForScanner);
 
-// --- SMTP TEST ROUTE ---
-app.get("/test-mail", async (req, res) => {
+// --- SMTP TEST ROUTE (Admin Only) ---
+app.get("/test-mail", protect, authorize('admin'), async (req, res) => {
     try {
         const { sendTicketMail } = require('./utils/sendEmail');
         const info = await sendTicketMail({
@@ -210,7 +243,7 @@ process.on('unhandledRejection', (err, promise) => {
 
 process.on('uncaughtException', (err) => {
     console.error(`🚨 [UNCAUGHT EXCEPTION]: ${err.message}`);
-    // Optional: Graceful shutdown if needed, but for now we keep it alive
+    process.exit(1); // Exit immediately; process manager (PM2) will restart
 });
 
 server.listen(PORT, '0.0.0.0', () => {

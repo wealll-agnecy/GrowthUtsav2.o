@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5002',
@@ -19,7 +20,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-ui': ['react-bootstrap', 'framer-motion', 'react-icons'],
-          'vendor-utils': ['axios', 'socket.io-client'],
+          'vendor-utils': ['axios'],
         }
       }
     },

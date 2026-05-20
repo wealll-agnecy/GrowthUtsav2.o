@@ -121,6 +121,19 @@ exports.generateTicketPDF = async (ticketId) => {
             doc.fillColor('#4b5563').font('Helvetica').fontSize(10).text(entryLabel, 50, 610);
             doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(11).text(validityText.toUpperCase(), 50, 625);
 
+            // Complimentary / Selected Catering Meals
+            let foodTextToShow = "";
+            if (ticket.booking && ticket.booking.selectedFood && ticket.booking.selectedFood.length > 0) {
+                foodTextToShow = ticket.booking.selectedFood.map(f => `• ${f.itemName} (${f.type.toUpperCase()}) x${f.quantity || entryQty}`).join('\n');
+            } else if (ticket.event && ticket.event.foodSettings && (ticket.event.foodSettings.foodType === 'compulsory' || ticket.event.foodSettings.type === 'compulsory') && ticket.event.foodSettings.options?.length > 0) {
+                foodTextToShow = ticket.event.foodSettings.options.map(f => `• [INCLUDED] ${f.itemName} (${f.type.toUpperCase()})`).join('\n');
+            }
+
+            if (foodTextToShow) {
+                doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('CATERING & MEALS', 50, 655);
+                doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(9).text(foodTextToShow, 50, 670, { width: 300, lineGap: 3 });
+            }
+
 
             // 7. QR Code Section (Right Side)
             doc.roundedRect(380, 380, 165, 165, 10).lineWidth(1.5).stroke('#d4af37');

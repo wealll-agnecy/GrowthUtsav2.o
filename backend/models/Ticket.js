@@ -92,6 +92,14 @@ const TicketSchema = new mongoose.Schema({
     event: {
         type: mongoose.Schema.ObjectId,
         ref: 'Event'
+    },
+    foodTaken: {
+        type: Boolean,
+        default: false
+    },
+    parkingUsed: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -102,6 +110,10 @@ TicketSchema.index({ booking: 1 });
 TicketSchema.index({ user: 1 });
 TicketSchema.index({ event: 1 });
 TicketSchema.index({ bookedAt: -1 });
+// Compound indexes for hot query paths
+TicketSchema.index({ eventId: 1, status: 1 });        // organizer bookings list
+TicketSchema.index({ eventId: 1, isScanned: 1 });     // scan analytics
+// Note: uuid and ticketCode already have unique:true in schema — no duplicate index needed
 
 module.exports = mongoose.model('Ticket', TicketSchema);
 

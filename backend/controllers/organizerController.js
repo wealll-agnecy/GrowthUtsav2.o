@@ -45,7 +45,8 @@ exports.getRejectedOrganizers = async (req, res) => {
         const rejected = await User.find({
             role: 'organizer',
             isRejected: true
-        }).select('-password').sort({ createdAt: -1 });
+        }).select('-password').sort({ createdAt: -1 }).lean();
+
 
         res.status(200).json({ success: true, count: rejected.length, data: rejected });
     } catch (err) {
@@ -170,8 +171,8 @@ exports.getOrganizerEventDetails = async (req, res) => {
         const dateSalesMap = {};
         bookings.forEach(b => {
             const bDates = b.selectedDays && b.selectedDays.length > 0 
-                ? b.selectedDays.map(d => new Date(d).toISOString().split('T')[0]) 
-                : [new Date(b.selectedDate || event.date).toISOString().split('T')[0]];
+                ? b.selectedDays.map(d => new Date(d).toLocaleDateString('en-CA')) // YYYY-MM-DD format
+                : [new Date(b.selectedDate || event.date).toLocaleDateString('en-CA')];
             
             bDates.forEach(dateStr => {
                 if (!dateSalesMap[dateStr]) {

@@ -34,4 +34,8 @@ const NotificationSchema = new mongoose.Schema({
     }
 });
 
+// Optimization Indexes
+NotificationSchema.index({ user: 1, createdAt: -1 });
+NotificationSchema.index({ user: 1, isRead: 1 });
+
 module.exports = mongoose.model('Notification', NotificationSchema);

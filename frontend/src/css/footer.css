@@ -1,156 +1,134 @@
-/* â•â•â•â•â•â•â•â•â•â•â• PREMIUM LUXURY FOOTER â•â•â•â•â•â•â•â•â•â•â• */
-.premium-footer {
-  background: #111827;
-  color: #e5e7eb;
-  padding: 80px 0 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+/* ========================================================
+   ZOMATO DISTRICT STYLE FOOTER STYLING
+   ======================================================== */
+
+.footer-section-district {
+  background-color: #121214;
+  color: #ffffff;
+  padding: 60px 0 40px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* LOGO */
-.footer-logo {
-  font-size: 1.75rem;
+.footer-container-district {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Brand logo similar to district by zomato */
+.footer-logo-district {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.footer-logo-district .logo-main {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  text-transform: lowercase; /* district is lowercase */
+}
+
+.footer-logo-district .logo-sub {
+  font-size: 0.65rem;
   font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 20px;
-  display: block;
-}
-
-.logo-accent {
-  color: #ec4899;
-}
-
-/* TEXT */
-.footer-text {
-  color: #9ca3af;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 25px;
-  max-width: 320px;
-}
-
-/* HEADINGS */
-.premium-footer h6 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 25px;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 2px;
+  margin-top: 2px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
-/* LINKS */
-.premium-footer ul {
-  list-style: none;
-  padding: 0;
-}
-
-.premium-footer ul li {
-  margin-bottom: 12px;
-}
-
-.footer-link {
-  color: #9ca3af;
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  display: inline-block;
-}
-
-.footer-link:hover {
-  color: #ec4899;
-  transform: translateX(5px);
-}
-
-/* NEWSLETTER */
-.newsletter-box {
-  display: flex;
-  margin-top: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 5px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: border-color 0.3s ease;
-}
-
-.newsletter-box:focus-within {
-  border-color: #ec4899;
-}
-
-.newsletter-box input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 12px 25px;
+/* Link items */
+.footer-link-district {
   color: #ffffff;
-  outline: none;
-  font-size: 0.95rem;
-  min-width: 0;
-}
-
-.newsletter-box input::placeholder {
-  color: #6b7280;
-}
-
-.newsletter-box button {
-  padding: 12px 30px;
-  border: none;
-  background: #ec4899;
-  color: #ffffff;
-  border-radius: 999px;
   font-weight: 600;
   font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
   white-space: nowrap;
 }
 
-.newsletter-box button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(236, 72, 153, 0.4);
+.footer-link-district:hover {
+  opacity: 0.7;
+  color: #ffffff;
 }
 
-/* SOCIALS */
-.footer-social-icons {
-  display: flex;
-  gap: 15px;
-  margin-top: 30px;
-}
-
-.social-icon-link {
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #e5e7eb;
-  display: flex;
+/* QR Code representation exactly like district */
+.qr-container-district {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  border-radius: 12px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.qr-container-district:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.qr-code-svg {
+  display: block;
+}
+
+.qr-text-district {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Divider line */
+.footer-divider-district {
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 30px 0 20px 0;
+  opacity: 1;
+}
+
+/* Muted disclaimer */
+.footer-disclaimer-district {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* Social icons exactly like district (circular dark/white hover) */
+.social-link-district {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
   text-decoration: none;
 }
 
-.social-icon-link:hover {
-  background: #ec4899;
-  color: #ffffff;
-  transform: translateY(-5px);
+.social-link-district:hover {
+  background: #ffffff;
+  color: #121214;
+  transform: translateY(-2px);
 }
 
-/* DIVIDER */
-.footer-divider {
-  border-color: rgba(255, 255, 255, 0.08);
-  margin: 60px 0 30px;
-}
-
-/* BOTTOM */
-.footer-bottom-text {
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-weight: 400;
-}
-
-/* RESPONSIVE */
-@media (max-width: 767px) {
-  .premium-footer {
-    padding: 60px 0 30px;
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .footer-logo-district {
+    align-items: center;
+  }
+  
+  .footer-disclaimer-district {
+    text-align: center;
+    font-size: 0.75rem;
   }
 }

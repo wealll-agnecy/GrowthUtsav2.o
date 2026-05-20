@@ -49,7 +49,7 @@ class ErrorBoundary extends React.Component {
                 <FaRedo className="me-2" /> Reload Page
               </Button>
             </div>
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <div className="mt-5 p-3 bg-light rounded text-start text-danger tiny-text overflow-auto" style={{ maxHeight: '200px' }}>
                 <code>{this.state.error?.toString()}</code>
               </div>

@@ -13,8 +13,8 @@ const { generateTicketPDF } = require('../services/pdfService');
 exports.getTicket = async (req, res, next) => {
     try {
         const ticket = await Ticket.findById(req.params.id)
-            .populate('event', 'title date time venue bannerImage')
-            .populate('booking', 'ticketType quantity totalAmount selectedDate selectedDays amountPaid paymentStatus');
+            .populate('event', 'title date time venue bannerImage foodSettings')
+            .populate('booking', 'ticketType quantity totalAmount selectedDate selectedDays amountPaid paymentStatus selectedFood');
 
         if (!ticket) {
             return res.status(404).json({ success: false, message: 'Ticket not found' });
@@ -174,7 +174,9 @@ exports.verifyTicketForScanner = async (req, res) => {
             selectedDate: ticket.selectedDate,
             selectedDays: ticket.selectedDays,
             bookedAt: ticket.bookedAt,
-            seat: ticket.seatNumber || 'General'
+            seat: ticket.seatNumber || 'General',
+            foodTaken: ticket.foodTaken || false,
+            parkingUsed: ticket.parkingUsed || false
         };
 
         // 1. Cancelled Ticket
@@ -473,7 +475,7 @@ exports.getTodayEvents = async (req, res, next) => {
 exports.verifyManualTicket = async (req, res, next) => {
     try {
         const { ticketCode, eventId } = req.body;
-        const ticket = await Ticket.findOne({ uuid: ticketCode }).populate('event');
+        const ticket = await Ticket.findOne({ uuid: ticketCode }).populate('event', 'title date venue');
 
         if (!ticket) return res.status(404).json({ success: false, message: 'Invalid Ticket' });
 
@@ -495,14 +497,32 @@ exports.verifyTicketScan = async (req, res) => {
     try {
         const { ticketId } = req.body;
 
-        const ticket = await Ticket.findOne({
-            $or: [
-                { uuid: ticketId },
-                { ticketCode: ticketId }
-            ]
-        }).populate('user', 'name email').populate('event', 'title date venue');
+        // Single query: fetch ticket + its booking in one aggregation
+        const results = await Ticket.aggregate([
+            { $match: { $or: [{ uuid: ticketId }, { ticketCode: ticketId }] } },
+            { $limit: 1 },
+            {
+                $lookup: {
+                    from: 'bookings',
+                    localField: 'booking',
+                    foreignField: '_id',
+                    as: 'bookingDoc'
+                }
+            },
+            { $addFields: { bookingDoc: { $arrayElemAt: ['$bookingDoc', 0] } } },
+            {
+                $lookup: {
+                    from: 'events',
+                    localField: 'event',
+                    foreignField: '_id',
+                    as: 'eventDoc',
+                    pipeline: [{ $project: { title: 1, date: 1, venue: 1, isMultiDay: 1, multiDayPlan: 1 } }]
+                }
+            },
+            { $addFields: { eventDoc: { $arrayElemAt: ['$eventDoc', 0] } } }
+        ]);
 
-        if (!ticket) {
+        if (!results.length) {
             return res.json({ 
                 success: true, 
                 status: "ACCESS DENIED — Invalid ticket", 
@@ -510,10 +530,9 @@ exports.verifyTicketScan = async (req, res) => {
             });
         }
 
-        // --- VALIDATION LOGIC ---
-        const booking = await Booking.findById(ticket.booking);
-        const event = ticket.event || (booking ? booking.event : null);
-        
+        const ticket = results[0];
+        const booking = ticket.bookingDoc;
+        const event = ticket.eventDoc;
         // Source of Truth
         const currentAmountPaid = booking ? (booking.amountPaid || 0) : (ticket.amountPaid || 0);
         const currentTotalAmount = booking ? booking.totalAmount : (ticket.totalAmount || 0);
@@ -574,7 +593,9 @@ exports.verifyTicketScan = async (req, res) => {
             remainingAmount: currentRemaining,
             validityText: validityText,
             accessStatus: isPaid ? 'GREEN' : 'RED',
-            seat: ticket.seatNumber || 'General'
+            seat: ticket.seatNumber || 'General',
+            foodTaken: ticket.foodTaken || false,
+            parkingUsed: ticket.parkingUsed || false
         };
 
         // 1. Cancelled
@@ -668,5 +689,89 @@ exports.verifyTicketScan = async (req, res) => {
     } catch (err) {
         console.error("Scan Verification Error:", err);
         res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+// @desc    Update Food Access for Ticket
+// @route   POST /api/v1/tickets/update-food
+// @access  Private (Staff/Admin)
+exports.updateFoodAccess = async (req, res) => {
+    try {
+        const { ticketId } = req.body;
+
+        let query = {};
+        if (mongoose.Types.ObjectId.isValid(ticketId)) {
+            query = { _id: ticketId };
+        } else {
+            query = { $or: [{ uuid: ticketId }, { ticketCode: ticketId }] };
+        }
+
+        const ticket = await Ticket.findOne(query);
+
+        if (!ticket) {
+            return res.status(404).json({ success: false, message: 'Ticket not found' });
+        }
+
+        if (ticket.status === 'cancelled') {
+            return res.status(400).json({ success: false, message: 'Ticket has been cancelled' });
+        }
+
+        if (ticket.foodTaken) {
+            return res.status(400).json({ success: false, message: 'Food already claimed' });
+        }
+
+        ticket.foodTaken = true;
+        await ticket.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Food marked as taken successfully',
+            foodTaken: true
+        });
+    } catch (err) {
+        console.error("Food Access Update Error:", err);
+        res.status(500).json({ success: false, message: 'Server Error during food status update' });
+    }
+};
+
+// @desc    Update Parking Access for Ticket
+// @route   POST /api/v1/tickets/update-parking
+// @access  Private (Staff/Admin)
+exports.updateParkingAccess = async (req, res) => {
+    try {
+        const { ticketId } = req.body;
+
+        let query = {};
+        if (mongoose.Types.ObjectId.isValid(ticketId)) {
+            query = { _id: ticketId };
+        } else {
+            query = { $or: [{ uuid: ticketId }, { ticketCode: ticketId }] };
+        }
+
+        const ticket = await Ticket.findOne(query);
+
+        if (!ticket) {
+            return res.status(404).json({ success: false, message: 'Ticket not found' });
+        }
+
+        if (ticket.status === 'cancelled') {
+            return res.status(400).json({ success: false, message: 'Ticket has been cancelled' });
+        }
+
+        if (ticket.parkingUsed) {
+            return res.status(400).json({ success: false, message: 'Parking already claimed' });
+        }
+
+        ticket.parkingUsed = true;
+        await ticket.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Parking marked as used successfully',
+            parkingUsed: true
+        });
+    } catch (err) {
+        console.error("Parking Access Update Error:", err);
+        res.status(500).json({ success: false, message: 'Server Error during parking status update' });
     }
 };

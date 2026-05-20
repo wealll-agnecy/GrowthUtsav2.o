@@ -64,6 +64,7 @@ const AdminDashboard = () => {
                 totalEvents: adminData.totalEvents || 0,
                 ticketsSold: adminData.totalTicketsSold || 0,
                 profit: adminData.totalProfit || 0,
+                totalEnquiries: adminData.totalEnquiries || 0,
                 expenses: summary.totalExpenses || 0,
                 activities: adminData.activities || []
             });
@@ -138,7 +139,9 @@ const AdminDashboard = () => {
             <Container fluid className="px-md-5 pt-0 pb-3">
                 {/* ─── Header ─── */}
                 <div className="dashboard-header overview-section mb-3">
-                    <h2 className="dashboard-title-main mb-1">Overview</h2>
+                    <h2 className="dashboard-title-main mb-1 d-flex align-items-center gap-3">
+                        <FaChartLine className="text-pink d-none d-lg-inline-flex" /> Overview
+                    </h2>
                     <p className="dashboard-subtext m-0">Analytics, finances and platform management portal.</p>
                 </div>
 
@@ -164,6 +167,22 @@ const AdminDashboard = () => {
                         <h3 className="card-value-lg">{liveStats.ticketsSold.toLocaleString()}</h3>
                         <div className="mt-2 text-slate small fw-bold">Total Sales</div>
                     </div>
+                    <Link to="/admin/enquiries" className="text-decoration-none text-dark">
+                        <div className="dashboard-card hover-lift transition-all">
+                            <span className="card-title-sm d-flex justify-content-between align-items-center">
+                                Enquiries
+                                {liveStats.totalEnquiries > 0 && (
+                                    <Badge pill bg="pink" className="bg-pink text-white rounded-pill px-2 py-1 small">
+                                        {liveStats.totalEnquiries}
+                                    </Badge>
+                                )}
+                            </span>
+                            <h3 className="card-value-lg">{liveStats.totalEnquiries || 0}</h3>
+                            <div className="mt-2 text-pink small fw-bold d-flex align-items-center gap-1">
+                                View Inbox <FaChevronRight size={10} />
+                            </div>
+                        </div>
+                    </Link>
                 </div>
 
                 {/* ─── Primary Intelligence ─── */}
@@ -316,7 +335,7 @@ const AdminDashboard = () => {
                                         <h6 style={{ fontSize: '0.875rem' }}>{log.message}</h6>
                                         <p style={{ fontSize: '0.75rem' }}>{new Date(log.time).toLocaleString()}</p>
                                     </div>
-                                    <div className="text-slate uppercase small fw-bold tracking-wider" style={{ opacity: 0.6 }}>
+                                    <div className="text-slate uppercase small fw-bold tracking-wider audit-feed-type" style={{ opacity: 0.6 }}>
                                         {log.type}
                                     </div>
                                 </div>

@@ -42,4 +42,9 @@ const expenseSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Optimization Indexes
+expenseSchema.index({ eventId: 1 });
+expenseSchema.index({ recordedBy: 1 });
+expenseSchema.index({ date: -1 });
+
 module.exports = mongoose.model('Expense', expenseSchema);

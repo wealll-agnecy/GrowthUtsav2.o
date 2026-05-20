@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import * as eventApi from '../api/eventApi';
-import { Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
-import { FaTrash, FaPlus, FaInfoCircle, FaPaperPlane, FaBolt } from 'react-icons/fa';
+import { Form, Button, Alert, Spinner, Row, Col, Modal, Badge } from 'react-bootstrap';
+import { FaTrash, FaPlus, FaInfoCircle, FaPaperPlane, FaBolt, FaUtensils } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import '../css/CreateEvent.css';
 
 const CreateEvent = () => {
@@ -18,6 +19,8 @@ const CreateEvent = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        benefits: '',
+        whatYouLearn: '',
         venue: '',
         date: '',
         time: '',
@@ -37,17 +40,31 @@ const CreateEvent = () => {
             }
         ],
         eventImage: null,
-        eventImagePreview: ''
+        eventImagePreview: '',
+        foodSettings: {
+            foodType: 'multiple',
+            options: []
+        }
+    });
+
+    const [showFoodModal, setShowFoodModal] = useState(false);
+    const [foodData, setFoodData] = useState({
+        itemName: '',
+        type: 'veg',
+        distributionTime: '',
+        category: 'Lunch'
     });
 
     useEffect(() => {
-        if (id) {
+        if (id && id !== 'undefined') {
             const fetchEvent = async () => {
                 try {
                     const res = await eventApi.getEvent(id);
                     const event = res.data.data;
                     const formattedDate = event.date ? new Date(event.date).toISOString().split('T')[0] : '';
-                    setFormData({ ...event, date: formattedDate });
+                    const benefitsStr = Array.isArray(event.benefits) ? event.benefits.join('\n') : (event.benefits || '');
+                    const whatYouLearnStr = Array.isArray(event.whatYouLearn) ? event.whatYouLearn.join('\n') : (event.whatYouLearn || '');
+                    setFormData({ ...event, date: formattedDate, benefits: benefitsStr, whatYouLearn: whatYouLearnStr });
                 } catch (err) {
                     setError('Failed to fetch node configuration');
                 }
@@ -110,6 +127,33 @@ const CreateEvent = () => {
         const newDays = [...formData.multiDayPlan];
         newDays[dayIndex].plans[planIndex][field] = value;
         setFormData({ ...formData, multiDayPlan: newDays });
+    };
+
+    const handleFoodSubmit = () => {
+        if (!foodData.itemName.trim() || !foodData.distributionTime.trim()) {
+            toast.error("Please fill all food details");
+            return;
+        }
+        setFormData({
+            ...formData,
+            foodSettings: {
+                ...formData.foodSettings,
+                options: [...formData.foodSettings.options, { ...foodData }]
+            }
+        });
+        setFoodData({ itemName: '', type: 'veg', distributionTime: '', category: 'Lunch' });
+        setShowFoodModal(false);
+    };
+
+    const removeFoodItem = (index) => {
+        const newOptions = formData.foodSettings.options.filter((_, i) => i !== index);
+        setFormData({ 
+            ...formData, 
+            foodSettings: {
+                ...formData.foodSettings,
+                options: newOptions
+            }
+        });
     };
 
     const handleImageChange = (e) => {
@@ -190,10 +234,20 @@ const CreateEvent = () => {
                 finalData.multiDayPlan = [];
             }
             
+            // Format benefits
+            if (typeof finalData.benefits === 'string') {
+                finalData.benefits = finalData.benefits.split('\n').map(b => b.trim()).filter(b => b);
+            }
+            
+            // Format whatYouLearn
+            if (typeof finalData.whatYouLearn === 'string') {
+                finalData.whatYouLearn = finalData.whatYouLearn.split('\n').map(b => b.trim()).filter(b => b);
+            }
+            
             if (formData.eventImage) {
                 submissionData = new FormData();
                 Object.keys(finalData).forEach(key => {
-                    if (key === 'ticketTypes' || key === 'multiDayPlan') {
+                    if (key === 'ticketTypes' || key === 'multiDayPlan' || key === 'foodSettings' || key === 'benefits' || key === 'whatYouLearn') {
                         submissionData.append(key, JSON.stringify(finalData[key]));
                     } else if (key !== 'eventImagePreview' && key !== 'eventImage') {
                         submissionData.append(key, finalData[key]);
@@ -358,6 +412,28 @@ const CreateEvent = () => {
                         <Form.Control.Feedback type="invalid">{validationErrors.description}</Form.Control.Feedback>
                     </Form.Group>
 
+                    <Form.Group className="mb-3" controlId="benefits">
+                        <Form.Label>Event Benefits / Highlights (One per line)</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            placeholder="e.g. Free Welcome Drink&#10;Access to VIP Lounge"
+                            value={formData.benefits}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3" controlId="whatYouLearn">
+                        <Form.Label>What You'll Learn (One per line)</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            placeholder="e.g. Professional Makeup Techniques&#10;Skin Care Best Practices"
+                            value={formData.whatYouLearn}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
+
                     <div className="d-flex justify-content-between align-items-center mt-4 mb-2">
                         <div className="form-section-title m-0">
                             <FaBolt /> Pricing Strategy
@@ -497,6 +573,86 @@ const CreateEvent = () => {
                         </div>
                     )}
 
+                    <div className="form-section-title mt-5 mb-4">
+                        <FaUtensils /> Event Catering (Food Plan)
+                    </div>
+                    
+                    <div className="food-type-selector mb-4">
+                        <Row className="g-3">
+                            <Col md={6}>
+                                <div 
+                                    className={`food-type-card ${formData.foodSettings.foodType === 'compulsory' ? 'active' : ''}`}
+                                    onClick={() => setFormData({
+                                        ...formData, 
+                                        foodSettings: { ...formData.foodSettings, foodType: 'compulsory' }
+                                    })}
+                                >
+                                    <div className="type-icon"><FaBolt /></div>
+                                    <div className="type-info">
+                                        <div className="fw-bold">Bundled with Ticket</div>
+                                        <div className="small opacity-75">Food is free for all ticket holders</div>
+                                    </div>
+                                    <div className="type-check"></div>
+                                </div>
+                            </Col>
+                            <Col md={6}>
+                                <div 
+                                    className={`food-type-card ${formData.foodSettings.foodType === 'multiple' ? 'active' : ''}`}
+                                    onClick={() => setFormData({
+                                        ...formData, 
+                                        foodSettings: { ...formData.foodSettings, foodType: 'multiple' }
+                                    })}
+                                >
+                                    <div className="type-icon"><FaPlus /></div>
+                                    <div className="type-info">
+                                        <div className="fw-bold">Multi-Course Plan</div>
+                                        <div className="small opacity-75">Add Lunch, Tiffin, Dinner etc.</div>
+                                    </div>
+                                    <div className="type-check"></div>
+                                </div>
+                            </Col>
+                        </Row>
+                    </div>
+                    
+                    <div className="food-options-list mb-4">
+                        <AnimatePresence>
+                            {formData.foodSettings.options.map((food, idx) => (
+                                <motion.div 
+                                    key={idx}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 10 }}
+                                    className="food-item-premium-card mb-2"
+                                >
+                                    <div className="d-flex align-items-center gap-3">
+                                        <div className={`food-indicator ${food.type}`}></div>
+                                        <div className="flex-grow-1">
+                                            <div className="fw-bold d-flex align-items-center gap-2">
+                                                <span className="text-pink small uppercase">[{food.category}]</span>
+                                                {food.itemName}
+                                                <Badge bg={food.type === 'veg' ? 'success' : 'danger'} className="text-uppercase tiny-badge">
+                                                    {food.type}
+                                                </Badge>
+                                            </div>
+                                            <div className="small text-muted">Time: {food.distributionTime}</div>
+                                        </div>
+                                        <Button variant="link" className="text-pink p-0" onClick={() => removeFoodItem(idx)}>
+                                            <FaTrash size={14} />
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                        
+                        <Button 
+                            variant="outline-pink" 
+                            className="btn-sm rounded-pill px-4 mt-2" 
+                            onClick={() => setShowFoodModal(true)}
+                        >
+                            <FaPlus className="me-2" /> Add Food Slot
+                        </Button>
+                    </div>
+
                     <div className="create-event-actions">
                         <button
                             type="button"
@@ -517,6 +673,70 @@ const CreateEvent = () => {
                     </div>
                 </Form>
             </motion.div>
+
+            {/* Food Entry Modal */}
+            <Modal show={showFoodModal} onHide={() => setShowFoodModal(false)} centered className="premium-modal">
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="fw-black">
+                        {formData.foodSettings.foodType === 'compulsory' ? 'Add Bundled Food' : 'Add Multi-Course Meal'}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Row className="mb-3">
+                        <Col md={formData.foodSettings.foodType === 'multiple' ? 6 : 12}>
+                            <Form.Label className="small fw-bold">Food Item / Meal Name</Form.Label>
+                            <Form.Control 
+                                type="text" 
+                                placeholder="e.g. Premium Buffet Lunch"
+                                value={foodData.itemName}
+                                onChange={(e) => setFoodData({...foodData, itemName: e.target.value})}
+                            />
+                        </Col>
+                        {formData.foodSettings.foodType === 'multiple' && (
+                            <Col md={6}>
+                                <Form.Label className="small fw-bold">Meal Category</Form.Label>
+                                <Form.Select 
+                                    value={foodData.category}
+                                    onChange={(e) => setFoodData({...foodData, category: e.target.value})}
+                                >
+                                    <option value="Breakfast">Breakfast</option>
+                                    <option value="Lunch">Lunch</option>
+                                    <option value="Tiffin/Snacks">Tiffin / Snacks</option>
+                                    <option value="Dinner">Dinner</option>
+                                    <option value="Full Day Menu">Full Day Menu</option>
+                                </Form.Select>
+                            </Col>
+                        )}
+                    </Row>
+                    <Row className="mb-4">
+                        <Col md={6}>
+                            <Form.Label className="small fw-bold">Distribution Time</Form.Label>
+                            <Form.Control 
+                                type="text"
+                                placeholder="e.g. 1:00 PM - 3:00 PM"
+                                value={foodData.distributionTime}
+                                onChange={(e) => setFoodData({...foodData, distributionTime: e.target.value})}
+                            />
+                        </Col>
+                        <Col md={6}>
+                            <Form.Label className="small fw-bold">Dietary Type</Form.Label>
+                            <Form.Select 
+                                value={foodData.type}
+                                onChange={(e) => setFoodData({...foodData, type: e.target.value})}
+                            >
+                                <option value="veg">Pure Veg</option>
+                                <option value="non-veg">Non-Veg Included</option>
+                            </Form.Select>
+                        </Col>
+                    </Row>
+                    <Button 
+                        className="btn-pink w-100 py-3 rounded-4 fw-bold shadow-premium-pink"
+                        onClick={handleFoodSubmit}
+                    >
+                        {formData.foodSettings.foodType === 'compulsory' ? 'Save Free Inclusion' : 'Add Meal to Itinerary'}
+                    </Button>
+                </Modal.Body>
+            </Modal>
         </div>
     );
 };

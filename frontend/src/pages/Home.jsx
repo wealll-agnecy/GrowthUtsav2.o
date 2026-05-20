@@ -113,7 +113,12 @@ const BookFlipShowcase = memo(({ events }) => {
                         <div className="page-front">
                             <div className="page-content">
                                 {isInView && (
-                                    <video autoPlay muted loop playsInline className="page-video">
+                                    <video 
+                                        autoPlay={isHovered || index === 0} 
+                                        preload={isHovered || index === 0 ? "auto" : "none"}
+                                        muted loop playsInline className="page-video"
+                                        poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                                    >
                                         <source src={vid.url} type="video/mp4" />
                                     </video>
                                 )}
@@ -234,7 +239,7 @@ const Home = () => {
                                 className="hero-visual"
                             >
                                 <div className="hero-main-img-container">
-                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Beauty" className="hero-main-img" fetchPriority="high" />
+                                    <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1200" alt="Premium beauty events hero visual" className="hero-main-img" fetchPriority="high" width="1200" height="800" />
                                     <div className="hero-img-overlay"></div>
                                 </div>
                             </motion.div>
@@ -333,7 +338,7 @@ const Home = () => {
                                     transition={{ delay: i * 0.1 }}
                                     className="past-event-card"
                                 >
-                                    <img src={event.img} alt={event.name} className="past-event-img" loading="lazy" />
+                                    <img src={event.img} alt={`Highlight from ${event.name}`} className="past-event-img" loading="lazy" width="800" height="533" />
                                     <div className="past-event-overlay">
                                         <div className="past-event-tag">
                                             <FaCheckCircle className="me-1" /> Successful
@@ -365,7 +370,7 @@ const Home = () => {
                                     <FaQuoteLeft className="text-primary opacity-20 mb-3" size={30} />
                                     <p className="testimonial-quote">"{t.quote}"</p>
                                     <div className="testimonial-author">
-                                        <img src={t.img} alt={t.author} className="author-img" loading="lazy" />
+                                        <img src={t.img} alt={`Portrait of ${t.author}`} className="author-img" loading="lazy" width="150" height="150" />
                                         <span className="author-name">{t.author}</span>
                                     </div>
                                 </div>

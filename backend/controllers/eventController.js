@@ -20,6 +20,15 @@ exports.createEvent = async (req, res, next) => {
         if (typeof req.body.multiDayPlan === 'string') {
             try { req.body.multiDayPlan = JSON.parse(req.body.multiDayPlan); } catch (e) {}
         }
+        if (typeof req.body.foodSettings === 'string') {
+            try { req.body.foodSettings = JSON.parse(req.body.foodSettings); } catch (e) {}
+        }
+        if (typeof req.body.benefits === 'string') {
+            try { req.body.benefits = JSON.parse(req.body.benefits); } catch (e) {}
+        }
+        if (typeof req.body.whatYouLearn === 'string') {
+            try { req.body.whatYouLearn = JSON.parse(req.body.whatYouLearn); } catch (e) {}
+        }
         if (typeof req.body.isMultiDay === 'string') {
             req.body.isMultiDay = req.body.isMultiDay === 'true';
         }
@@ -80,8 +89,11 @@ exports.getEvents = async (req, res, next) => {
             reqQuery.title = { $regex: req.query.search, $options: 'i' };
         }
 
-        console.log('🔍 [GET EVENTS]: Querying with:', reqQuery);
-        query = Event.find(reqQuery).populate('organizer', 'name email').lean();
+        console.log('🔍 [GET EVENTS]: Querying...');
+        query = Event.find(reqQuery)
+            .populate('organizer', 'name email')
+            .select('title description date time venue category status isLive organizer bannerImage eventImage ticketTypes isMultiDay createdAt')
+            .lean();
 
         // Pagination
         const page = parseInt(req.query.page, 10) || 1;
@@ -103,7 +115,6 @@ exports.getEvents = async (req, res, next) => {
             pagination.prev = { page: page - 1, limit };
         }
 
-        console.log(`✅ [GET EVENTS]: Found ${events.length} events matching query.`);
 
         res.status(200).json({
             success: true,
@@ -169,7 +180,9 @@ exports.getEvent = async (req, res, next) => {
 // @access  Private (Organizer)
 exports.getMyEvents = async (req, res, next) => {
     try {
-        const events = await Event.find({ organizer: req.user.id }).lean();
+        const events = await Event.find({ organizer: req.user.id })
+            .select('title date status isLive category ticketTypes multiDayPlan isMultiDay endDate')
+            .lean();
 
         res.status(200).json({
             success: true,
@@ -225,6 +238,15 @@ exports.updateEvent = async (req, res, next) => {
         }
         if (typeof req.body.multiDayPlan === 'string') {
             try { req.body.multiDayPlan = JSON.parse(req.body.multiDayPlan); } catch (e) {}
+        }
+        if (typeof req.body.foodSettings === 'string') {
+            try { req.body.foodSettings = JSON.parse(req.body.foodSettings); } catch (e) {}
+        }
+        if (typeof req.body.benefits === 'string') {
+            try { req.body.benefits = JSON.parse(req.body.benefits); } catch (e) {}
+        }
+        if (typeof req.body.whatYouLearn === 'string') {
+            try { req.body.whatYouLearn = JSON.parse(req.body.whatYouLearn); } catch (e) {}
         }
         if (typeof req.body.isMultiDay === 'string') {
             req.body.isMultiDay = req.body.isMultiDay === 'true';
@@ -357,12 +379,16 @@ exports.toggleLive = async (req, res, next) => {
         }
 
         // Toggle
-        event.isLive = !event.isLive;
-        
-        // Sync status for legacy compatibility
-        if (event.isLive) {
+        if (!event.isLive) {
+            // Trying to go live
+            if (event.status !== 'approved' && req.user.role !== 'admin') {
+                return res.status(400).json({ success: false, message: 'Wait for admin approval' });
+            }
+            event.isLive = true;
             event.status = 'live';
         } else {
+            // Trying to go offline
+            event.isLive = false;
             event.status = 'approved';
         }
 
@@ -387,15 +413,25 @@ exports.updateLiveStatus = async (req, res, next) => {
     try {
         const { isLive } = req.body;
         console.log(`🚀 [LIVE TOGGLE]: Event ID: ${req.params.id}, Target isLive: ${isLive}`);
+        
+        const event = await Event.findById(req.params.id);
+        if (!event) {
+            return res.status(404).json({ success: false, message: `No event with the id of ${req.params.id}` });
+        }
+
+        if (isLive && event.status !== 'approved' && event.status !== 'live' && req.user.role !== 'admin') {
+            return res.status(400).json({ success: false, message: 'Wait for admin approval' });
+        }
+
         const status = isLive ? 'live' : 'approved';
 
-        const event = await Event.findByIdAndUpdate(
+        const updatedEvent = await Event.findByIdAndUpdate(
             req.params.id,
             { isLive, status },
             { new: true, runValidators: true }
         );
 
-        if (!event) {
+        if (!updatedEvent) {
             return res.status(404).json({
                 success: false,
                 message: `No event with the id of ${req.params.id}`
@@ -404,7 +440,7 @@ exports.updateLiveStatus = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            data: event
+            data: updatedEvent
         });
     } catch (err) {
         console.error("Error in updateLiveStatus:", err.message);

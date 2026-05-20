@@ -3,10 +3,12 @@ import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Form, Modal, 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaUserTie, FaCheckCircle, FaTimesCircle, FaSearch, FaEnvelope,
-    FaBuilding, FaLightbulb, FaPhone, FaGlobe, FaClock, FaUsers, FaEye, FaTrash, FaCheck, FaTimes, FaUserCircle, FaExclamationTriangle
+    FaBuilding, FaLightbulb, FaPhone, FaGlobe, FaClock, FaUsers, FaEye, FaTrash, FaCheck, FaTimes, FaUserCircle, FaExclamationTriangle,
+    FaUserPlus
 } from 'react-icons/fa';
 import * as adminApi from '../api/adminApi';
 import { playSound } from '../utils/soundManager';
+import toast from 'react-hot-toast';
 import '../css/admin-pages.css';
 
 const AdminOrganizerRequests = () => {
@@ -14,11 +16,10 @@ const AdminOrganizerRequests = () => {
     const [data, setData] = useState({ pending: [], approved: [], rejected: [] });
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [toast, setToast] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [actionLoading, setActionLoading] = useState({});
-    
+
     // Rejection States
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
@@ -56,15 +57,27 @@ const AdminOrganizerRequests = () => {
             if (status === 'approve') {
                 await adminApi.approveOrganizer(id);
                 playSound('success');
-                setToast({ msg: 'Organizer approved successfully', type: 'success' });
+                toast.success('Organizer approved successfully');
             } else {
                 await adminApi.rejectOrganizer(id, reason || 'Moderation refusal');
                 playSound('reject');
-                setToast({ msg: 'Organizer request rejected', type: 'warning' });
+                toast.error('Organizer request rejected');
             }
-            fetchAll();
+            // Optimistic UI state update: transition organizer locally instantly under 1ms
+            setData(prev => {
+                const targetOrg = prev[activeTab]?.find(o => o._id === id);
+                if (!targetOrg) return prev;
+                const cleanActive = prev[activeTab].filter(o => o._id !== id);
+                const nextTab = status === 'approve' ? 'approved' : 'rejected';
+                const updatedTarget = { ...targetOrg, status: status === 'approve' ? 'verified' : 'rejected' };
+                return {
+                    ...prev,
+                    [activeTab]: cleanActive,
+                    [nextTab]: [updatedTarget, ...prev[nextTab]]
+                };
+            });
         } catch (err) {
-            setToast({ msg: 'Action failed', type: 'danger' });
+            toast.error('Action failed: ' + (err.response?.data?.message || err.message));
         } finally {
             setActionLoading(prev => ({ ...prev, [id]: false }));
             setShowModal(false);
@@ -73,7 +86,6 @@ const AdminOrganizerRequests = () => {
             setRejectionReason('');
             setConfirmReject(false);
             setConfirmApprove(false);
-            setTimeout(() => setToast(null), 3000);
         }
     };
 
@@ -183,18 +195,11 @@ const AdminOrganizerRequests = () => {
     return (
         <div className="admin-page-container">
             <Container fluid>
-                <AnimatePresence>
-                    {toast && (
-                        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                            style={{ position: 'fixed', top: 20, right: 20, zIndex: 9999 }}>
-                            <Alert variant={toast.type} className="border-0 shadow-lg">{toast.msg}</Alert>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
                 <div className="admin-page-header">
                     <div>
-                        <h1>Organizer Management</h1>
+                        <h1 className="d-flex align-items-center gap-3">
+                            <FaUserPlus className="text-pink d-none d-lg-inline-flex" /> Organizer Management
+                        </h1>
                         <p className="dashboard-subtext">Review and moderate host applications</p>
                     </div>
                     <div className="d-flex gap-3">
@@ -213,7 +218,7 @@ const AdminOrganizerRequests = () => {
                 </div>
 
                 <Tab.Container activeKey={activeTab} onSelect={k => setActiveTab(k)}>
-                    <Nav className="nav-tabs-saas mb-4 gap-2 border-0">
+                    <Nav className="nav-tabs-saas mt-4 mb-4 gap-2 border-0">
                         {['pending', 'approved', 'rejected'].map(tab => (
                             <Nav.Item key={tab}>
                                 <Nav.Link eventKey={tab} className={`btn ${activeTab === tab ? 'btn-pink' : 'btn-outline-pink'}`}>
@@ -242,10 +247,10 @@ const AdminOrganizerRequests = () => {
             </Container>
 
             {/* Premium Details Modal */}
-            <Modal 
-                show={showModal} 
-                onHide={() => setShowModal(false)} 
-                centered 
+            <Modal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                centered
                 size="lg"
                 className="premium-popup"
             >
@@ -268,7 +273,7 @@ const AdminOrganizerRequests = () => {
                                 {/* Personal Segment */}
                                 <div className="section-card m-0">
                                     <div className="section-header-mini">
-                                        <FaUserCircle className="me-2 text-pink" /> 
+                                        <FaUserCircle className="me-2 text-pink" />
                                         <span>Identity Profile</span>
                                     </div>
                                     <div className="detail-item">
@@ -287,7 +292,7 @@ const AdminOrganizerRequests = () => {
                                 {/* Org Segment */}
                                 <div className="section-card m-0">
                                     <div className="section-header-mini">
-                                        <FaBuilding className="me-2 text-pink" /> 
+                                        <FaBuilding className="me-2 text-pink" />
                                         <span>Organizational Node</span>
                                     </div>
                                     <div className="detail-item">
@@ -316,7 +321,7 @@ const AdminOrganizerRequests = () => {
                                 {/* Mission Segment */}
                                 <div className="section-card m-0" style={{ gridColumn: 'span 2' }}>
                                     <div className="section-header-mini">
-                                        <FaLightbulb className="me-2 text-pink" /> 
+                                        <FaLightbulb className="me-2 text-pink" />
                                         <span>Event Intent & Strategic Goals</span>
                                     </div>
                                     <div className="intent-box mt-3">
@@ -327,7 +332,7 @@ const AdminOrganizerRequests = () => {
                                 {selectedOrg.rejectionReason && (
                                     <div className="section-card m-0 border-danger bg-danger-subtle bg-opacity-10" style={{ gridColumn: 'span 2' }}>
                                         <div className="section-header-mini text-danger">
-                                            <FaExclamationTriangle className="me-2" /> 
+                                            <FaExclamationTriangle className="me-2" />
                                             <span>Rejection Intel</span>
                                         </div>
                                         <div className="intent-box mt-2 border-danger bg-white">
@@ -344,7 +349,7 @@ const AdminOrganizerRequests = () => {
                             </Button>
                             {activeTab === 'pending' && selectedOrg && (
                                 <>
-                                    <Button 
+                                    <Button
                                         variant="outline-danger"
                                         className="rounded-pill px-4 fw-bold"
                                         onClick={() => {
@@ -354,7 +359,7 @@ const AdminOrganizerRequests = () => {
                                     >
                                         <FaTimesCircle className="me-2" /> Decline
                                     </Button>
-                                    <Button 
+                                    <Button
                                         className="btn-pink rounded-pill px-4 fw-black shadow-glow"
                                         onClick={() => {
                                             setShowModal(false);
@@ -372,9 +377,9 @@ const AdminOrganizerRequests = () => {
 
 
             {/* Rejection Confirmation Modal */}
-            <Modal 
-                show={showRejectModal} 
-                onHide={() => setShowRejectModal(false)} 
+            <Modal
+                show={showRejectModal}
+                onHide={() => setShowRejectModal(false)}
                 centered
                 className="premium-popup"
             >
@@ -392,62 +397,62 @@ const AdminOrganizerRequests = () => {
                                 <p className="m-0 tiny-text uppercase tracking-widest text-danger fw-bold">Refusal Protocol</p>
                             </div>
                         </div>
-                    <Form>
-                        <Form.Group className="mb-4">
-                            <Form.Label className="fw-bold small text-uppercase tracking-wider">Rejection Reason</Form.Label>
-                            <Form.Control 
-                                as="textarea" 
-                                rows={4} 
-                                value={rejectionReason}
-                                onChange={(e) => setRejectionReason(e.target.value)}
-                                className="modern-textarea"
-                                required
-                            />
-                        </Form.Group>
+                        <Form>
+                            <Form.Group className="mb-4">
+                                <Form.Label className="fw-bold small text-uppercase tracking-wider">Rejection Reason</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={4}
+                                    value={rejectionReason}
+                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                    className="modern-textarea"
+                                    required
+                                />
+                            </Form.Group>
 
-                        <div className="mb-3 d-flex justify-content-between align-items-center p-2 rounded-3" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
-                            <Form.Label htmlFor="reject-confirm-check" className="fw-bold text-danger mb-0 cursor-pointer">
-                                Are you sure you want to reject this host request?
-                            </Form.Label>
-                            <Form.Check 
-                                type="checkbox"
-                                id="reject-confirm-check"
-                                checked={confirmReject}
-                                onChange={(e) => setConfirmReject(e.target.checked)}
-                                className="m-0"
-                            />
-                        </div>
-                    </Form>
-                <div className="d-flex justify-content-end gap-3 mt-4">
-                    <Button variant="light" className="rounded-pill px-4 fw-bold" onClick={() => setShowRejectModal(false)}>
-                        Cancel
-                    </Button>
-                    <Button 
-                        variant="danger" 
-                        className="rounded-pill px-5 fw-black shadow-lg"
-                        onClick={() => {
-                            if (!rejectionReason.trim()) {
-                                toast.error('Please provide a rejection reason');
-                                return;
-                            }
-                            if (!confirmReject) {
-                                toast.error('Please check the confirmation box');
-                                return;
-                            }
-                            handleAction(selectedOrg._id, 'reject', rejectionReason);
-                        }}
-                    >
-                        {actionLoading[selectedOrg?._id] ? <Spinner size="sm" /> : 'Confirm Rejection'}
-                    </Button>
+                            <div className="mb-3 d-flex justify-content-between align-items-center p-2 rounded-3" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                                <Form.Label htmlFor="reject-confirm-check" className="fw-bold text-danger mb-0 cursor-pointer">
+                                    Are you sure you want to reject this host request?
+                                </Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    id="reject-confirm-check"
+                                    checked={confirmReject}
+                                    onChange={(e) => setConfirmReject(e.target.checked)}
+                                    className="m-0"
+                                />
+                            </div>
+                        </Form>
+                        <div className="d-flex justify-content-end gap-3 mt-4">
+                            <Button variant="light" className="rounded-pill px-4 fw-bold" onClick={() => setShowRejectModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="danger"
+                                className="rounded-pill px-5 fw-black shadow-lg"
+                                onClick={() => {
+                                    if (!rejectionReason.trim()) {
+                                        toast.error('Please provide a rejection reason');
+                                        return;
+                                    }
+                                    if (!confirmReject) {
+                                        toast.error('Please check the confirmation box');
+                                        return;
+                                    }
+                                    handleAction(selectedOrg._id, 'reject', rejectionReason);
+                                }}
+                            >
+                                {actionLoading[selectedOrg?._id] ? <Spinner size="sm" /> : 'Confirm Rejection'}
+                            </Button>
                         </div>
                     </div>
                 </div>
             </Modal>
 
             {/* Approval Confirmation Modal */}
-            <Modal 
-                show={showApproveModal} 
-                onHide={() => setShowApproveModal(false)} 
+            <Modal
+                show={showApproveModal}
+                onHide={() => setShowApproveModal(false)}
                 centered
                 className="premium-popup"
             >
@@ -475,7 +480,7 @@ const AdminOrganizerRequests = () => {
                             <Form.Label htmlFor="approve-confirm-check" className="fw-bold text-success mb-0 cursor-pointer small">
                                 I confirm this host has been verified and meets platform requirements.
                             </Form.Label>
-                            <Form.Check 
+                            <Form.Check
                                 type="checkbox"
                                 id="approve-confirm-check"
                                 checked={confirmApprove}
@@ -488,7 +493,7 @@ const AdminOrganizerRequests = () => {
                             <Button variant="light" className="rounded-pill px-4 fw-bold" onClick={() => setShowApproveModal(false)}>
                                 Cancel
                             </Button>
-                            <Button 
+                            <Button
                                 className="btn-pink rounded-pill px-5 fw-black shadow-lg"
                                 onClick={() => {
                                     if (!confirmApprove) {

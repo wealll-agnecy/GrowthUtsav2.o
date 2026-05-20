@@ -36,7 +36,13 @@ const BookingSchema = new mongoose.Schema({
     attendeeDetails: [{
         name: { type: String, required: true },
         email: { type: String, required: true },
-        phone: { type: String, required: true }
+        phone: { type: String }  // Optional — user may not have a phone number
+    }],
+    selectedFood: [{
+        itemName: { type: String },
+        type: { type: String },
+        price: { type: Number },
+        quantity: { type: Number }
     }],
     paymentStatus: {
         type: String,
@@ -87,5 +93,10 @@ BookingSchema.index({ user: 1 });
 BookingSchema.index({ event: 1 });
 BookingSchema.index({ paymentStatus: 1 });
 BookingSchema.index({ createdAt: -1 });
+// Compound indexes for the hottest query patterns
+BookingSchema.index({ user: 1, createdAt: -1 });          // getMyBookings
+BookingSchema.index({ event: 1, paymentStatus: 1 });      // analytics + attendee lists
+BookingSchema.index({ orderId: 1 }, { sparse: true });    // payment verification lookup
+BookingSchema.index({ ticketId: 1 }, { sparse: true });   // resend ticket lookup
 
 module.exports = mongoose.model('Booking', BookingSchema);

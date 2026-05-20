@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:5002' : 'https://www.growthutsav.in');
+const API_BASE_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:5002' : 'https://www.growthutsav.in');
 
 export const getApiUrl = (path = '') => {
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;

@@ -21,26 +21,22 @@ router.use(protect);
 router.get('/bookings', authorize('organizer', 'staff'), async (req, res) => {
     try {
         const Ticket = require('../models/Ticket');
-        const Event = require('../models/Event');
         
         let eventIds = [];
         
         if (req.user.role === 'staff') {
-            // Staff only see tickets for events they are assigned to
             eventIds = req.user.assignedEvents || [];
         } else {
-            // Organizer sees tickets for all their events
-            const myEvents = await Event.find({ organizer: req.user.id }).select('_id');
+            const myEvents = await Event.find({ organizer: req.user.id }).select('_id').lean();
             eventIds = myEvents.map(e => e._id);
         }
         
-        // Fetch Tickets (which contain scan status) instead of Bookings
         const tickets = await Ticket.find({ eventId: { $in: eventIds } })
             .populate('user', 'name email phone')
             .populate('event', 'title venue date isMultiDay multiDayPlan')
-            .sort({ scannedAt: -1, createdAt: -1 });
+            .sort({ scannedAt: -1, createdAt: -1 })
+            .lean();
 
-        // Map data to ensure all frontend fields are present and null-safe
         const mappedData = tickets.map(t => {
             const total = t.totalAmount || t.ticketPrice || 0;
             const paid = t.amountPaid || 0;
@@ -48,7 +44,7 @@ router.get('/bookings', authorize('organizer', 'staff'), async (req, res) => {
             const duration = (t.event && t.event.isMultiDay) ? (t.event.multiDayPlan?.length || 1) : 1;
 
             return {
-                ...t.toObject(),
+                ...t,
                 attendeeName: t.name || t.user?.name || "N/A",
                 email: t.email || t.user?.email || "N/A",
                 phone: t.mobileNumber || t.user?.phone || "N/A",
@@ -143,24 +139,23 @@ router.get("/event/:id/details", async (req, res) => {
 router.get('/revenue', async (req, res) => {
     try {
         const Booking = require('../models/Booking');
-        const Event = require('../models/Event');
         const now = new Date();
 
-        // 1. Find all COMPLETED events owned by this organizer
+        // Find completed events owned by this organizer
         const completedEvents = await Event.find({
             organizer: req.user.id,
             endDate: { $lt: now }
-        });
+        }).select('_id').lean();
 
         const eventIds = completedEvents.map(e => e._id);
 
-        // 2. Sum the amountPaid from all bookings for these events
-        const bookings = await Booking.find({ 
-            event: { $in: eventIds },
-            paymentStatus: { $in: ['partial', 'completed'] } // Only count actual payments
-        });
+        // Aggregate amountPaid (actual collected cash, not face value)
+        const revenueAgg = await Booking.aggregate([
+            { $match: { event: { $in: eventIds }, paymentStatus: { $in: ['partial', 'completed'] } } },
+            { $group: { _id: null, totalRevenue: { $sum: '$amountPaid' } } }
+        ]);
 
-        const totalRevenue = bookings.reduce((sum, b) => sum + (b.amountPaid || 0), 0);
+        const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
 
         res.status(200).json({ 
             success: true, 

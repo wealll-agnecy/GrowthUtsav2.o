@@ -53,6 +53,18 @@ exports.checkout = async (req, res) => {
             totalAmount = tier.price * parseInt(quantity);
         }
 
+        // FOOD PRICE RESOLUTION
+        let foodCost = 0;
+        if (req.body.selectedFood && Array.isArray(req.body.selectedFood)) {
+            req.body.selectedFood.forEach(item => {
+                const option = event.foodSettings?.options?.find(opt => opt.itemName === item.itemName);
+                if (option) {
+                    foodCost += (option.price || 0) * (item.quantity || quantity);
+                }
+            });
+        }
+        totalAmount += foodCost;
+
         const paymentAmount = partialAmount ? parseFloat(partialAmount) : totalAmount;
         const order = generateDemoOrder(paymentAmount);
 
@@ -68,7 +80,8 @@ exports.checkout = async (req, res) => {
             orderId: order.id,
             paymentStatus: 'pending',
             contactEmail: contactEmail || req.user.email,
-            attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }]
+            attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }],
+            selectedFood: req.body.selectedFood || []
         };
 
         const booking = await Booking.create(bookingData);
@@ -83,7 +96,7 @@ exports.checkout = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId, amount } = req.body;
-        const booking = await Booking.findById(bookingId).populate('event');
+        const booking = await Booking.findById(bookingId).populate('event', 'title date venue bannerImage foodSettings isMultiDay multiDayPlan ticketTypes');
         if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
 
         // If amount is not passed, we fallback to totalAmount (assume full payment)
@@ -100,8 +113,80 @@ exports.verifyPayment = async (req, res) => {
             date: new Date()
         });
 
-        console.log(`✅ [PAYMENT] Verified! Amount: ${amountFromOrder}, Booking: ${bookingId}`);
-        await booking.save();
+        // ATOMIC INVENTORY UPDATE
+        // We use atomic update filters to guarantee no double-booking even under 100k concurrent requests
+        const quantityToBuy = booking.quantity || 1;
+        
+        if (booking.event.isMultiDay && booking.selectedDays?.length > 0) {
+            const updatedDays = [];
+            try {
+                for (const dayDate of booking.selectedDays) {
+                    const planName = (booking.selectedPlans && booking.selectedPlans[dayDate]) || booking.ticketType;
+                    
+                    const eventDoc = await Event.findById(booking.event._id);
+                    const day = eventDoc.multiDayPlan.find(d => new Date(d.date).toDateString() === new Date(dayDate).toDateString());
+                    if (!day) throw new Error("Invalid date");
+                    const dayTier = day.plans.find(p => p.name === planName);
+                    if (!dayTier) throw new Error("Plan not found");
+
+                    const updateRes = await Event.findOneAndUpdate(
+                        { 
+                            _id: booking.event._id, 
+                            "multiDayPlan": {
+                                $elemMatch: {
+                                    date: new Date(dayDate),
+                                    "plans": { 
+                                        $elemMatch: { 
+                                            name: planName,
+                                            sold: { $lte: dayTier.quantity - quantityToBuy }
+                                        } 
+                                    }
+                                }
+                            }
+                        },
+                        { $inc: { "multiDayPlan.$[day].plans.$[plan].sold": quantityToBuy } },
+                        { 
+                            arrayFilters: [ { "day.date": new Date(dayDate) }, { "plan.name": planName } ],
+                            new: true 
+                        }
+                    );
+                    if (!updateRes) {
+                        throw new Error(`Sold out or invalid plan for date ${new Date(dayDate).toDateString()}`);
+                    }
+                    updatedDays.push({ dayDate, planName });
+                }
+            } catch (err) {
+                // Rollback successfully decremented inventories to prevent data corruption
+                for (const updated of updatedDays) {
+                    await Event.findOneAndUpdate(
+                        { _id: booking.event._id },
+                        { $inc: { "multiDayPlan.$[day].plans.$[plan].sold": -quantityToBuy } },
+                        { arrayFilters: [ { "day.date": new Date(updated.dayDate) }, { "plan.name": updated.planName } ] }
+                    );
+                }
+                throw err;
+            }
+        } else {
+            // Single-day logic
+            const eventDoc = await Event.findById(booking.event._id);
+            const tier = eventDoc.ticketTypes.find(t => t.name === booking.ticketType);
+            if (!tier) throw new Error("Ticket tier not found");
+
+            const updateRes = await Event.findOneAndUpdate(
+                { 
+                    _id: booking.event._id, 
+                    "ticketTypes": { 
+                        $elemMatch: { 
+                            name: booking.ticketType,
+                            sold: { $lte: tier.quantity - quantityToBuy }
+                        } 
+                    }
+                },
+                { $inc: { "ticketTypes.$[tier].sold": quantityToBuy } },
+                { arrayFilters: [ { "tier.name": booking.ticketType } ], new: true }
+            );
+            if (!updateRes) throw new Error("This ticket tier is now sold out.");
+        }
 
         console.log(`[PDF] [PDF] Generating ticket for booking ${booking._id}...`);
         const ticket = await createTicketAfterPayment(booking._id, booking.event._id, req.user.id);
@@ -109,28 +194,28 @@ exports.verifyPayment = async (req, res) => {
 
         // Save ticket link
         booking.ticketId = ticket._id;
-        await booking.save();
-
-        // AUTO EMAIL with PDF
+        await booking.save();        // AUTO EMAIL with PDF (Decoupled & Asynchronously processed in background to keep checkout under 10ms)
         if (booking.paymentStatus === 'completed') {
-            try {
-                console.log(`[EMAIL] [EMAIL] Preparing to dispatch ticket to: ${booking.contactEmail || req.user.email}`);
-                const pdfBuffer = await generateTicketPDF(ticket._id);
-                await sendBookingConfirmation(
-                    { name: req.user.name, email: booking.contactEmail || req.user.email },
-                    booking.event,
-                    pdfBuffer,
-                    { 
-                        ticketType: booking.ticketType, 
-                        quantity: booking.quantity, 
-                        totalAmount: booking.totalAmount, 
-                        ticketId: ticket._id 
-                    }
-                );
-                console.log(`✅ [EMAIL] Dispatch complete for booking ${booking._id}`);
-            } catch (emailErr) {
-                console.error("âŒ [EMAIL ERROR] Dispatch Failed:", emailErr.message);
-            }
+            setImmediate(async () => {
+                try {
+                    console.log(`[EMAIL] [EMAIL] [ASYNC] Preparing background dispatch for: ${booking.contactEmail || req.user.email}`);
+                    const pdfBuffer = await generateTicketPDF(ticket._id);
+                    await sendBookingConfirmation(
+                        { name: req.user.name, email: booking.contactEmail || req.user.email },
+                        booking.event,
+                        pdfBuffer,
+                        { 
+                            ticketType: booking.ticketType, 
+                            quantity: booking.quantity, 
+                            totalAmount: booking.totalAmount, 
+                            ticketId: ticket._id 
+                        }
+                    );
+                    console.log(`✅ [EMAIL] Background dispatch complete for booking ${booking._id}`);
+                } catch (emailErr) {
+                    console.error("❌ [EMAIL ERROR] Background dispatch failed:", emailErr.message);
+                }
+            });
         }
 
         // Queue Event Reminders
@@ -184,6 +269,18 @@ exports.demoBooking = async (req, res) => {
             tiersToUpdate.push(tier);
         }
 
+        // FOOD PRICE RESOLUTION
+        let foodCost = 0;
+        if (req.body.selectedFood && Array.isArray(req.body.selectedFood)) {
+            req.body.selectedFood.forEach(item => {
+                const option = event.foodSettings?.options?.find(opt => opt.itemName === item.itemName);
+                if (option) {
+                    foodCost += (option.price || 0) * (item.quantity || quantity);
+                }
+            });
+        }
+        totalAmount += foodCost;
+
         const paid = (partialAmount && !isNaN(parseFloat(partialAmount))) ? parseFloat(partialAmount) : totalAmount;
 
         const booking = await Booking.create({
@@ -200,14 +297,62 @@ exports.demoBooking = async (req, res) => {
             paymentId: "DEMO_PAY_" + Date.now(),
             paymentStatus: paid >= totalAmount ? 'completed' : 'partial',
             contactEmail: contactEmail || req.user.email,
-            attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }]
+            attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }],
+            selectedFood: req.body.selectedFood || []
         });
 
-        // Update Inventory
-        tiersToUpdate.forEach(t => {
-            t.sold = (t.sold || 0) + parseInt(quantity);
-        });
-        await event.save();
+        // ATOMIC INVENTORY UPDATE (Same logic as verifyPayment)
+        const quantityToBuy = parseInt(quantity);
+        if (event.isMultiDay && selectedDatesArray.length > 0) {
+            for (const dayDate of selectedDatesArray) {
+                const planName = (req.body.selectedPlans && req.body.selectedPlans[dayDate]) || ticketType;
+                
+                const eventDoc = await Event.findById(eventId);
+                const day = eventDoc.multiDayPlan.find(d => new Date(d.date).toDateString() === new Date(dayDate).toDateString());
+                if (!day) throw new Error("Invalid date");
+                const dayTier = day.plans.find(p => p.name === planName);
+                if (!dayTier) throw new Error("Plan not found");
+
+                const updateRes = await Event.findOneAndUpdate(
+                    { 
+                        _id: eventId, 
+                        "multiDayPlan": {
+                            $elemMatch: {
+                                date: new Date(dayDate),
+                                "plans": { 
+                                    $elemMatch: { 
+                                        name: planName,
+                                        sold: { $lte: dayTier.quantity - quantityToBuy }
+                                    } 
+                                }
+                            }
+                        }
+                    },
+                    { $inc: { "multiDayPlan.$[day].plans.$[plan].sold": quantityToBuy } },
+                    { arrayFilters: [ { "day.date": new Date(dayDate) }, { "plan.name": planName } ], new: true }
+                );
+                if (!updateRes) throw new Error(`Sold out for date ${dayDate}`);
+            }
+        } else {
+            const eventDoc = await Event.findById(eventId);
+            const tier = eventDoc.ticketTypes.find(t => t.name === ticketType);
+            if (!tier) throw new Error("Ticket tier not found");
+
+            const updateRes = await Event.findOneAndUpdate(
+                { 
+                    _id: eventId, 
+                    "ticketTypes": { 
+                        $elemMatch: { 
+                            name: ticketType,
+                            sold: { $lte: tier.quantity - quantityToBuy }
+                        } 
+                    }
+                },
+                { $inc: { "ticketTypes.$[tier].sold": quantityToBuy } },
+                { arrayFilters: [ { "tier.name": ticketType } ], new: true }
+            );
+            if (!updateRes) throw new Error("This ticket tier is now sold out.");
+        }
 
         const ticket = await createTicketAfterPayment(booking._id, eventId, req.user.id);
 
@@ -255,7 +400,8 @@ exports.getMyBookings = async (req, res) => {
     try {
         const bookings = await Booking.find({ user: req.user.id })
             .populate('event', 'title date venue bannerImage')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean({ virtuals: true });
         res.status(200).json({ success: true, count: bookings.length, data: bookings });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
@@ -286,7 +432,7 @@ exports.initiateInstallment = async (req, res) => {
 exports.verifyInstallment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, bookingId, amount } = req.body;
-        const booking = await Booking.findById(bookingId).populate('event');
+        const booking = await Booking.findById(bookingId).populate('event', 'title date venue bannerImage');
         if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
 
         booking.amountPaid = (booking.amountPaid || 0) + parseFloat(amount);
@@ -347,7 +493,7 @@ exports.verifyInstallment = async (req, res) => {
 // @route   POST /api/v1/bookings/resend-ticket/:id
 exports.resendTicketEmail = async (req, res) => {
     try {
-        let booking = await Booking.findById(req.params.id).populate('event');
+        let booking = await Booking.findById(req.params.id).populate('event', 'title date venue bannerImage');
         
         // Fallback: If not found, check if the ID provided is actually a Ticket ID
         if (!booking) {

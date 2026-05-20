@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import * as eventApi from '../api/eventApi';
-import { Container, Button, Badge, Spinner, Alert, Modal } from 'react-bootstrap';
-import { FaCheck, FaTimes, FaEye, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaInbox, FaUserCircle, FaTicketAlt, FaClock, FaTag, FaUsers } from 'react-icons/fa';
+import { Container, Button, Badge, Spinner, Alert, Modal, Card } from 'react-bootstrap';
+import { FaCheck, FaTimes, FaEye, FaCalendarAlt, FaMapMarkerAlt, FaSearch, FaInbox, FaUserCircle, FaTicketAlt, FaClock, FaTag, FaUsers, FaShieldAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { playSound } from '../utils/soundManager';
 import '../css/admin-pages.css';
+import '../css/AdminStyles.css';
 import { formatCurrency } from '../utils/formatUtils';
 
 const API_BASE = `http://${window.location.hostname}:5000`;
@@ -51,7 +52,6 @@ const AdminEventApproval = () => {
     }, [activeTab]);
 
     const handleAction = async (id, status) => {
-        if (!window.confirm(`Confirm ${status} for this event?`)) return;
         setActionLoading(prev => ({ ...prev, [id]: true }));
         try {
             if (status === 'approved') {
@@ -66,8 +66,9 @@ const AdminEventApproval = () => {
                 await eventApi.updateEventStatus(id, status);
                 playSound('notification');
             }
-            
-            fetchEvents();
+
+            // Optimistic UI state update: remove moderated event from view instantly
+            setEvents(prev => prev.filter(e => e._id !== id));
             setShowModal(false);
         } catch (err) {
             setError(err.response?.data?.message || err.message);
@@ -76,7 +77,7 @@ const AdminEventApproval = () => {
         }
     };
 
-    const filteredEvents = events.filter(e => 
+    const filteredEvents = events.filter(e =>
         e.title?.toLowerCase().includes(search.toLowerCase()) ||
         e.organizer?.name?.toLowerCase().includes(search.toLowerCase()) ||
         e.venue?.toLowerCase().includes(search.toLowerCase())
@@ -87,7 +88,9 @@ const AdminEventApproval = () => {
             <Container fluid>
                 <div className="admin-page-header">
                     <div>
-                        <h1>Event Governance</h1>
+                        <h1 className="d-flex align-items-center gap-3">
+                            <FaShieldAlt className="text-pink d-none d-lg-inline-flex" /> Event Governance
+                        </h1>
                         <p className="dashboard-subtext">Moderate and approve event submissions</p>
                     </div>
                     <div className="d-flex gap-3">
@@ -107,19 +110,24 @@ const AdminEventApproval = () => {
 
                 {error && <Alert variant="danger" className="border-0 shadow-sm mb-4">{error}</Alert>}
 
-                <div className="nav-tabs-saas mb-4 d-flex gap-2">
+                <div className="moderation-tabs mt-4 mb-4 d-flex gap-2" style={{ maxWidth: '480px' }}>
                     {['pending', 'approved', 'rejected'].map(status => (
                         <button
                             key={status}
-                            className={`btn ${activeTab === status ? 'btn-pink' : 'btn-outline-pink'}`}
+                            className={`btn flex-grow-1 text-center py-2 fw-bold rounded-pill transition-premium ${
+                                activeTab === status 
+                                    ? 'btn-pink shadow-sm' 
+                                    : 'btn-pink-outline'
+                            }`}
+                            style={{ fontSize: '0.85rem', whiteSpace: 'nowrap', minWidth: '0' }}
                             onClick={() => navigate(`/admin/event-approvals?status=${status}`)}
                         >
-                            {status.charAt(0).toUpperCase() + status.slice(1)} Notifications
+                            {status.toUpperCase()}
                         </button>
                     ))}
                 </div>
 
-                <div className="admin-card">
+                <div className="admin-card border-0">
                     {loading ? (
                         <div className="loading-skeleton">
                             {[1, 2, 3, 4, 5].map(i => <div key={i} className="skeleton-row" />)}
@@ -131,73 +139,143 @@ const AdminEventApproval = () => {
                             <p>{search ? `No findings for "${search}"` : `The ${activeTab} moderation queue is empty.`}</p>
                         </div>
                     ) : (
-                        <div className="admin-table-wrapper">
-                            <table className="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Event Title</th>
-                                        <th>Host Node</th>
-                                        <th>Schedule & Venue</th>
-                                        <th>Status</th>
-                                        <th className="text-end">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredEvents.map(event => (
-                                        <tr key={event._id}>
-                                            <td>
-                                                <div className="fw-bold">{event.title}</div>
-                                                <div className="small text-muted">{event.category}</div>
-                                            </td>
-                                            <td>
-                                                <div className="fw-semibold">{event.organizer?.name}</div>
-                                                <div className="small text-muted">{event.organizer?.email}</div>
-                                            </td>
-                                            <td>
-                                                <div className="d-flex align-items-center gap-2 small mb-1">
-                                                    <FaCalendarAlt className="text-slate-400" /> {new Date(event.date).toLocaleDateString()}
-                                                </div>
-                                                <div className="d-flex align-items-center gap-2 small text-muted">
-                                                    <FaMapMarkerAlt className="text-slate-400" /> {event.venue}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span className={`admin-badge badge-${activeTab}`}>
-                                                    {event.status}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div className="action-btn-group justify-content-end">
-                                                    <button className="btn btn-outline-pink" onClick={() => { setSelectedEvent(event); setShowModal(true); }}>
-                                                        <FaEye />
-                                                    </button>
-                                                    {activeTab === 'pending' && (
-                                                        <>
-                                                            <button className="btn btn-pink" onClick={() => handleAction(event._id, 'approved')} disabled={actionLoading[event._id]}>
-                                                                {actionLoading[event._id] ? <Spinner size="sm" /> : <FaCheck />}
-                                                            </button>
-                                                            <button className="btn btn-outline-pink" onClick={() => handleAction(event._id, 'rejected')} disabled={actionLoading[event._id]}>
-                                                                <FaTimes />
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </td>
+                        <>
+                            {/* Desktop View: Table */}
+                            <div className="admin-table-wrapper d-none d-lg-block">
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Event Title</th>
+                                            <th>Host Node</th>
+                                            <th>Schedule & Venue</th>
+                                            <th>Status</th>
+                                            <th className="text-end">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {filteredEvents.map(event => (
+                                            <tr key={event._id}>
+                                                <td>
+                                                    <div className="fw-bold">{event.title}</div>
+                                                    <div className="small text-muted">{event.category}</div>
+                                                </td>
+                                                <td>
+                                                    <div className="fw-semibold">{event.organizer?.name}</div>
+                                                    <div className="small text-muted">{event.organizer?.email}</div>
+                                                </td>
+                                                <td>
+                                                    <div className="d-flex align-items-center gap-2 small mb-1">
+                                                        <FaCalendarAlt className="text-slate-400" /> {new Date(event.date).toLocaleDateString()}
+                                                    </div>
+                                                    <div className="d-flex align-items-center gap-2 small text-muted">
+                                                        <FaMapMarkerAlt className="text-slate-400" /> {event.venue}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span className={`admin-badge badge-${activeTab}`}>
+                                                        {event.status}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div className="action-btn-group justify-content-end">
+                                                        <button className="btn btn-pink-outline" onClick={() => { setSelectedEvent(event); setShowModal(true); }}>
+                                                            <FaEye />
+                                                        </button>
+                                                        {activeTab === 'pending' && (
+                                                            <>
+                                                                <button className="btn btn-pink" onClick={() => handleAction(event._id, 'approved')} disabled={actionLoading[event._id]}>
+                                                                    {actionLoading[event._id] ? <Spinner size="sm" /> : <FaCheck />}
+                                                                </button>
+                                                                <button className="btn btn-pink-outline" onClick={() => handleAction(event._id, 'rejected')} disabled={actionLoading[event._id]}>
+                                                                    <FaTimes />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile View: Vertical Cards */}
+                            <div className="d-lg-none d-flex flex-column gap-3 p-3 bg-premium-light">
+                                {filteredEvents.map(event => (
+                                    <Card key={event._id} className="border-0 shadow-sm rounded-4 p-3 bg-white">
+                                        <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-slate-100">
+                                            <div>
+                                                <h6 className="mb-0 fw-black text-dark" style={{ fontSize: '1rem' }}>{event.title}</h6>
+                                                <span className="small text-secondary fw-semibold uppercase tracking-wider" style={{ fontSize: '0.7rem' }}>
+                                                    {event.category}
+                                                </span>
+                                            </div>
+                                            <Badge className={`admin-badge badge-${activeTab} flex-shrink-0`}>
+                                                {event.status}
+                                            </Badge>
+                                        </div>
+                                        
+                                        <div className="d-flex flex-column gap-2 mb-3">
+                                            <div className="d-flex flex-column bg-slate-50 p-2.5 rounded-3 mb-2">
+                                                <span className="text-secondary small fw-bold text-uppercase mb-1" style={{ fontSize: '0.6rem', letterSpacing: '0.05em' }}>Host Node</span>
+                                                <span className="small text-dark fw-black">{event.organizer?.name}</span>
+                                                <span className="small text-secondary">{event.organizer?.email}</span>
+                                            </div>
+                                            
+                                            <div className="d-flex align-items-center gap-2 small text-secondary fw-medium">
+                                                <FaCalendarAlt className="text-pink flex-shrink-0" size={12} />
+                                                <span>{new Date(event.date).toLocaleDateString()}</span>
+                                            </div>
+                                            <div className="d-flex align-items-center gap-2 small text-secondary fw-medium">
+                                                <FaMapMarkerAlt className="text-pink flex-shrink-0" size={12} />
+                                                <span className="text-truncate">{event.venue}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="d-flex align-items-center justify-content-end gap-2 pt-2 border-top border-slate-100">
+                                            <button 
+                                                className="btn btn-pink-outline rounded-circle d-flex align-items-center justify-content-center transition-all"
+                                                style={{ width: '36px', height: '36px', flexShrink: 0, padding: 0 }}
+                                                onClick={() => { setSelectedEvent(event); setShowModal(true); }}
+                                                title="View Details"
+                                            >
+                                                <FaEye size={16} />
+                                            </button>
+                                            {activeTab === 'pending' && (
+                                                <>
+                                                    <button 
+                                                        className="btn btn-outline-danger rounded-pill px-3 py-1.5 fw-bold small transition-all d-inline-flex align-items-center gap-1.5"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        onClick={() => handleAction(event._id, 'rejected')} 
+                                                        disabled={actionLoading[event._id]}
+                                                    >
+                                                        <FaTimes size={12} /> Reject
+                                                    </button>
+                                                    <button 
+                                                        className="btn btn-pink rounded-pill px-3 py-1.5 fw-black small transition-all d-inline-flex align-items-center gap-1.5 shadow-sm"
+                                                        style={{ fontSize: '0.75rem' }}
+                                                        onClick={() => handleAction(event._id, 'approved')} 
+                                                        disabled={actionLoading[event._id]}
+                                                    >
+                                                        {actionLoading[event._id] ? <Spinner size="sm" /> : <><FaCheck size={12} /> Approve</>}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             </Container>
 
             {/* Premium Audit Modal */}
-            <Modal 
-                show={showModal} 
-                onHide={() => setShowModal(false)} 
-                centered 
-                size="lg" 
+            <Modal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                centered
+                size="lg"
                 className="premium-popup"
             >
                 <div className="popup-body">
@@ -236,7 +314,7 @@ const AdminEventApproval = () => {
                                 {/* Organizer Card */}
                                 <div className="section-card m-0">
                                     <div className="section-header-mini mb-3">
-                                        <FaUserCircle className="me-2 text-pink" /> 
+                                        <FaUserCircle className="me-2 text-pink" />
                                         <span>Host Origin</span>
                                     </div>
                                     <div className="d-flex align-items-center gap-3">
@@ -255,7 +333,7 @@ const AdminEventApproval = () => {
                                 {/* Schedule Card */}
                                 <div className="section-card m-0">
                                     <div className="section-header-mini mb-3">
-                                        <FaClock className="me-2 text-pink" /> 
+                                        <FaClock className="me-2 text-pink" />
                                         <span>Schedule</span>
                                     </div>
                                     <div className="d-flex flex-column gap-2">
@@ -279,7 +357,7 @@ const AdminEventApproval = () => {
                             {selectedEvent.ticketTypes?.length > 0 && (
                                 <div className="section-card mb-4">
                                     <div className="section-header-mini mb-3">
-                                        <FaTicketAlt className="me-2 text-pink" /> 
+                                        <FaTicketAlt className="me-2 text-pink" />
                                         <span>Pricing Architecture</span>
                                     </div>
                                     <div className="d-flex flex-wrap gap-2">

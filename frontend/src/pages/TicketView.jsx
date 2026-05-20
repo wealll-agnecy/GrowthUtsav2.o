@@ -59,6 +59,12 @@ const TicketView = () => {
     };
 
     useEffect(() => {
+        if (!id || id === 'undefined') {
+            console.error("[CLIENT]: Detected invalid 'undefined' ticket ID in URL");
+            setLoading(false);
+            return;
+        }
+
         const fetchTicket = async () => {
             try {
                 const res = await ticketApi.getTicket(id);
@@ -293,6 +299,33 @@ const TicketView = () => {
                                                 </div>
                                             </span>
                                         </div>
+
+                                        {/* Dynamic Catering & Meal Pass Details */}
+                                        {((ticket?.booking?.selectedFood && ticket.booking.selectedFood.length > 0) ||
+                                          (ticket?.event?.foodSettings && (ticket.event.foodSettings.foodType === 'compulsory' || ticket.event.foodSettings.type === 'compulsory') && ticket.event.foodSettings.options?.length > 0)) && (
+                                            <div className="pass-info-item mb-4">
+                                                <span className="pass-info-label">Catering & Meals</span>
+                                                <span className="pass-info-value">
+                                                    {ticket?.booking?.selectedFood && ticket.booking.selectedFood.length > 0 ? (
+                                                        <div className="d-flex flex-column gap-1 text-pink fw-bold">
+                                                            {ticket.booking.selectedFood.map((f, i) => (
+                                                                <div key={i} className="small">
+                                                                    🍔 {f.itemName} ({f.type.toUpperCase()}) x{f.quantity || ticket?.booking?.quantity || 1}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="d-flex flex-column gap-1 text-success fw-bold">
+                                                            {ticket.event.foodSettings.options.map((f, i) => (
+                                                                <div key={i} className="small">
+                                                                    🥗 [INCLUDED] {f.itemName} ({f.type.toUpperCase()})
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="d-flex justify-content-between align-items-end">

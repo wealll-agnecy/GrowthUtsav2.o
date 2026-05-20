@@ -4,7 +4,7 @@ import { FaHourglassHalf, FaArrowLeft, FaSync, FaRocket } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
 
 const PendingVerification = () => {
@@ -15,7 +15,7 @@ const PendingVerification = () => {
     const checkVerificationStatus = async () => {
         setChecking(true);
         try {
-            const res = await axios.get('/api/v1/auth/me');
+            const res = await apiClient.get('/api/v1/auth/me');
             if (res.data.success) {
                 const userData = res.data.data;
                 setUser(userData);

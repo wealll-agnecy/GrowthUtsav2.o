@@ -6,7 +6,9 @@ const {
     verifyManualTicket,
     getTodayEvents,
     verifyTicketForStaff,
-    verifyTicketScan
+    verifyTicketScan,
+    updateFoodAccess,
+    updateParkingAccess
 } = require('../controllers/ticketController');
 
 
@@ -15,8 +17,10 @@ const router = express.Router();
 
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-// âš ï¸ IMPORTANT: Specific named routes MUST come before parameterized /:id routes
+// ⚠️ IMPORTANT: Specific named routes MUST come before parameterized /:id routes
 router.post('/verify-scan', protect, authorize('staff', 'admin'), verifyTicketScan);
+router.post('/update-food', protect, authorize('staff', 'admin'), updateFoodAccess);
+router.post('/update-parking', protect, authorize('staff', 'admin'), updateParkingAccess);
 router.get('/today', protect, authorize('staff', 'admin'), getTodayEvents);
 router.post('/verify', protect, authorize('staff', 'admin'), verifyTicket);
 router.post('/verify-manual', protect, authorize('staff', 'admin'), verifyManualTicket);

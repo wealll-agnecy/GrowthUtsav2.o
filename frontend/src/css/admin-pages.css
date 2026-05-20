@@ -23,6 +23,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     box-shadow: var(--premium-shadow);
+    margin-top: 30px;
     overflow: hidden;
 }
 
@@ -126,7 +127,8 @@
     color: #166534;
 }
 
-.badge-demo.amber, .badge-demo.orange {
+.badge-demo.amber,
+.badge-demo.orange {
     background: #fffbeb;
     color: #92400e;
 }
@@ -158,12 +160,14 @@
     color: #d97706;
 }
 
-.scan-reason.false-ticket, .scan-reason.cancelled-ticket {
+.scan-reason.false-ticket,
+.scan-reason.cancelled-ticket {
     background: rgba(239, 68, 68, 0.1);
     color: #dc2626;
 }
 
-.scan-reason.already-scanned, .scan-reason.expired-ticket {
+.scan-reason.already-scanned,
+.scan-reason.expired-ticket {
     background: rgba(100, 116, 139, 0.1);
     color: #475569;
 }
@@ -175,9 +179,9 @@
 }
 
 .admin-btn {
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 10px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     border: 1px solid transparent;
     transition: all 0.2s ease;
@@ -308,10 +312,11 @@
     }
 
     .admin-table {
-        min-width: 700px !important; 
+        min-width: 700px !important;
     }
 
-    .admin-table th, .admin-table td {
+    .admin-table th,
+    .admin-table td {
         padding: 12px 15px !important;
         font-size: 13px !important;
     }
@@ -434,6 +439,7 @@ html body .admin-search-wrapper .admin-search-input::placeholder {
     background: var(--bg-card) !important;
     backdrop-filter: blur(6px) !important;
     border-radius: 12px !important;
+    margin-top: 30px;
 }
 
 /* Search box visibility */
@@ -798,6 +804,20 @@ html body .admin-search-wrapper .admin-search-input::placeholder {
 
 .rounded-12 {
     border-radius: 12px !important;
+}
+
+.tiny-text {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.05em;
+}
+
+.ring-pink {
+    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2) !important;
+    border: 2px solid #ec4899 !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
 
 /* â”€â”€ PREMIUM AUDIT MODAL â”€â”€ */

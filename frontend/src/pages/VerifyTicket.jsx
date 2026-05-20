@@ -15,6 +15,13 @@ const VerifyTicket = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (!id || id === 'undefined') {
+            console.error("[CLIENT]: Detected invalid 'undefined' verification ID in URL");
+            setError("Invalid verification ticket ID. Signature could not be verified.");
+            setLoading(false);
+            return;
+        }
+
         const verify = async () => {
             try {
                 // Fetch high-fidelity verification data

@@ -62,6 +62,12 @@ const UserSchema = new mongoose.Schema({
 // --- PRODUCTION INDEXES ---
 UserSchema.index({ role: 1 });
 UserSchema.index({ status: 1 });
+// Note: email already has unique:true in schema field — no duplicate index needed
+// Compound indexes for admin organizer management queries
+UserSchema.index({ role: 1, status: 1 });           // getPendingOrganizers, getApprovedOrganizers
+UserSchema.index({ role: 1, isRejected: 1 });        // getRejectedOrganizers
+UserSchema.index({ role: 1, createdAt: -1 });        // getAllUsers sorted
+UserSchema.index({ resetPasswordToken: 1 }, { sparse: true }); // forgot password lookup
 
 // --- AUTH LOGIC ---
 UserSchema.pre('save', async function (next) {

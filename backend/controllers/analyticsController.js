@@ -12,6 +12,11 @@ exports.getEventAttendees = async (req, res) => {
     try {
         const { eventId } = req.params;
 
+        const mongoose = require('mongoose');
+        if (!mongoose.Types.ObjectId.isValid(eventId)) {
+            return res.status(400).json({ success: false, message: 'Invalid Event ID' });
+        }
+
         // Verify event exists and belongs to the requesting organizer (or admin)
         const event = await Event.findById(eventId);
         if (!event) {
@@ -27,7 +32,7 @@ exports.getEventAttendees = async (req, res) => {
 
         const bookings = await Booking.find({
             event: eventId,
-            paymentStatus: 'completed'
+            paymentStatus: { $in: ['completed', 'partial'] }
         }).populate('user', 'name email phone').sort({ createdAt: -1 });
 
         // Optimize: Fetch all tickets for these bookings in ONE query
@@ -66,29 +71,49 @@ exports.getOrganizerStats = async (req, res) => {
     try {
         const organizerId = req.user.id || req.user._id;
 
-        const events = await Event.find({ organizer: organizerId });
-        const eventIds = events.map(e => e._id);
+        // Single aggregation for event stats — no JS filtering needed
+        const [eventStats, revenueStats] = await Promise.all([
+            Event.aggregate([
+                { $match: { organizer: new (require('mongoose').Types.ObjectId)(organizerId) } },
+                { $facet: {
+                    total:    [{ $count: 'n' }],
+                    pending:  [{ $match: { status: 'pending' } }, { $count: 'n' }],
+                    approved: [{ $match: { status: { $in: ['approved', 'live'] } } }, { $count: 'n' }],
+                    capacity: [{ $unwind: '$ticketTypes' }, { $group: { _id: null, total: { $sum: '$ticketTypes.quantity' } } }]
+                }}
+            ]),
+            Booking.aggregate([
+                { $match: { paymentStatus: 'completed' } },
+                {
+                    $lookup: {
+                        from: 'events',
+                        localField: 'event',
+                        foreignField: '_id',
+                        as: 'eventDoc'
+                    }
+                },
+                { $unwind: '$eventDoc' },
+                { $match: { 'eventDoc.organizer': new (require('mongoose').Types.ObjectId)(organizerId) } },
+                { $group: {
+                    _id: null,
+                    totalRevenue: { $sum: '$amountPaid' },   // actual collected cash
+                    totalTicketsSold: { $sum: '$quantity' }
+                }}
+            ])
+        ]);
 
-        const bookings = await Booking.find({
-            event: { $in: eventIds },
-            paymentStatus: 'completed'
-        });
-
-        const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
-        const totalTicketsSold = bookings.reduce((acc, b) => acc + (b.quantity || 0), 0);
-        const totalCapacity = events.reduce((acc, e) => {
-            return acc + (e.ticketTypes || []).reduce((a, t) => a + (t.quantity || 0), 0);
-        }, 0);
+        const stats = eventStats[0];
+        const rev = revenueStats[0] || { totalRevenue: 0, totalTicketsSold: 0 };
 
         res.status(200).json({
             success: true,
             data: {
-                totalEvents: events.length,
-                totalRevenue,
-                totalTicketsSold,
-                totalCapacity,
-                pendingEvents: events.filter(e => e.status === 'pending').length,
-                approvedEvents: events.filter(e => e.status === 'approved' || e.status === 'live').length,
+                totalEvents:      stats.total[0]?.n || 0,
+                totalRevenue:     rev.totalRevenue,
+                totalTicketsSold: rev.totalTicketsSold,
+                totalCapacity:    stats.capacity[0]?.total || 0,
+                pendingEvents:    stats.pending[0]?.n || 0,
+                approvedEvents:   stats.approved[0]?.n || 0,
             }
         });
     } catch (err) {

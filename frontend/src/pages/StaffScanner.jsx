@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { playSound } from '../utils/soundManager';
-import { Container, Button, Badge, Row, Col } from 'react-bootstrap';
+import { Container, Button, Badge, Row, Col, Form } from 'react-bootstrap';
 import { FaCheckCircle, FaTimesCircle, FaBackward, FaQrcode } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './StaffScanner.css';
@@ -15,6 +16,54 @@ const StaffScanner = () => {
     const [loading, setLoading] = useState(false);
     const [scannerError, setScannerError] = useState(null);
     const isProcessingRef = useRef(false);
+    const [updatingFood, setUpdatingFood] = useState(false);
+    const [updatingParking, setUpdatingParking] = useState(false);
+
+    const handleFoodToggleUpdate = async (e) => {
+        if (!scanResult || !scanResult.ticket || scanResult.ticket.foodTaken) return;
+        setUpdatingFood(true);
+        try {
+            const ticketId = scanResult.ticket._id;
+            const res = await apiClient.post('/api/v1/tickets/update-food', { ticketId });
+            if (res.data.success) {
+                toast.success('Food access marked as taken!');
+                setScanResult(prev => ({
+                    ...prev,
+                    ticket: {
+                        ...prev.ticket,
+                        foodTaken: true
+                    }
+                }));
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to update food access.');
+        } finally {
+            setUpdatingFood(false);
+        }
+    };
+
+    const handleParkingToggleUpdate = async (e) => {
+        if (!scanResult || !scanResult.ticket || scanResult.ticket.parkingUsed) return;
+        setUpdatingParking(true);
+        try {
+            const ticketId = scanResult.ticket._id;
+            const res = await apiClient.post('/api/v1/tickets/update-parking', { ticketId });
+            if (res.data.success) {
+                toast.success('Parking access marked as used!');
+                setScanResult(prev => ({
+                    ...prev,
+                    ticket: {
+                        ...prev.ticket,
+                        parkingUsed: true
+                    }
+                }));
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to update parking access.');
+        } finally {
+            setUpdatingParking(false);
+        }
+    };
 
     const onScanSuccess = useCallback(async (result) => {
         if (isProcessingRef.current) return;
@@ -35,7 +84,7 @@ const StaffScanner = () => {
             const segments = qrUrl.split('/');
             const ticketId = segments[segments.length - 1] || segments[segments.length - 2];
             
-            const res = await axios.post('/api/v1/tickets/verify-scan', { ticketId });
+            const res = await apiClient.post('/api/v1/tickets/verify-scan', { ticketId });
             const data = res.data;
 
             if (data.status === 'GRANTED') {
@@ -241,6 +290,69 @@ const StaffScanner = () => {
                                         {scanResult.ticket?.isScanned ? "Already Scanned" : "Valid"}
                                     </b>
                                 </div>
+
+                                {/* --- New Food & Parking Access Tracking --- */}
+                                {scanResult.ticket && (
+                                    <div className="mt-4 pt-3 border-top border-pink border-opacity-10 d-flex flex-column gap-3">
+                                        {/* Food Row */}
+                                        <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div 
+                                                    className={`d-flex justify-content-center align-items-center rounded-circle ${
+                                                        scanResult.ticket.foodTaken ? 'bg-secondary text-white' : 'bg-pink text-white'
+                                                    }`} 
+                                                    style={{ width: '36px', height: '36px' }}
+                                                >
+                                                    <span style={{ fontSize: '16px' }}>🍔</span>
+                                                </div>
+                                                <div className="d-flex flex-column text-start">
+                                                    <span className="fw-bold small text-dark">Food</span>
+                                                    <span className={`x-small fw-bold ${scanResult.ticket.foodTaken ? 'text-secondary' : 'text-success'}`}>
+                                                        {scanResult.ticket.foodTaken ? 'Food is already taken' : 'Food Available'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <Form.Check 
+                                                    type="switch"
+                                                    id="food-access-toggle"
+                                                    checked={scanResult.ticket.foodTaken}
+                                                    disabled={scanResult.ticket.foodTaken || updatingFood}
+                                                    onChange={handleFoodToggleUpdate}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Parking Row */}
+                                        <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
+                                            <div className="d-flex align-items-center gap-3">
+                                                <div 
+                                                    className={`d-flex justify-content-center align-items-center rounded-circle ${
+                                                        scanResult.ticket.parkingUsed ? 'bg-secondary text-white' : 'bg-pink text-white'
+                                                    }`} 
+                                                    style={{ width: '36px', height: '36px' }}
+                                                >
+                                                    <span style={{ fontSize: '16px' }}>🚗</span>
+                                                </div>
+                                                <div className="d-flex flex-column text-start">
+                                                    <span className="fw-bold small text-dark">Parking</span>
+                                                    <span className={`x-small fw-bold ${scanResult.ticket.parkingUsed ? 'text-secondary' : 'text-success'}`}>
+                                                        {scanResult.ticket.parkingUsed ? 'Parking is already done' : 'Parking Available'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <Form.Check 
+                                                    type="switch"
+                                                    id="parking-access-toggle"
+                                                    checked={scanResult.ticket.parkingUsed}
+                                                    disabled={scanResult.ticket.parkingUsed || updatingParking}
+                                                    onChange={handleParkingToggleUpdate}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {!scanResult.ticket && (
                                     <div className="mt-3 text-center">

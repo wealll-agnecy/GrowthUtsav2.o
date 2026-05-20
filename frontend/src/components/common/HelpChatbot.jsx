@@ -219,7 +219,7 @@ const HelpChatbot = () => {
                                         pointerEvents: 'none'
                                     }}
                                 >
-                                    <span style={{ color: '#AD1457' }}>Laila:</span> Hi I'm Laila from GU, How can i help you today?
+                                    <span style={{ color: '#7c3aed' }}>Laila:</span> Hi I'm Laila from GU, How can i help you today?
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -271,8 +271,8 @@ const HelpChatbot = () => {
                         {/* Header */}
                         <div className="chatbot-header">
                             <div className="chatbot-header-info">
-                                <div className="chatbot-avatar" style={{ fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff1f2' }}>
-                                    <FaRobot className="text-primary" size={24} />
+                                <div className="chatbot-avatar" style={{ fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3e8ff' }}>
+                                    <FaRobot style={{ color: '#a855f7' }} size={24} />
                                     <span className="chatbot-status-dot" />
                                 </div>
                                 <div>
@@ -301,7 +301,7 @@ const HelpChatbot = () => {
                                 >
                                     {msg.from === 'bot' && (
                                         <span className="bubble-avatar bot-bubble-avatar" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-                                            <FaRobot className="text-primary" size={12} />
+                                            <FaRobot style={{ color: '#a855f7' }} size={12} />
                                         </span>
                                     )}
                                     <div className={`chatbot-bubble ${msg.from === 'user' ? 'user-bubble' : 'bot-bubble'}`}>
@@ -328,7 +328,7 @@ const HelpChatbot = () => {
                                     className="chatbot-bubble-row bot-row"
                                 >
                                     <span className="bubble-avatar bot-bubble-avatar" style={{ fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
-                                        <FaRobot className="text-primary" size={12} />
+                                        <FaRobot style={{ color: '#a855f7' }} size={12} />
                                     </span>
                                     <div className="chatbot-bubble bot-bubble typing-bubble">
                                         <span className="typing-dot" />

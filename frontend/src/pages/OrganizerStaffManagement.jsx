@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, Modal, Spinner, Table } from 'react-bootstrap';
-import { FaUserPlus, FaTrash, FaLink, FaIdBadge, FaCheck } from 'react-icons/fa';
+import { 
+    FaUserPlus, FaTrash, FaLink, FaIdBadge, FaCheck, FaSearch, FaUsers, FaTimes 
+} from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import * as organizerApi from '../api/organizerApi';
 import * as eventApi from '../api/eventApi';
 import { playSound } from '../utils/soundManager';
+import '../css/admin-pages.css';
 
 const OrganizerStaffManagement = () => {
     const [staffList, setStaffList] = useState([]);
@@ -13,6 +17,7 @@ const OrganizerStaffManagement = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
+    const [search, setSearch] = useState('');
 
     // Form states
     const [formData, setFormData] = useState({ name: '', email: '', password: '', staffRole: 'gate staff' });
@@ -45,9 +50,10 @@ const OrganizerStaffManagement = () => {
             setShowCreateModal(false);
             setFormData({ name: '', email: '', password: '', staffRole: 'gate staff' });
             playSound('success');
+            toast.success('Personnel record created successfully');
             fetchData();
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to create staff');
+            toast.error(err.response?.data?.message || 'Initialization failure');
         }
     };
 
@@ -56,9 +62,10 @@ const OrganizerStaffManagement = () => {
             try {
                 await organizerApi.deleteStaff(id);
                 playSound('delete');
+                toast.success('Personnel terminated');
                 fetchData();
             } catch (err) {
-                alert('Failed to delete staff');
+                toast.error('Termination failure');
             }
         }
     };
@@ -80,148 +87,235 @@ const OrganizerStaffManagement = () => {
             await organizerApi.assignStaffToEvents(selectedStaff._id, selectedEvents);
             setShowAssignModal(false);
             playSound('success');
+            toast.success('Node assignment synchronized');
             fetchData();
         } catch (err) {
-            alert('Failed to assign events');
+            toast.error('Assignment synchronization failure');
         }
     };
 
-    if (loading) return <div className="text-center mt-5"><Spinner animation="border" className="text-pink" /></div>;
+    const filteredStaff = staffList.filter(s => 
+        s.name?.toLowerCase().includes(search.toLowerCase()) ||
+        s.email?.toLowerCase().includes(search.toLowerCase()) ||
+        s.staffRole?.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
-        <div className="dashboard-page">
-            <Container fluid className="px-md-5">
-                <div className="dashboard-header d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+        <div className="admin-page-container">
+            <Container fluid>
+                <div className="admin-page-header">
                     <div>
-                        <h1 className="dashboard-title-main">Staff Management</h1>
-                        <p className="dashboard-subtext">Event Entry & Operations Personnel Registry</p>
+                        <h1 className="d-flex align-items-center gap-3">
+                            <FaUsers className="text-pink d-none d-lg-inline-flex" /> Staff Management
+                        </h1>
+                        <p className="dashboard-subtext">Manage operational staff and event assignment protocols</p>
                     </div>
-                    <Button onClick={() => setShowCreateModal(true)} className="btn btn-pink d-flex align-items-center gap-2 rounded-pill fw-bold px-4 py-3">
-                        <FaUserPlus /> Initialize Staff
-                    </Button>
-                </div>
-
-                <div className="dashboard-card shadow-sm p-0 overflow-hidden border-0 mb-5">
-                    <Table responsive hover className="mb-0 align-middle">
-                        <thead className="bg-light">
-                            <tr className="uppercase tracking-widest small text-slate" style={{ fontSize: '0.7rem' }}>
-                                <th className="py-4 px-5 fw-bold">Staff Member</th>
-                                <th className="py-4 px-5 fw-bold">Role</th>
-                                <th className="py-4 px-5 fw-bold">Assigned Nodes</th>
-                                <th className="py-4 px-5 fw-bold text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {staffList.length === 0 && (
-                                <tr><td colSpan="4" className="text-center py-5 text-slate-500 fs-5 fw-medium italic">No staff personnel detected in your current sector.</td></tr>
-                            )}
-                            {staffList.map(staff => (
-                                <tr key={staff._id} className="border-bottom border-slate-100 hover-bg-slate-50 transition-all">
-                                    <td className="py-4 px-5">
-                                        <div className="fw-bold mb-1 text-dark fs-5">{staff.name}</div>
-                                        <div className="small text-slate fw-medium">{staff.email}</div>
-                                    </td>
-                                    <td className="py-4 px-5">
-                                        <span className={`status-badge ${staff.staffRole === 'coordinator' ? 'badge-pink' : ''}`}>
-                                            <FaIdBadge className="me-2" /> {staff.staffRole.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 px-5">
-                                        {(staff.assignedEvents || []).length > 0 ? (
-                                            <div className="d-flex flex-wrap gap-2">
-                                                {staff.assignedEvents.map(e => (
-                                                    <span key={e._id} className="status-badge" style={{ background: '#f8fafc', color: '#475569', fontSize: '0.65rem' }}>
-                                                        {e.title}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className="small text-slate opacity-40 italic">Standby</span>
-                                        )}
-                                    </td>
-                                    <td className="py-4 px-5 text-end">
-                                        <Button className="btn btn-outline-pink me-2 py-2" onClick={() => openAssignModal(staff)}>
-                                            <FaLink size={12} className="me-2" /> TASKS
-                                        </Button>
-                                        <button className="btn btn-link p-0 text-slate hover-text-danger transition-all ms-2" onClick={() => handleDelete(staff._id)}>
-                                            <FaTrash size={14} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                </div>
-
-                {/* Initialize Staff Modal */}
-                <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} centered>
-                    <Modal.Header closeButton className="border-bottom p-4">
-                        <Modal.Title className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Initialize Staff Core</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body className="p-4">
-                        <Form onSubmit={handleCreateStaff}>
-                            <Form.Group className="mb-4">
-                                <Form.Label className="card-title-sm m-0 mb-2">Identity Signature</Form.Label>
-                                <Form.Control required type="text" className="rounded-4 border-slate-200 p-2" placeholder="Full Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-4">
-                                <Form.Label className="card-title-sm m-0 mb-2">Communication Uplink</Form.Label>
-                                <Form.Control required type="email" className="rounded-4 border-slate-200 p-2" placeholder="email@nexus.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-4">
-                                <Form.Label className="card-title-sm m-0 mb-2">Security Access Key</Form.Label>
-                                <Form.Control required type="password" minLength={6} className="rounded-4 border-slate-200 p-2" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
-                            </Form.Group>
-                            <Form.Group className="mb-5">
-                                <Form.Label className="card-title-sm m-0 mb-2">Operational Designation</Form.Label>
-                                <Form.Select className="rounded-4 border-slate-200 p-2" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
-                                    <option value="gate staff">Gate Staff (Scanning & Validation)</option>
-                                    <option value="coordinator">Coordinator (Operations)</option>
-                                    <option value="support">Support Personnel</option>
-                                </Form.Select>
-                            </Form.Group>
-                            <Button type="submit" className="btn btn-pink w-100 fw-bold py-3">
-                                DEPLOY PERSONNEL
-                            </Button>
-                        </Form>
-                    </Modal.Body>
-                </Modal>
-
-                {/* Task Assignment Modal */}
-                <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)} centered size="lg">
-                    <Modal.Header closeButton className="border-bottom p-4">
-                        <Modal.Title className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Assign Operational Nodes</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                        <div className="p-4 bg-light border-bottom">
-                            <p className="card-title-sm m-0 text-pink">Assigning to: {selectedStaff?.name}</p>
+                    <div className="d-flex gap-3">
+                        <div className="admin-search-wrapper position-relative">
+                            <FaSearch className="search-icon position-absolute top-50 translate-middle-y ms-3 text-muted" style={{ zIndex: 10 }} />
+                            <input
+                                type="text"
+                                className="form-control admin-search-input"
+                                placeholder="Search by name, role..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                style={{ minWidth: '300px' }}
+                            />
                         </div>
-                        <div className="list-group list-group-flush">
-                            {events.length === 0 && <div className="p-5 text-center text-slate opacity-40 italic">No approved active nodes available for deployment.</div>}
+                        <button className="btn btn-pink" onClick={() => setShowCreateModal(true)}>
+                            <FaUserPlus /> New Personnel
+                        </button>
+                    </div>
+                </div>
+
+                <div className="admin-card">
+                    {loading ? (
+                        <div className="loading-skeleton">
+                            {[1, 2, 3, 4, 5].map(i => <div key={i} className="skeleton-row" />)}
+                        </div>
+                    ) : filteredStaff.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-state-icon"><FaUsers /></div>
+                            <h3>No Personnel Found</h3>
+                            <p>{search ? `Matching "${search}"` : 'Your staff registry is currently empty.'}</p>
+                        </div>
+                    ) : (
+                        <div className="admin-table-wrapper">
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Identity Name</th>
+                                        <th>Operational Role</th>
+                                        <th>Active Assignments</th>
+                                        <th className="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredStaff.map(staff => (
+                                        <tr key={staff._id}>
+                                            <td>
+                                                <div className="fw-bold">{staff.name}</div>
+                                                <div className="small text-muted">{staff.email}</div>
+                                            </td>
+                                            <td>
+                                                <span className={`admin-badge badge-${
+                                                    staff.staffRole === 'coordinator' ? 'approved' : 'resolved'
+                                                }`}>
+                                                    {staff.staffRole}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {(staff.assignedEvents || []).length > 0 ? (
+                                                    <div className="d-flex flex-wrap gap-2">
+                                                        {staff.assignedEvents.map(e => (
+                                                            <span key={e._id} className="small bg-light px-2 py-1 rounded border" style={{ fontSize: '11px' }}>
+                                                                {e.title}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="small text-muted italic">No active nodes</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <div className="action-btn-group justify-content-end">
+                                                    <button className="btn btn-outline-pink" title="Assign Nodes" onClick={() => openAssignModal(staff)}>
+                                                        <FaLink />
+                                                    </button>
+                                                    <button className="btn btn-pink" title="Terminate" onClick={() => handleDelete(staff._id)}>
+                                                        <FaTrash size={12} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            </Container>
+
+            {/* Premium Create Staff Modal */}
+            <Modal 
+                show={showCreateModal} 
+                onHide={() => setShowCreateModal(false)} 
+                centered 
+                size="md"
+                className="premium-popup"
+            >
+                <div className="popup-body">
+                    <button className="close-btn" onClick={() => setShowCreateModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
+                        <FaTimes size={16} />
+                    </button>
+                    
+                    <div className="popup-content">
+                        <div className="d-flex align-items-center gap-3 mb-4">
+                            <div className="modal-icon-header">
+                                <FaUserPlus />
+                            </div>
+                            <div>
+                                <h4 className="fw-black m-0">Initialize Personnel</h4>
+                                <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Identity Deployment Protocol</p>
+                            </div>
+                        </div>
+
+                        <Form onSubmit={handleCreateStaff}>
+                            <div className="section-card mb-3">
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Full Identity Name</Form.Label>
+                                    <Form.Control required type="text" className="rounded-12 border-light py-2" placeholder="e.g. John Matrix" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                </Form.Group>
+                                <Form.Group className="mb-0">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Email Link</Form.Label>
+                                    <Form.Control required type="email" className="rounded-12 border-light py-2" placeholder="staff@nexus.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                </Form.Group>
+                            </div>
+
+                            <div className="section-card mb-4">
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Security Access Key</Form.Label>
+                                    <Form.Control required type="password" minLength={6} className="rounded-12 border-light py-2" placeholder="••••••••" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
+                                </Form.Group>
+                                <Form.Group className="mb-0">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Designation</Form.Label>
+                                    <Form.Select className="rounded-12 border-light py-2" value={formData.staffRole} onChange={e => setFormData({ ...formData, staffRole: e.target.value })}>
+                                        <option value="gate staff">Gate Staff (Scanning & Validation)</option>
+                                        <option value="coordinator">Coordinator (Operations)</option>
+                                        <option value="support">Support Personnel</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </div>
+                            
+                            <Button type="submit" className="btn btn-pink w-100 rounded-pill py-3 fw-black shadow-glow">DEPLOY PERSONNEL RECORD</Button>
+                        </Form>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Premium Assign Events Modal */}
+            <Modal 
+                show={showAssignModal} 
+                onHide={() => setShowAssignModal(false)} 
+                centered 
+                size="md"
+                className="premium-popup"
+            >
+                <div className="popup-body">
+                    <button className="close-btn" onClick={() => setShowAssignModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
+                        <FaTimes size={16} />
+                    </button>
+                    
+                    <div className="popup-content">
+                        <div className="d-flex align-items-center gap-3 mb-4">
+                            <div className="modal-icon-header">
+                                <FaLink />
+                            </div>
+                            <div>
+                                <h4 className="fw-black m-0">Synchronize Nodes</h4>
+                                <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Map Personnel to Active Events</p>
+                            </div>
+                        </div>
+
+                        <div className="d-flex flex-column gap-2" style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: '10px' }}>
+                            {events.length === 0 && <div className="p-3 text-center text-muted italic">No active approved events found for assignment.</div>}
                             {events.map(event => (
                                 <div
                                     key={event._id}
-                                    className={`list-group-item list-group-item-action border-bottom border-slate-100 py-3 px-4 d-flex align-items-center justify-content-between cursor-pointer transition-all ${selectedEvents.includes(event._id) ? 'bg-pink-subtle' : ''}`}
+                                    className={`event-selection-card ${selectedEvents.includes(event._id) ? 'active' : ''}`}
                                     onClick={() => toggleEventSelection(event._id)}
                                 >
-                                    <div>
-                                        <div className="fw-bold text-dark">{event.title}</div>
-                                        <div className="small text-slate">{new Date(event.date).toLocaleDateString()} • {event.venue}</div>
-                                    </div>
-                                    <div className={`rounded-circle d-flex align-items-center justify-content-center transition-all ${selectedEvents.includes(event._id) ? 'bg-pink text-white' : 'border border-slate-200 text-transparent'}`} style={{ width: 28, height: 28 }}>
-                                        <FaCheck size={12} />
+                                    <div className="d-flex align-items-center gap-3">
+                                        <div className={`selection-check ${selectedEvents.includes(event._id) ? 'checked' : ''}`}>
+                                            <FaCheck size={10} />
+                                        </div>
+                                        <div className="flex-grow-1">
+                                            <div className="event-title-mini">{event.title}</div>
+                                            <div className="event-meta-mini">
+                                                <span>{new Date(event.date).toLocaleDateString()}</span>
+                                                <span className="dot-sep mx-1">•</span>
+                                                <span>{event.venue}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </Modal.Body>
-                    <Modal.Footer className="border-top p-4 d-flex justify-content-between">
-                        <Button variant="link" className="text-slate text-decoration-none fw-bold" onClick={() => setShowAssignModal(false)}>CANCEL</Button>
-                        <Button className="btn btn-pink px-4 fw-bold" onClick={handleAssignEvents}>SYNC ASSIGNMENTS</Button>
-                    </Modal.Footer>
-                </Modal>
 
-            </Container>
+                        <div className="d-flex justify-content-end gap-3 mt-4">
+                            <Button variant="light" className="rounded-pill px-4 fw-bold" onClick={() => setShowAssignModal(false)}>
+                                Discard
+                            </Button>
+                            <Button 
+                                className="btn-pink rounded-pill px-4 fw-black shadow-glow" 
+                                onClick={handleAssignEvents}
+                            >
+                                SYNC ASSIGNMENTS
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

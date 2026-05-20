@@ -14,9 +14,6 @@ exports.getNotificationCounts = async (req, res) => {
             status: 'pending',
             isRejected: { $ne: true }
         });
-
-        console.log(`[STATS] [NOTIF COUNT]: Enquiries: ${enquiries}, Requests: ${requests}`);
-
         res.status(200).json({
             success: true,
             enquiries,

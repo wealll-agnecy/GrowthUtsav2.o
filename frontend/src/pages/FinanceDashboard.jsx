@@ -97,8 +97,8 @@ const FinanceDashboard = () => {
                     <Badge className="bg-primary-subtle text-primary border border-primary-light px-3 py-2 mb-3 text-uppercase tracking-widest fw-black small shadow-2xl">
                         <FaFileInvoiceDollar className="me-2" /> Global Fiscal Control
                     </Badge>
-                    <h1 className="fw-black m-0 tracking-tighter text-white" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', lineHeight: 1 }}>
-                        Finance <span className="gradient-text">Command</span>
+                    <h1 className="fw-black m-0 tracking-tighter text-white d-flex align-items-center gap-3" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', lineHeight: 1 }}>
+                        <FaWallet className="text-pink d-none d-lg-inline-flex" style={{ fontSize: '0.8em' }} /> Finance <span className="gradient-text">Command</span>
                     </h1>
                 </div>
                 <div className="d-flex gap-3">

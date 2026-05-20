@@ -1,16 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { playSound } from '../utils/soundManager';
-
-// Set base URL for all axios requests - Automatically adapt to mobile/production environments
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(window.location.hostname);
-
-// For Netlify/Production, use the VITE_API_URL env var if available
-const apiURL = import.meta.env.VITE_API_URL || 'https://www.growthutsav.in';
-
-axios.defaults.baseURL = (isLocalhost || isIP) ? `http://${window.location.hostname}:5002` : apiURL;
-axios.defaults.withCredentials = true;
 
 const AuthContext = createContext();
 
@@ -19,9 +9,6 @@ export const AuthProvider = ({ children }) => {
         try {
             const storedUser = localStorage.getItem('user');
             const token = localStorage.getItem('token');
-            if (token) {
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            }
             return storedUser ? JSON.parse(storedUser) : null;
         } catch (err) {
             console.error('Error parsing stored user:', err);
@@ -36,32 +23,11 @@ export const AuthProvider = ({ children }) => {
 
     // Initial load: Check if user is logged in
     useEffect(() => {
-        // GLOBAL INTERCEPTOR FOR SESSION EXPIRY / IDENTIFIER BREACHES
-        const interceptor = axios.interceptors.response.use(
-            (response) => response,
-            (error) => {
-                if (error.response?.status === 401) {
-                    console.warn("🔐 Session Protocol Breach: Auto-purging stale identifiers.");
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    delete axios.defaults.headers.common['Authorization'];
-                    setUser(null);
-                    // Force refresh if on administrative route to prevent stale UI
-                    if (window.location.pathname.includes('/admin')) {
-                        window.location.href = '/admin-login';
-                    }
-                }
-                return Promise.reject(error);
-            }
-        );
-
         const checkLoggedIn = async () => {
             try {
-                // We'll use a token stored in localStorage for frontend persistence
                 const token = localStorage.getItem('token');
                 if (token) {
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                    const res = await axios.get('/api/v1/auth/me');
+                    const res = await apiClient.get('/api/v1/auth/me');
                     if (res.data.success) {
                         const userData = res.data.data;
                         if (!userData.id) userData.id = userData._id;
@@ -74,17 +40,19 @@ export const AuthProvider = ({ children }) => {
                 }
             } catch (err) {
                 console.error('Initial auth check failed', err);
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                delete axios.defaults.headers.common['Authorization'];
-                setUser(null);
+                // Only purge session if the server explicitly rejects the credentials (401/403)
+                // Prevents accidental logouts on transient errors, 502 gateways, or rate-limiting (429)!
+                if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setUser(null);
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         checkLoggedIn();
-        return () => axios.interceptors.response.eject(interceptor);
     }, []);
 
     // Register user
@@ -94,7 +62,6 @@ export const AuthProvider = ({ children }) => {
         try {
             let res;
             if (userData.role === 'organizer' && userData.organizationDetails?.logo) {
-                // Use FormData for multipart/form-data
                 const formData = new FormData();
                 formData.append('name', userData.name);
                 formData.append('email', userData.email);
@@ -103,22 +70,20 @@ export const AuthProvider = ({ children }) => {
                 formData.append('role', userData.role);
                 formData.append('registrationNumber', userData.organizationDetails.registrationNumber || '');
                 
-                // Extract logo and put other details back in organizationDetails
                 const { logo, ...otherOrgDetails } = userData.organizationDetails;
                 formData.append('logo', logo);
                 formData.append('organizationDetails', JSON.stringify(otherOrgDetails));
 
-                res = await axios.post('/api/v1/auth/register', formData, {
+                res = await apiClient.post('/api/v1/auth/register', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
             } else {
-                res = await axios.post('/api/v1/auth/register', userData);
+                res = await apiClient.post('/api/v1/auth/register', userData);
             }
 
             if (res.data.success) {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(res.data.user));
-                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
                 setUser(res.data.user);
                 return { success: true, user: res.data.user };
             }
@@ -137,11 +102,10 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.post('/api/v1/auth/login', { identifier, password });
+            const res = await apiClient.post('/api/v1/auth/login', { identifier, password });
             if (res.data.success) {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(res.data.user));
-                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
                 setError(null);
                 setUser(res.data.user);
                 playSound('login');
@@ -163,11 +127,10 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.post('/api/v1/auth/admin-login', { email, password });
+            const res = await apiClient.post('/api/v1/auth/admin-login', { email, password });
             if (res.data.success) {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(res.data.user));
-                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
                 setUser(res.data.user);
                 playSound('login');
                 return { success: true, user: res.data.user };
@@ -182,13 +145,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Logout user
-    // Logout user
     const logout = async () => {
         try {
-            await axios.get('/api/v1/auth/logout');
+            await apiClient.get('/api/v1/auth/logout');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            delete axios.defaults.headers.common['Authorization'];
             setUser(null);
             playSound('logout');
         } catch (err) {
@@ -199,7 +160,7 @@ export const AuthProvider = ({ children }) => {
     // Refresh user data from server
     const refreshUser = async () => {
         try {
-            const res = await axios.get('/api/v1/auth/me');
+            const res = await apiClient.get('/api/v1/auth/me');
             if (res.data.success) {
                 const userData = res.data.data;
                 if (!userData.id) userData.id = userData._id;

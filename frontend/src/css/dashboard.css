@@ -69,9 +69,9 @@
   background: #ff4d8d;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
@@ -95,6 +95,7 @@
   opacity: 1;
   color: #666 !important;
 }
+
 
 /* CARDS */
 .dashboard-card {
@@ -197,10 +198,10 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   color: #ef2aa0;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   transition: all 0.2s ease;
 }
 
@@ -243,24 +244,24 @@
   .dashboard-page {
     padding: 0 10px !important;
   }
-  
+
   .dashboard-title-main {
     font-size: 1.75rem !important;
   }
-  
+
   .stats-grid-saas {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px !important;
   }
-  
+
   .dashboard-card {
     padding: 16px !important;
   }
-  
+
   .card-title-sm {
     font-size: 0.7rem !important;
   }
-  
+
   .card-value-lg {
     font-size: 1.4rem !important;
   }
@@ -270,7 +271,7 @@
   .stats-grid-saas {
     gap: 8px !important;
   }
-  
+
   .dashboard-card {
     padding: 12px !important;
   }
@@ -323,4 +324,81 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* PAYMENT PROGRESS BAR FIX */
+.payment-progress-wrapper {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.payment-progress-track {
+    width: 100%;
+    height: 8px;
+    background: #ececec;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.payment-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    background: linear-gradient(90deg, #ff6cab, #7366ff);
+}
+
+/* Full paid state */
+.payment-progress-fill.full {
+    width: 100% !important;
+}
+
+/* Partial payment state */
+.payment-progress-fill.partial {
+    background: linear-gradient(90deg, #ff9f43, #ff6b6b);
+}
+
+/* --- Mobile/Tablet Audit Feed Text Wrapping Fix --- */
+@media (max-width: 1024px) {
+    .audit-feed-type {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+    .data-item .data-left {
+        min-width: 0 !important;
+        flex: 1 !important;
+        padding-right: 15px !important;
+    }
+    .custom-premium-table th,
+    .custom-premium-table td {
+        min-width: 140px !important;
+        white-space: nowrap !important;
+    }
+    .custom-premium-table th:first-child,
+    .custom-premium-table td:first-child {
+        min-width: 200px !important;
+    }
+
+    /* --- Mobile/Tablet Event Guest Stat Cards Rearrange & Compress --- */
+    .attendee-stat-card {
+        padding: 12px !important;
+    }
+    .attendee-stat-card .d-flex {
+        gap: 8px !important;
+    }
+    .attendee-stat-card .icon-box-premium {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+    }
+    .attendee-stat-card .icon-box-premium svg {
+        font-size: 14px !important;
+    }
+    .attendee-stat-card h6.tiny-text {
+        font-size: 0.65rem !important;
+        margin-bottom: 2px !important;
+    }
+    .attendee-stat-card h5 {
+        font-size: 1.1rem !important;
+    }
 }

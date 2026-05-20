@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 
 const Profile = () => {
     const { user, refreshUser } = useAuth();
@@ -62,7 +62,7 @@ const Profile = () => {
                 data.append('avatar', selectedFile);
             }
 
-            const res = await axios.put('/api/v1/auth/updatedetails', data, {
+            const res = await apiClient.put('/api/v1/auth/updatedetails', data, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -87,7 +87,7 @@ const Profile = () => {
     const getAvatarSrc = () => {
         if (avatarPreview && avatarPreview.startsWith('blob:')) return avatarPreview;
         if (user?.avatar && user.avatar !== 'no-avatar.jpg') {
-            return user.avatar.startsWith('http') ? user.avatar : `${axios.defaults.baseURL}${user.avatar}`;
+            return user.avatar.startsWith('http') ? user.avatar : `${apiClient.defaults.baseURL}${user.avatar}`;
         }
         return null;
     };

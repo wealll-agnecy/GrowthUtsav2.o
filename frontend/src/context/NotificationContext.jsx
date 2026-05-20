@@ -1,10 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { io } from 'socket.io-client';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import toast from 'react-hot-toast';
-
-import API_BASE_URL from '../config/apiConfig';
+import socketService from '../utils/socketService';
 
 const NotificationContext = createContext();
 
@@ -14,40 +12,44 @@ export const NotificationProvider = ({ children }) => {
     const { user } = useAuth();
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
-    const [socket, setSocket] = useState(null);
+    const notificationKeysRef = useRef(new Set());
+
+    const getNotificationKey = useCallback((notif) => {
+        if (!notif) return null;
+        if (notif._id) return notif._id.toString();
+        if (notif.id) return notif.id.toString();
+
+        const eventId = notif.eventId?._id || notif.eventId || notif.event?._id || notif.event;
+        if (eventId && notif.type) {
+            return `${notif.type}:${eventId}:${notif.title || ''}:${notif.message || ''}`;
+        }
+
+        return null;
+    }, []);
 
     const fetchNotifications = useCallback(async () => {
         if (!user) return;
         try {
-            const res = await axios.get('/api/v1/notifications', { withCredentials: true });
+            const res = await apiClient.get('/api/v1/notifications');
             if (res.data.success) {
-                setNotifications(res.data.data);
-                setUnreadCount(res.data.data.filter(n => !n.isRead).length);
+                const data = res.data.data;
+                notificationKeysRef.current = new Set(data.map(getNotificationKey).filter(Boolean));
+                setNotifications(data);
+                setUnreadCount(data.filter(n => !n.isRead).length);
             }
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
         }
-    }, [user]);
+    }, [user, getNotificationKey]);
 
     useEffect(() => {
         if (!user) {
-            if (socket) {
-                socket.disconnect();
-                setSocket(null);
-            }
+            notificationKeysRef.current.clear();
+            socketService.disconnect();
             return;
         }
 
-        // Initialize Socket
-        const newSocket = io(API_BASE_URL, {
-            withCredentials: true,
-            transports: ['websocket', 'polling']
-        });
-
-        newSocket.on('connect', () => {
-            console.log('[SOCKET] Connected to Notification Stream');
-            newSocket.emit('join', user._id || user.id);
-        });
+        const socketInstance = socketService.connect(user._id || user.id);
 
         const playNotificationSound = () => {
             try {
@@ -58,10 +60,21 @@ export const NotificationProvider = ({ children }) => {
             }
         };
 
-        newSocket.on('notification', (notif) => {
+        const handleNotification = (notif) => {
             console.log('[SIGNAL] New Real-time Notification:', notif);
+            const notificationKey = getNotificationKey(notif);
+            if (notificationKey && notificationKeysRef.current.has(notificationKey)) {
+                return;
+            }
+
+            if (notificationKey) {
+                notificationKeysRef.current.add(notificationKey);
+            }
+
             setNotifications(prev => [notif, ...prev]);
-            setUnreadCount(prev => prev + 1);
+            if (!notif.isRead) {
+                setUnreadCount(prev => prev + 1);
+            }
             
             // Play notification sound
             playNotificationSound();
@@ -91,17 +104,22 @@ export const NotificationProvider = ({ children }) => {
                 duration: 6000,
                 position: 'top-right',
             });
-        });
+        };
 
-        setSocket(newSocket);
+        // Ensure we don't attach duplicate listeners on double effect mounts (StrictMode)
+        socketInstance.off('notification');
+        socketInstance.on('notification', handleNotification);
+
         fetchNotifications();
 
-        return () => newSocket.disconnect();
+        return () => {
+            socketInstance.off('notification', handleNotification);
+        };
     }, [user, fetchNotifications]);
 
     const markAsRead = async (id) => {
         try {
-            const res = await axios.patch(`/api/v1/notifications/${id}/read`, {}, { withCredentials: true });
+            const res = await apiClient.patch(`/api/v1/notifications/${id}/read`);
             if (res.data.success) {
                 setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
                 setUnreadCount(prev => Math.max(0, prev - 1));
@@ -113,10 +131,11 @@ export const NotificationProvider = ({ children }) => {
 
     const clearAll = async () => {
         try {
-            const res = await axios.delete('/api/v1/notifications/clear', { withCredentials: true });
+            const res = await apiClient.delete('/api/v1/notifications/clear');
             if (res.data.success) {
                 setNotifications([]);
                 setUnreadCount(0);
+                notificationKeysRef.current.clear();
                 toast.success('Clearance complete');
             }
         } catch (err) {

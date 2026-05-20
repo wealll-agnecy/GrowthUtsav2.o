@@ -36,6 +36,11 @@ const LogisticsDashboard = () => {
     };
 
     useEffect(() => {
+        if (!eventId || eventId === 'undefined') {
+            console.error("[CLIENT]: Detected invalid 'undefined' eventId in URL");
+            setLoading(false);
+            return;
+        }
         fetchData();
     }, [eventId]);
 

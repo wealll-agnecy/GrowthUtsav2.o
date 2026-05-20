@@ -45,6 +45,9 @@ const AdminEventApproval = lazy(() => import('./pages/AdminEventApproval'));
 const AdminSecretLogin = lazy(() => import('./pages/AdminSecretLogin'));
 const AdminOrganizerRequests = lazy(() => import('./pages/AdminOrganizerRequests'));
 const AdminStaffManagement = lazy(() => import('./pages/AdminStaffManagement'));
+const AdminBookings = lazy(() => import('./pages/AdminBookings'));
+const AdminOrganizerBookings = lazy(() => import('./pages/AdminOrganizerBookings'));
+const AdminEventAttendees = lazy(() => import('./pages/AdminEventAttendees'));
 const StaffDashboard = lazy(() => import('./pages/StaffDashboard'));
 const StaffScanner = lazy(() => import('./pages/StaffScanner'));
 const PendingVerification = lazy(() => import('./pages/PendingVerification'));
@@ -70,7 +73,7 @@ const DashboardWrapper = ({ children, role }) => (
     </DashboardLayout>
 );
 
-import RemainingPaymentPage from './pages/RemainingPaymentPage';
+const RemainingPaymentPage = lazy(() => import('./pages/RemainingPaymentPage'));
 
 const AppContent = () => {
     const location = useLocation();
@@ -93,10 +96,10 @@ const AppContent = () => {
     }
 
     return (
-        <div className="min-vh-100 d-flex flex-column mobile-nav-padding overflow-x-hidden">
+        <div className="min-vh-100 d-flex flex-column overflow-x-hidden">
             <Navbar />
             
-            <main className="flex-grow-1">
+            <main className="flex-grow-1 mobile-nav-padding">
                 <div className={(location.pathname === '/' || location.pathname === '/contact-us') ? 'content-wrapper-home' : 'content-wrapper-page'}>
                     <Suspense fallback={<SectorLoader />}>
                         <Routes>
@@ -143,6 +146,9 @@ const AppContent = () => {
                             <Route path="/admin/staff" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminStaffManagement /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/admin/enquiries" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminEnquiries /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/admin/enquiries/:id" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminEnquiryDetails /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/admin/bookings" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminBookings /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/admin/bookings/:organizerId" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminOrganizerBookings /></DashboardWrapper></ProtectedRoute>} />
+                            <Route path="/admin/event-attendees/:eventId" element={<ProtectedRoute roles={['admin']}><DashboardWrapper role="admin"><AdminEventAttendees /></DashboardWrapper></ProtectedRoute>} />
 
                             <Route path="/staff/dashboard" element={<ProtectedRoute roles={['staff', 'admin']}><DashboardWrapper role="staff"><StaffDashboard /></DashboardWrapper></ProtectedRoute>} />
                             <Route path="/staff/scanner" element={<ProtectedRoute roles={['staff', 'admin']}><DashboardWrapper role="staff"><StaffScanner /></DashboardWrapper></ProtectedRoute>} />

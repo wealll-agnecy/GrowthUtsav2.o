@@ -2,7 +2,7 @@ const { Queue, Worker } = require('bullmq');
 const IORedis = require('ioredis');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
-const { sendToUser, broadcast } = require('../utils/socket');
+const { sendToUser, broadcast } = require('../utils/firebaseRealtime');
 const { sendPushNotification } = require('../utils/firebase');
 
 /**

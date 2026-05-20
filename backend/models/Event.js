@@ -11,6 +11,14 @@ const EventSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add a description']
     },
+    benefits: {
+        type: [String],
+        default: []
+    },
+    whatYouLearn: {
+        type: [String],
+        default: []
+    },
     bannerImage: {
         type: String,
         default: 'no-photo.jpg'
@@ -80,6 +88,18 @@ const EventSchema = new mongoose.Schema({
     },
     endDate: {
         type: Date
+    },
+    foodSettings: {
+        foodType: { type: String, enum: ['compulsory', 'multiple'], default: 'multiple' },
+        options: [
+            {
+                itemName: { type: String },
+                type: { type: String, enum: ['veg', 'non-veg'], default: 'veg' },
+                category: { type: String, enum: ['Breakfast', 'Lunch', 'Tiffin/Snacks', 'Dinner', 'Full Day Menu'], default: 'Lunch' },
+                distributionTime: { type: String },
+                price: { type: Number, default: 0 }
+            }
+        ]
     }
 });
 

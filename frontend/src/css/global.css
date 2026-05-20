@@ -245,8 +245,8 @@ select,
 
 /* === UNIVERSAL BUTTON STANDARDS === */
 .btn {
-  padding: 12px 24px !important;
-  min-height: 44px !important;
+  padding: 10px 20px !important;
+  min-height: 38px !important;
   border-radius: 50rem !important;
   font-weight: 600 !important;
   transition: all 0.3s ease !important;
@@ -287,13 +287,13 @@ select,
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 16px 38px !important;
+  padding: 12px 30px !important;
   border-radius: 100px !important;
   font-family: 'Outfit', 'Inter', sans-serif !important;
   font-weight: 700 !important;
-  font-size: 0.9rem !important;
+  font-size: 0.85rem !important;
   text-transform: uppercase !important;
-  letter-spacing: 1.2px !important;
+  letter-spacing: 1.1px !important;
   transition: var(--btn-transition) !important;
   overflow: hidden !important;
   border: none !important;
@@ -401,8 +401,8 @@ select,
 /* Spacing Adjustments for Mobile */
 @media (max-width: 768px) {
   .btn {
-    padding: 12px 24px !important;
-    font-size: 0.85rem !important;
+    padding: 10px 20px !important;
+    font-size: 0.8rem !important;
     width: 100% !important;
     white-space: normal !important;
     /* Allow text wrapping if button is small */
@@ -2643,6 +2643,15 @@ a:hover {
    HELP CHATBOT & CONTACT SYSTEM
    =============================================== */
 
+:root {
+  --chatbot-primary: #a855f7;
+  --chatbot-primary-dark: #7c3aed;
+  --chatbot-primary-light: #c084fc;
+  --chatbot-primary-glow: rgba(168, 85, 247, 0.3);
+  --chatbot-gradient: linear-gradient(135deg, #a855f7, #7c3aed);
+  --chatbot-shadow: rgba(168, 85, 247, 0.4);
+}
+
 .chatbot-fab-container {
   position: fixed;
   bottom: 32px;
@@ -2668,7 +2677,7 @@ a:hover {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: var(--chatbot-gradient);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -2678,13 +2687,13 @@ a:hover {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 6px 24px rgba(244, 114, 182, 0.5);
+  box-shadow: 0 6px 24px var(--chatbot-shadow);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .chatbot-fab:hover {
   transform: translateY(-3px) scale(1.07);
-  box-shadow: 0 12px 32px rgba(244, 114, 182, 0.65);
+  box-shadow: 0 12px 32px var(--chatbot-shadow);
 }
 
 .chatbot-fab-label {
@@ -2717,7 +2726,7 @@ a:hover {
   background: var(--dark-space);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(244, 114, 182, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(168, 85, 247, 0.1);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   overflow: hidden;
@@ -2747,7 +2756,7 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.2), rgba(168, 85, 247, 0.2));
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(124, 58, 237, 0.2));
   border-bottom: 1px solid var(--glass-border);
 }
 
@@ -2761,7 +2770,7 @@ a:hover {
   position: relative;
   width: 38px;
   height: 38px;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: var(--chatbot-gradient);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2860,7 +2869,7 @@ a:hover {
 }
 
 .bot-bubble-avatar {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: var(--chatbot-gradient);
   color: #fff;
 }
 
@@ -2887,7 +2896,7 @@ a:hover {
 }
 
 .user-bubble {
-  background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+  background: linear-gradient(135deg, var(--chatbot-primary-dark), var(--chatbot-primary));
   color: #fff;
   border-bottom-right-radius: 4px;
 }
@@ -2943,9 +2952,9 @@ a:hover {
 }
 
 .chatbot-chip {
-  background: rgba(244, 114, 182, 0.1);
-  border: 1px solid rgba(244, 114, 182, 0.3);
-  color: var(--primary-light);
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: var(--chatbot-primary-light);
   font-size: 0.7rem;
   font-weight: 700;
   padding: 5px 12px;
@@ -2956,8 +2965,8 @@ a:hover {
 }
 
 .chatbot-chip:hover {
-  background: rgba(244, 114, 182, 0.2);
-  border-color: var(--primary);
+  background: rgba(168, 85, 247, 0.2);
+  border-color: var(--chatbot-primary);
   color: #fff;
 }
 
@@ -2986,8 +2995,8 @@ a:hover {
 }
 
 .chatbot-input:focus {
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px var(--primary-glow);
+  border-color: var(--chatbot-primary-light);
+  box-shadow: 0 0 0 3px var(--chatbot-primary-glow);
 }
 
 .chatbot-input::placeholder {
@@ -3000,7 +3009,7 @@ a:hover {
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: var(--chatbot-gradient);
   color: #fff;
   display: flex;
   align-items: center;
@@ -3008,7 +3017,7 @@ a:hover {
   cursor: pointer;
   flex-shrink: 0;
   transition: opacity 0.2s, transform 0.2s;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.4);
+  box-shadow: 0 4px 12px var(--chatbot-shadow);
 }
 
 .chatbot-send-btn:disabled {
@@ -5358,9 +5367,12 @@ a:not(.btn):not(.nav-link-premium):hover {
   letter-spacing: 2px !important;
 }
 
-body.dashboard-active .navbar-premium .logo-container,
-body.dashboard-active .navbar-premium .navbar-brand {
-  display: none !important;
+@media (min-width: 1025px) {
+
+  body.dashboard-active .navbar-premium .logo-container,
+  body.dashboard-active .navbar-premium .navbar-brand {
+    display: none !important;
+  }
 }
 
 /* For larger displays (Hero/Footer) where bigger logo is needed */
@@ -5843,4 +5855,60 @@ input[type="checkbox"]:checked::after {
 /* Fix text wrapping in checkout page if needed */
 .checkout-premium-card .form-check-label {
   flex-grow: 1;
+}
+
+.admin-page-container h1 {
+  font-size: 48px !important;
+}
+
+/* GLOBAL FOOD BANNER FEATURES */
+.food-banner-ribbon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 12px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-align: center;
+  color: white;
+  z-index: 3;
+  letter-spacing: 1px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  text-transform: uppercase;
+}
+
+.food-banner-ribbon.compulsory {
+  background: rgba(21, 128, 61, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.food-banner-ribbon.multiple {
+  background: rgba(180, 83, 9, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-food-banner {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  margin-left: 10px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  vertical-align: middle;
+}
+
+.hero-food-banner.compulsory {
+  background: rgba(34, 197, 94, 0.7);
+}
+
+.hero-food-banner.multiple {
+  background: rgba(245, 158, 11, 0.7);
 }

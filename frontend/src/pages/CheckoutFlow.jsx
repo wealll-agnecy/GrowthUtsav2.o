@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert, Badge, Spinner } from 'react-bootstrap';
-import { FaShoppingCart, FaUserFriends, FaCreditCard, FaCheckCircle, FaArrowLeft, FaShieldAlt, FaSync, FaEnvelopeOpenText, FaRocket } from 'react-icons/fa';
+import { FaShoppingCart, FaUserFriends, FaCreditCard, FaCheckCircle, FaArrowLeft, FaShieldAlt, FaSync, FaEnvelopeOpenText, FaRocket, FaUtensils } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import * as bookingApi from '../api/bookingApi';
@@ -42,6 +42,7 @@ const CheckoutFlow = () => {
     const [isPartialPayment, setIsPartialPayment] = useState(false);
     const [partialAmount, setPartialAmount] = useState('');
     const [contactEmail, setContactEmail] = useState(user?.email || '');
+    const [selectedFood, setSelectedFood] = useState([]);
     
     // Auto-scroll to top on step changes (Fixes issue where success page loads at bottom)
     useEffect(() => {
@@ -80,6 +81,7 @@ const CheckoutFlow = () => {
     const { event, selectedDate, selectedDays } = state;
 
     const calculateSubtotal = () => {
+        let baseTotal = 0;
         if (event.isMultiDay) {
             let total = 0;
             Object.entries(selectedPlans).forEach(([date, planName]) => {
@@ -87,11 +89,31 @@ const CheckoutFlow = () => {
                 const plan = day?.plans.find(p => p.name === planName);
                 total += (plan?.price || 0);
             });
-            return total * quantity;
+            baseTotal = total * quantity;
         } else {
             const ticket = event.ticketTypes.find(t => t.name === ticketType);
-            return (ticket?.price || 0) * quantity;
+            baseTotal = (ticket?.price || 0) * quantity;
         }
+
+        // Add selected food costs
+        const foodTotal = selectedFood.reduce((sum, item) => sum + ((item.price || 0) * quantity), 0);
+        return baseTotal + foodTotal;
+    };
+
+    const handleFoodToggle = (foodItem) => {
+        setSelectedFood(prev => {
+            const exists = prev.some(f => f.itemName === foodItem.itemName);
+            if (exists) {
+                return prev.filter(f => f.itemName !== foodItem.itemName);
+            } else {
+                return [...prev, {
+                    itemName: foodItem.itemName,
+                    type: foodItem.type,
+                    price: foodItem.price || 0,
+                    quantity: quantity
+                }];
+            }
+        });
     };
 
     const subtotal = calculateSubtotal();
@@ -144,12 +166,13 @@ const CheckoutFlow = () => {
                 quantity,
                 attendeeDetails,
                 contactEmail,
-                partialAmount: isPartialPayment ? parseFloat(partialAmount) : undefined
+                partialAmount: isPartialPayment ? parseFloat(partialAmount) : undefined,
+                selectedFood: selectedFood.map(f => ({ ...f, quantity }))
             });
 
             if (res.data.success) {
                 playSound('paymentSuccess');
-                setTicketId(res.data.ticketId);
+                setTicketId(res.data.ticketId || res.data.bookingId); // Use ticketId if present (demo mode), otherwise bookingId
                 setStep(4);
             } else {
                 throw new Error(res.data.message || 'Booking failed');
@@ -272,13 +295,75 @@ const CheckoutFlow = () => {
                                                 )}
                                                 
                                                 <div className="mb-5">
-                                                    <Form.Label className="small fw-black text-muted uppercase mb-3">Adjust Quantity</Form.Label>
-                                                    <div className="quantity-control">
-                                                        <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>-</button>
-                                                        <span className="qty-value fs-5">{quantity}</span>
-                                                        <button className="qty-btn" onClick={() => setQuantity(Math.min(10, quantity + 1))}>+</button>
-                                                    </div>
-                                                </div>
+                                                     <Form.Label className="small fw-black text-muted uppercase mb-3">Adjust Quantity</Form.Label>
+                                                     <div className="quantity-control">
+                                                         <button className="qty-btn" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>-</button>
+                                                         <span className="qty-value fs-5">{quantity}</span>
+                                                         <button className="qty-btn" onClick={() => setQuantity(Math.min(10, quantity + 1))}>+</button>
+                                                     </div>
+                                                 </div>
+
+                                                 {event.foodSettings && event.foodSettings.options && event.foodSettings.options.length > 0 && (
+                                                     <div className="mb-5 mt-4 p-4 rounded-4 bg-light border border-pink border-opacity-10">
+                                                         <h5 className="fw-black mb-3 d-flex align-items-center gap-2">
+                                                             <FaUtensils className="text-pink" /> 
+                                                             {(event.foodSettings.foodType === 'compulsory' || event.foodSettings.type === 'compulsory') ? 'Free Meals Included' : 'Select Catering / Food Options'}
+                                                         </h5>
+                                                         <p className="text-muted small mb-4">
+                                                             {(event.foodSettings.foodType === 'compulsory' || event.foodSettings.type === 'compulsory')
+                                                                 ? 'Your ticket includes the following complimentary meals automatically!'
+                                                                 : 'Optionally add delicious catering services to enhance your experience at the event.'}
+                                                         </p>
+                                                         
+                                                         <div className="d-flex flex-column gap-3">
+                                                             {event.foodSettings.options.map((food, idx) => {
+                                                                 const isSelected = selectedFood.some(f => f.itemName === food.itemName);
+                                                                 const isCompulsory = event.foodSettings.foodType === 'compulsory' || event.foodSettings.type === 'compulsory';
+                                                                 
+                                                                 return (
+                                                                     <div 
+                                                                         key={idx} 
+                                                                         className={`p-3 rounded-3 d-flex justify-content-between align-items-center transition-all ${
+                                                                             isCompulsory 
+                                                                                 ? 'bg-white border' 
+                                                                                 : isSelected 
+                                                                                     ? 'bg-white border border-pink shadow-sm' 
+                                                                                     : 'bg-white border border-dashed'
+                                                                         }`}
+                                                                         style={{ cursor: isCompulsory ? 'default' : 'pointer' }}
+                                                                         onClick={() => !isCompulsory && handleFoodToggle(food)}
+                                                                     >
+                                                                         <div className="d-flex align-items-start gap-3">
+                                                                             <div className="d-flex flex-column">
+                                                                                 <span className="fw-bold text-dark d-flex align-items-center gap-2">
+                                                                                     <span className={`badge ${food.type === 'veg' ? 'bg-success' : 'bg-danger'} text-uppercase`} style={{ fontSize: '8px' }}>
+                                                                                         {food.type}
+                                                                                     </span>
+                                                                                     {food.itemName}
+                                                                                 </span>
+                                                                                 <span className="text-muted small mt-1">
+                                                                                     Category: {food.category} | Distribution: {food.distributionTime}
+                                                                                 </span>
+                                                                             </div>
+                                                                         </div>
+                                                                         <div className="text-end d-flex align-items-center gap-3">
+                                                                             {isCompulsory ? (
+                                                                                 <span className="text-success small fw-bold">FREE</span>
+                                                                             ) : (
+                                                                                 <>
+                                                                                     <span className="fw-bold text-pink">{formatCurrency(food.price)}</span>
+                                                                                     <div className={`plan-radio ${isSelected ? 'checked' : ''}`} style={{ width: '20px', height: '20px' }}>
+                                                                                         {isSelected && <div className="radio-inner" style={{ width: '10px', height: '10px' }} />}
+                                                                                     </div>
+                                                                                 </>
+                                                                             )}
+                                                                         </div>
+                                                                     </div>
+                                                                 );
+                                                             })}
+                                                         </div>
+                                                     </div>
+                                                 )}
 
                                                 <Link to={`/events/${event._id}`} className="text-muted text-decoration-none small fw-bold d-flex align-items-center gap-2 mt-4 hover-pink">
                                                     <FaArrowLeft /> Back to event details
@@ -289,9 +374,15 @@ const CheckoutFlow = () => {
                                                 <div className="price-breakdown">
                                                     <h5 className="fw-black mb-4">Order Summary</h5>
                                                     <div className="price-row">
-                                                        <span>Subtotal ({quantity} Tickets)</span>
-                                                        <span>{formatCurrency(subtotal)}</span>
-                                                    </div>
+                                                         <span>Tickets Subtotal ({quantity}x)</span>
+                                                         <span>{formatCurrency((event.isMultiDay ? (subtotal - selectedFood.reduce((sum, item) => sum + ((item.price || 0) * quantity), 0)) : (event.ticketTypes.find(t => t.name === ticketType)?.price || 0) * quantity))}</span>
+                                                     </div>
+                                                     {selectedFood.map((food, idx) => (
+                                                         <div key={idx} className="price-row text-soft small">
+                                                             <span>+ {food.itemName} ({quantity}x)</span>
+                                                             <span>{formatCurrency(food.price * quantity)}</span>
+                                                         </div>
+                                                     ))}
                                                     <div className="price-row">
                                                         <span>Platform Secure Fee</span>
                                                         <span>{formatCurrency(platformFee)}</span>

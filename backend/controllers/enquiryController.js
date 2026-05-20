@@ -1,4 +1,7 @@
 const Enquiry = require('../models/Enquiry');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
+const { sendToUser } = require('../utils/firebaseRealtime');
 
 // Use names suggested by user for consistency
 exports.createEnquiry = async (req, res) => {
@@ -15,6 +18,22 @@ exports.createEnquiry = async (req, res) => {
             phone,
             message
         });
+
+        // Query all administrators
+        const admins = await User.find({ role: 'admin' }).select('_id');
+        for (const admin of admins) {
+            try {
+                const notif = await Notification.create({
+                    user: admin._id,
+                    title: 'New Enquiry Received',
+                    message: `Enquiry from ${name}: "${message.substring(0, 60)}${message.length > 60 ? '...' : ''}"`,
+                    type: 'general_enquiry'
+                });
+                sendToUser(admin._id, 'notification', notif);
+            } catch (notifErr) {
+                console.error('Failed to dispatch enquiry notification to admin:', notifErr.message);
+            }
+        }
 
         res.status(201).json(enquiry);
     } catch (error) {

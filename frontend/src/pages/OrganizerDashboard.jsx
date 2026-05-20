@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Table, Spinner, Badge } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Table, Spinner, Badge, Modal, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import * as eventApi from '../api/eventApi';
 import * as analyticsApi from '../api/analyticsApi';
 import { RevenueChart, TicketDistributionChart } from '../components/analytics/DashboardCharts';
 import DashboardSkeleton from '../components/analytics/DashboardSkeleton';
+import { ProfitLossCalculator } from '../components/analytics/ProfitLossCalculator';
+
 import {
     FaCalendarAlt, FaTicketAlt, FaWallet, FaBolt, FaEye, FaEdit, FaTrash
 } from 'react-icons/fa';
@@ -18,6 +20,9 @@ const OrganizerDashboard = () => {
     const [revenueData, setRevenueData] = useState({ totalRevenue: 0, totalEvents: 0 });
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showOfflineModal, setShowOfflineModal] = useState(false);
+    const [selectedEventForOffline, setSelectedEventForOffline] = useState(null);
+    const [offlineCheckboxChecked, setOfflineCheckboxChecked] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -26,7 +31,7 @@ const OrganizerDashboard = () => {
                 eventApi.getMyEvents(),
                 analyticsApi.getOrganizerRevenue()
             ]);
-            
+
             setStats(statsRes.data?.data || { totalEvents: 0, approvedEvents: 0, totalTicketsSold: 0, totalRevenue: 0 });
             setRevenueData(revenueRes.data || { totalRevenue: 0, totalEvents: 0 });
             setEvents((eventsRes.data?.data || []).slice(0, 5)); // recent 5 events
@@ -52,15 +57,15 @@ const OrganizerDashboard = () => {
         }
     };
 
-    const handleLiveToggle = async (eventId, newStatus) => {
+    const executeLiveToggle = async (eventId, newStatus) => {
         try {
             console.log(`Attempting to set event ${eventId} isLive to: ${newStatus}`);
             const toast = (await import('react-hot-toast')).default;
             const res = await eventApi.updateLiveStatus(eventId, newStatus);
-            
+
             if (res.data.success) {
                 toast.success(`Event is now ${newStatus ? 'LIVE' : 'OFFLINE'}`);
-                setEvents(prev => prev.map(ev => 
+                setEvents(prev => prev.map(ev =>
                     ev._id === eventId ? { ...ev, isLive: newStatus, status: newStatus ? 'live' : 'approved' } : ev
                 ));
             }
@@ -69,6 +74,23 @@ const OrganizerDashboard = () => {
             const toast = (await import('react-hot-toast')).default;
             toast.error(err.response?.data?.message || 'Update failed');
         }
+    };
+
+    const handleLiveToggle = async (eventId, newStatus) => {
+        if (newStatus === false) {
+            setSelectedEventForOffline(eventId);
+            setOfflineCheckboxChecked(false);
+            setShowOfflineModal(true);
+            return;
+        }
+        await executeLiveToggle(eventId, true);
+    };
+
+    const handleConfirmOffline = async () => {
+        if (!offlineCheckboxChecked || !selectedEventForOffline) return;
+        setShowOfflineModal(false);
+        await executeLiveToggle(selectedEventForOffline, false);
+        setSelectedEventForOffline(null);
     };
 
     if (loading) {
@@ -142,7 +164,7 @@ const OrganizerDashboard = () => {
                             </div>
                         </div>
                     </Col>
-                    
+
                     {/* Right: Live Events Management Panel */}
                     <Col lg={8}>
                         <div className="dashboard-card h-100">
@@ -196,6 +218,11 @@ const OrganizerDashboard = () => {
                     </Col>
                 </Row>
 
+                {/* ─── Profit & Loss Simulation Sector ─── */}
+                <div className="mb-5">
+                    <ProfitLossCalculator />
+                </div>
+
                 {/* ─── Bottom Section ─── */}
                 <Row className="g-4 mb-5">
                     {/* Left: My Events List */}
@@ -245,7 +272,7 @@ const OrganizerDashboard = () => {
                             </div>
                         </div>
                     </Col>
-                    
+
                     {/* Right: Analytics Chart */}
                     <Col lg={5}>
                         <div className="dashboard-card h-100">
@@ -262,6 +289,59 @@ const OrganizerDashboard = () => {
                         </div>
                     </Col>
                 </Row>
+
+                {/* ─── Offline Confirmation Modal (Premium Glassmorphic style) ─── */}
+                <Modal
+                    show={showOfflineModal}
+                    onHide={() => setShowOfflineModal(false)}
+                    centered
+                    backdrop="static"
+                    className="premium-offline-modal"
+                    contentClassName="border-0 rounded-4 shadow-lg overflow-hidden"
+                    style={{ backdropFilter: 'blur(8px)' }}
+                >
+                    <Modal.Header closeButton className="border-0 pt-4 px-4 bg-light/30">
+                        <Modal.Title className="fw-black text-slate" style={{ fontSize: '1.25rem', letterSpacing: '-0.5px' }}>
+                            ⚠️ Confirm Action
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body className="px-4 py-3">
+                        <p className="text-slate fw-semibold mb-3" style={{ fontSize: '0.95rem', lineHeight: '1.5' }}>
+                            Are you sure you want to take this event offline?
+                        </p>
+
+                        <div className="p-3 bg-danger/5 rounded-3 border border-danger/10 mb-3">
+                            <Form.Check
+                                type="checkbox"
+                                id="offline-confirm-checkbox"
+                                label="Yes, I understand that taking this event offline will immediately hide it from public ticket sales and catalogs."
+                                checked={offlineCheckboxChecked}
+                                onChange={(e) => setOfflineCheckboxChecked(e.target.checked)}
+                                className="small text-danger fw-bold cursor-pointer"
+                                style={{ userSelect: 'none', lineHeight: '1.4' }}
+                            />
+                        </div>
+                    </Modal.Body>
+                    <Modal.Footer className="border-0 pb-4 px-4 gap-2">
+                        <Button
+                            variant="light"
+                            className="px-4 py-2 rounded-pill fw-bold border"
+                            onClick={() => setShowOfflineModal(false)}
+                            style={{ fontSize: '12px' }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="danger"
+                            className="px-4 py-2 rounded-pill fw-bold"
+                            onClick={handleConfirmOffline}
+                            disabled={!offlineCheckboxChecked}
+                            style={{ fontSize: '12px' }}
+                        >
+                            Confirm Offline
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </Container>
         </div>
     );

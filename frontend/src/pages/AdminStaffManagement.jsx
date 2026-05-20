@@ -107,7 +107,9 @@ const AdminStaffManagement = () => {
             <Container fluid>
                 <div className="admin-page-header">
                     <div>
-                        <h1>Personnel Management</h1>
+                        <h1 className="d-flex align-items-center gap-3">
+                            <FaUsers className="text-pink d-none d-lg-inline-flex" /> Personnel Management
+                        </h1>
                         <p className="dashboard-subtext">Manage platform staff and assignment protocols</p>
                     </div>
                     <div className="d-flex gap-3">

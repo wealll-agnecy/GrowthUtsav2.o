@@ -32,6 +32,18 @@ const OrganizerEventCard = ({ event }) => {
                             {event.status?.toUpperCase() || 'UNSET'}
                         </span>
                     </div>
+
+                    {/* Food Banners on Image */}
+                    {(event?.foodSettings?.foodType === 'compulsory' || event?.foodSettings?.type === 'compulsory') && (
+                        <div className="food-banner-ribbon compulsory">
+                            FOOD INCLUDED
+                        </div>
+                    )}
+                    {(event?.foodSettings?.foodType === 'multiple' || event?.foodSettings?.type === 'multiple') && (
+                        <div className="food-banner-ribbon multiple">
+                            YOU CAN SELECT YOUR MEAL
+                        </div>
+                    )}
                 </div>
 
                 <div className="p-4">

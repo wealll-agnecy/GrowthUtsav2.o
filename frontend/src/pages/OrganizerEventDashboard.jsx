@@ -53,10 +53,19 @@ const OrganizerEventDashboard = () => {
     };
 
     useEffect(() => {
+        if (!id || id === 'undefined') {
+            console.error("[CLIENT]: Detected invalid 'undefined' event ID in URL");
+            setLoading(false);
+            return;
+        }
         fetchData();
     }, [id]);
 
     const handleStatusUpdate = async (status) => {
+        if (status === 'live' && event.status !== 'approved' && event.status !== 'live') {
+            alert('Wait for admin approval');
+            return;
+        }
         if (!window.confirm(`Are you sure you want to transition this node to ${status.toUpperCase()}?`)) return;
         setActionLoading(true);
         try {
@@ -153,8 +162,15 @@ const OrganizerEventDashboard = () => {
                         <div className="display-1 mb-4 opacity-10">⏳</div>
                         <h3 className="dashboard-title-main mb-3" style={{ fontSize: '1.5rem' }}>Limited Dashboard Access</h3>
                         <p className="dashboard-subtext fs-5 mb-4 px-lg-5">This event node is currently in <strong>{event.status}</strong> mode. Full analytics, attendee details, and management features will be unlocked once approved by an administrator.</p>
-                        <div className="d-flex justify-content-center gap-3">
-                            <Button as={Link} to={`/organizer/edit-event/${id}`} className="btn btn-pink px-4 py-2">EDIT EVENT</Button>
+                        <div className="d-flex justify-content-center flex-wrap gap-3">
+                            <Button as={Link} to={`/organizer/edit-event/${id}`} className="btn btn-outline-pink px-4 py-2 fw-bold">EDIT EVENT</Button>
+                            <Button 
+                                className="btn btn-pink px-5 py-2 fw-bold rounded-pill"
+                                onClick={() => handleStatusUpdate('live')}
+                                disabled={actionLoading}
+                            >
+                                <FaBolt className="me-2" /> GO LIVE
+                            </Button>
                             <Button className="btn btn-outline-pink rounded-pill px-4 py-2 fw-bold" onClick={handleDelete}>DELETE EVENT</Button>
                         </div>
                     </div>

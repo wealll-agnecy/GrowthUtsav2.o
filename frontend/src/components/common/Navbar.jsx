@@ -6,7 +6,8 @@ import { Navbar as BsNavbar, Nav, Container, NavDropdown, Spinner } from 'react-
 import { 
     FaUserCircle,
     FaHome, FaCalendarAlt, FaEnvelope, FaShieldAlt, 
-    FaSignOutAlt, FaTicketAlt, FaCheckCircle, FaBell, FaClock
+    FaSignOutAlt, FaTicketAlt, FaCheckCircle, FaBell, FaClock,
+    FaChartLine, FaThLarge
 } from 'react-icons/fa';
 import { BiBell, BiUserCircle, BiSearch, BiX } from 'react-icons/bi';
 import { ContactModal } from './HelpChatbot';
@@ -130,41 +131,13 @@ const Navbar = () => {
 
                 {/* Mobile Icons (Visible only on mobile) */}
                 <div className="d-md-none d-flex align-items-center gap-2">
-                    <div className="position-relative" ref={searchRef}>
-                        <div className="icon-wrapper cursor-pointer" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                            <BiSearch size={22} />
-                        </div>
-
-                        {/* Mobile Search Overlay Popup */}
-                        <AnimatePresence>
-                            {isSearchOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="mobile-search-popup shadow-premium"
-                                >
-                                    <div className="search-inner-mobile">
-                                        <BiSearch className="ms-2 text-muted" size={18} />
-                                        <input 
-                                            type="text" 
-                                            placeholder="Search events..." 
-                                            className="search-input-mobile"
-                                            autoFocus
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && (navigate(`/events?search=${searchQuery}`), setIsSearchOpen(false))}
-                                        />
-                                        <BiX className="me-2 text-muted cursor-pointer" size={22} onClick={() => setIsSearchOpen(false)} />
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                    <div className="icon-wrapper cursor-pointer" role="button" aria-label="Open Search" onClick={() => setIsSearchOpen(true)}>
+                        <BiSearch size={22} />
                     </div>
 
                     {user && (
                         <div className="position-relative" ref={mobileNotifRef}>
-                            <div className="icon-wrapper cursor-pointer" onClick={toggleNotifs}>
+                            <div className="icon-wrapper cursor-pointer" role="button" aria-label="Toggle Notifications" onClick={toggleNotifs}>
                                 <BiBell size={22} />
                                 {unreadCount > 0 && <span className="badge-ping"></span>}
                             </div>
@@ -175,6 +148,7 @@ const Navbar = () => {
                         <div className="position-relative" ref={profileRef}>
                             <div 
                                 className="icon-wrapper cursor-pointer" 
+                                role="button" aria-label="Toggle Profile Menu"
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                             >
                                 <BiUserCircle size={26} />
@@ -204,7 +178,7 @@ const Navbar = () => {
                                             onClick={() => {
                                                 handleLogout();
                                                 setIsProfileOpen(false);
-                                            }}
+                                             }}
                                         >
                                             Sign Out
                                         </div>
@@ -213,7 +187,7 @@ const Navbar = () => {
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to="/login" className="icon-wrapper text-dark">
+                        <Link to="/login" className="icon-wrapper text-dark" aria-label="Sign In">
                             <FaUserCircle size={24} />
                         </Link>
                     )}
@@ -224,58 +198,40 @@ const Navbar = () => {
                     <Nav className="mx-auto d-flex align-items-center gap-lg-2">
                         {user?.role !== 'staff' && (
                             <>
-                                <Nav.Link as={Link} to="/" className={`nav-link-premium ${isActive('/') ? 'active' : ''}`}>Home</Nav.Link>
-                                <Nav.Link as={Link} to="/events" className={`nav-link-premium ${isActive('/events') ? 'active' : ''}`}>Events</Nav.Link>
-                                <Nav.Link as={Link} to="/contact-us" className={`nav-link-premium ${isActive('/contact-us') ? 'active' : ''}`}>Contact Us</Nav.Link>
+                                <Nav.Link as={Link} to="/" className={`nav-link-premium ${isActive('/') ? 'active' : ''}`}>
+                                    <FaHome className="nav-icon-mini" /> Home
+                                </Nav.Link>
+                                <Nav.Link as={Link} to="/events" className={`nav-link-premium ${isActive('/events') ? 'active' : ''}`}>
+                                    <FaCalendarAlt className="nav-icon-mini" /> Events
+                                </Nav.Link>
+                                <Nav.Link as={Link} to="/contact-us" className={`nav-link-premium ${isActive('/contact-us') ? 'active' : ''}`}>
+                                    <FaEnvelope className="nav-icon-mini" /> Contact Us
+                                </Nav.Link>
                             </>
                         )}
                         {user?.role === 'admin' && (
-                            <Nav.Link as={Link} to="/admin/dashboard" className={`nav-link-premium ${isActive('/admin/dashboard') ? 'active' : ''}`}>Admin Console</Nav.Link>
+                            <Nav.Link as={Link} to="/admin/dashboard" className={`nav-link-premium ${isActive('/admin/dashboard') ? 'active' : ''}`}>
+                                <FaChartLine className="nav-icon-mini" style={{ color: '#0ea5e9' }} /> Admin Console
+                            </Nav.Link>
                         )}
                         {user?.role === 'organizer' && (
-                            <Nav.Link as={Link} to="/organizer/dashboard" className={`nav-link-premium ${isActive('/organizer/dashboard') ? 'active' : ''}`}>Dashboard</Nav.Link>
+                            <Nav.Link as={Link} to="/organizer/dashboard" className={`nav-link-premium ${isActive('/organizer/dashboard') ? 'active' : ''}`}>
+                                <FaThLarge className="nav-icon-mini" /> Dashboard
+                            </Nav.Link>
                         )}
                     </Nav>
 
                     {/* Right Side Actions */}
                     <div className="d-flex align-items-center gap-3">
                         
-                        {/* Sliding Search Bar */}
-                        <div className="position-relative d-flex align-items-center" style={{ height: '40px' }} ref={searchRef}>
-                            <AnimatePresence>
-                                {isSearchOpen && (
-                                    <motion.div
-                                        initial={{ width: 0, opacity: 0 }}
-                                        animate={{ width: 250, opacity: 1 }}
-                                        exit={{ width: 0, opacity: 0 }}
-                                        className="search-bar-container"
-                                    >
-                                        <div className="position-relative d-flex align-items-center w-100">
-                                            <BiSearch className="search-icon-inside" size={18} />
-                                            <input 
-                                                type="text" 
-                                                placeholder="Search events, artists..." 
-                                                className="search-input-navbar"
-                                                autoFocus
-                                                value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                            />
-                                            <BiX className="search-close-icon" onClick={() => setIsSearchOpen(false)} />
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                            {!isSearchOpen && (
-                                <div className="icon-wrapper cursor-pointer" onClick={() => setIsSearchOpen(true)} title="Search">
-                                    <BiSearch size={20} />
-                                </div>
-                            )}
+                        {/* District Search Toggle */}
+                        <div className="icon-wrapper cursor-pointer" role="button" aria-label="Search Events" onClick={() => setIsSearchOpen(true)} title="Search">
+                            <BiSearch size={20} />
                         </div>
 
                         {/* Notification Bell */}
                         <div className="position-relative d-flex align-items-center" style={{ height: '40px' }} ref={notifRef}>
-                            <div className="icon-wrapper cursor-pointer" onClick={toggleNotifs} title="Notifications">
+                            <div className="icon-wrapper cursor-pointer" role="button" aria-label="View Notifications" onClick={toggleNotifs} title="Notifications">
                                 <BiBell size={22} />
                                 {unreadCount > 0 && <span className="badge-ping"></span>}
                             </div>
@@ -285,7 +241,7 @@ const Navbar = () => {
                         {user ? (
                             <NavDropdown
                                 title={
-                                    <div className="icon-wrapper cursor-pointer">
+                                    <div className="icon-wrapper cursor-pointer" role="button" aria-label="Profile Menu">
                                         <BiUserCircle size={22} />
                                     </div>
                                 }
@@ -379,6 +335,71 @@ const Navbar = () => {
             </AnimatePresence>
 
             <ContactModal show={showContact} onClose={() => setShowContact(false)} />
+
+            {/* District Search Overlay */}
+            <div className={`district-search-overlay ${isSearchOpen ? 'active' : ''}`}>
+                <div className="district-search-overlay-bg" onClick={() => setIsSearchOpen(false)}></div>
+                <div className="district-search-modal">
+                    <input
+                        type="text"
+                        placeholder="Search for events, artists, categories..."
+                        autoFocus={isSearchOpen}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                navigate(`/events?search=${searchQuery}`);
+                                setIsSearchOpen(false);
+                                setSearchQuery('');
+                            }
+                            if (e.key === 'Escape') setIsSearchOpen(false);
+                        }}
+                    />
+
+                    <div className="district-search-categories">
+                        <button className="active" onClick={() => { navigate('/events'); setIsSearchOpen(false); }}>All</button>
+                        <button onClick={() => { navigate('/events?category=Seminar'); setIsSearchOpen(false); }}>Seminar</button>
+                        <button onClick={() => { navigate('/events?category=Makeup Event'); setIsSearchOpen(false); }}>Masterclass</button>
+                        <button onClick={() => { navigate('/events?category=Beauty Expo'); setIsSearchOpen(false); }}>Expo</button>
+                        <button onClick={() => { navigate('/events?category=Bridal'); setIsSearchOpen(false); }}>Bridal</button>
+                        <button onClick={() => { navigate('/events?category=Workshop'); setIsSearchOpen(false); }}>Workshop</button>
+                    </div>
+
+                    <div className="district-search-content">
+                        <h3>Explore</h3>
+                        <div className="district-search-grid">
+                            <div className="district-search-item" onClick={() => { navigate('/events'); setIsSearchOpen(false); }}>
+                                <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=400&q=80" alt="Events" />
+                                <div className="district-search-item-text">
+                                    <h4>All Events</h4>
+                                    <p>Browse everything</p>
+                                </div>
+                            </div>
+                            <div className="district-search-item" onClick={() => { navigate('/events?category=Makeup Event'); setIsSearchOpen(false); }}>
+                                <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80" alt="Masterclass" />
+                                <div className="district-search-item-text">
+                                    <h4>Masterclasses</h4>
+                                    <p>Learn from the best</p>
+                                </div>
+                            </div>
+                            <div className="district-search-item" onClick={() => { navigate('/events?category=Bridal'); setIsSearchOpen(false); }}>
+                                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80" alt="Bridal" />
+                                <div className="district-search-item-text">
+                                    <h4>Bridal Sessions</h4>
+                                    <p>Your big day</p>
+                                </div>
+                            </div>
+                            <div className="district-search-item" onClick={() => { navigate('/events?category=Beauty Expo'); setIsSearchOpen(false); }}>
+                                <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&q=80" alt="Expo" />
+                                <div className="district-search-item-text">
+                                    <h4>Beauty Expos</h4>
+                                    <p>Discover trends</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </BsNavbar>
     );
 };

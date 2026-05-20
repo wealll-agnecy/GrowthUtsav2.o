@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col, Table, Spinner, Alert } from 'react-bootstrap';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { toast } from 'react-hot-toast';
 import DashboardSkeleton from '../components/analytics/DashboardSkeleton';
 import '../css/dashboard.css';
@@ -31,9 +31,7 @@ const EventDetails = () => {
 
     const fetchDetails = async () => {
         try {
-            const res = await axios.get(`/api/v1/organizer/event/${id}/details`, {
-                withCredentials: true
-            });
+            const res = await apiClient.get(`/api/v1/organizer/event/${id}/details`);
             setData(res.data);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load event analytics');
@@ -43,6 +41,11 @@ const EventDetails = () => {
     };
 
     useEffect(() => {
+        if (!id || id === 'undefined') {
+            console.error("[CLIENT]: Detected invalid 'undefined' event ID in URL");
+            setLoading(false);
+            return;
+        }
         fetchDetails();
     }, [id]);
 
@@ -51,10 +54,10 @@ const EventDetails = () => {
         setSubmitting(true);
         try {
             if (isEditing) {
-                await axios.put(`/api/v1/expenses/${editId}`, expenseForm, { withCredentials: true });
+                await apiClient.put(`/api/v1/expenses/${editId}`, expenseForm);
                 toast.success('Expense updated successfully');
             } else {
-                await axios.post('/api/v1/expenses', { ...expenseForm, eventId: id }, { withCredentials: true });
+                await apiClient.post('/api/v1/expenses', { ...expenseForm, eventId: id });
                 toast.success('Expense added successfully');
             }
             setExpenseForm({
@@ -92,7 +95,7 @@ const EventDetails = () => {
     const handleDelete = async (expId) => {
         if (!window.confirm('Are you sure you want to delete this expense?')) return;
         try {
-            await axios.delete(`/api/v1/expenses/${expId}`, { withCredentials: true });
+            await apiClient.delete(`/api/v1/expenses/${expId}`);
             toast.success('Expense deleted');
             fetchDetails();
         } catch (err) {
@@ -103,7 +106,7 @@ const EventDetails = () => {
     const toggleStatus = async (exp) => {
         try {
             const newStatus = exp.status === 'Paid' ? 'Pending' : 'Paid';
-            await axios.put(`/api/v1/expenses/${exp._id}`, { status: newStatus }, { withCredentials: true });
+            await apiClient.put(`/api/v1/expenses/${exp._id}`, { status: newStatus });
             fetchDetails();
         } catch (err) {
             toast.error('Failed to update status');

@@ -35,6 +35,6 @@ router
     .put(protect, authorize('organizer', 'admin'), upload.single('eventImage'), updateEvent)
     .delete(protect, authorize('organizer', 'admin'), deleteEvent);
 
-router.route('/:id/status').put(protect, authorize('organizer', 'admin'), updateEventStatus); // Handled above, but removing redundant block
+// Status update handled by generic put route or specific status route above
 
 module.exports = router;

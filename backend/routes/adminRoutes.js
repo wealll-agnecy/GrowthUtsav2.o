@@ -16,7 +16,6 @@ const {
     assignStaffToEvents,
     deleteStaff
 } = require('../controllers/staffController');
-
 const { 
     getAdminStats,
     getTotalRevenue,
@@ -25,11 +24,20 @@ const {
     getPendingRequests
 } = require('../controllers/adminDashboardController');
 
+const { 
+    getOrganizersWithStats, 
+    getOrganizerBookings 
+} = require('../controllers/adminBookingController');
+
 const router = express.Router();
 
 // All admin routes require auth + admin role
 router.use(protect);
 router.use(authorize('admin'));
+
+// ── Admin Booking Management ──────────────────────────
+router.get('/bookings/organizers', getOrganizersWithStats);
+router.get('/bookings/:organizerId', getOrganizerBookings);
 
 // ── Dashboard Stats ───────────────────────────────────────
 router.get('/stats', getAdminStats);
@@ -64,7 +72,11 @@ router.put('/staff/:id/assign', assignStaffToEvents);
 // ── Event Moderation ──────────────────────────────────────
 router.get('/events/pending', async (req, res) => {
     try {
-        const events = await Event.find({ status: 'pending' }).populate('organizer', 'name email');
+        const events = await Event.find({ status: 'pending' })
+            .populate('organizer', 'name email')
+            .select('title date venue category status organizer createdAt')
+            .sort({ createdAt: -1 })
+            .lean();
         res.status(200).json({ success: true, data: events });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

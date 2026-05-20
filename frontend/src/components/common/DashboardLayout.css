@@ -59,9 +59,7 @@
 }
 
 .nav-link:not(.bg-primary):hover {
-    background: #fff1f2 !important;
     color: #ec4899 !important; /* Premium Pink on hover is okay for interactive feedback */
-    border-right: 3px solid #d4af37;
 }
 
 .link-text-label {
@@ -288,5 +286,13 @@
 
     .rotate-180 {
         transform: rotate(180deg);
+    }
+}
+
+/* --- Mobile/Tablet Sidebar Back Button Cleanup --- */
+@media (max-width: 1024px) {
+    .logo-section-sidebar button,
+    .logo-section-sidebar .btn {
+        display: none !important;
     }
 }

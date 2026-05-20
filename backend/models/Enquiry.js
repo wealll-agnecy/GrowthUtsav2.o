@@ -16,8 +16,8 @@ const enquirySchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        required: [true, 'Please provide your 10-digit mobile number'],
-        match: [/^\d{10}$/, 'Phone number must be exactly 10 digits']
+        required: [true, 'Please provide your mobile number'],
+        match: [/^\+?[0-9]{7,15}$/, 'Please provide a valid mobile number']
     },
     message: {
         type: String,
@@ -31,7 +31,8 @@ const enquirySchema = new mongoose.Schema({
     },
     isRead: {
         type: Boolean,
-        default: false
+        default: false,
+        index: true
     },
     createdAt: {
         type: Date,

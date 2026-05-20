@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Button, Spinner, Badge, Row, Col } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { FaArrowLeft, FaEnvelope, FaPhone, FaUser, FaClock, FaTrash } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
@@ -20,7 +20,7 @@ const AdminEnquiryDetails = () => {
 
         const fetchEnquiry = async () => {
             try {
-                const res = await axios.get(`/api/v1/enquiries/${id}`, { withCredentials: true });
+                const res = await apiClient.get(`/api/v1/enquiries/${id}`);
                 setEnquiry(res.data);
             } catch (err) {
                 toast.error('Failed to load enquiry details');
@@ -35,7 +35,7 @@ const AdminEnquiryDetails = () => {
     const handleDelete = async () => {
         if (!window.confirm('Are you sure you want to delete this enquiry?')) return;
         try {
-            await axios.delete(`/api/v1/enquiries/${id}`, { withCredentials: true });
+            await apiClient.delete(`/api/v1/enquiries/${id}`);
             toast.success('Enquiry deleted successfully');
             navigate('/admin/enquiries');
         } catch (err) {
