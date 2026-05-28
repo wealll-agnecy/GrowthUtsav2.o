@@ -19,6 +19,7 @@ export const AuthProvider = ({ children }) => {
     });
 
     const [loading, setLoading] = useState(true);
+    const [serverVerified, setServerVerified] = useState(false);
     const [error, setError] = useState(null);
 
     // Initial load: Check if user is logged in
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }) => {
                         if (!userData.id) userData.id = userData._id;
                         setUser(userData);
                         localStorage.setItem('user', JSON.stringify(userData));
+                        setServerVerified(true);
                     }
                 } else {
                     setUser(null);
@@ -40,8 +42,8 @@ export const AuthProvider = ({ children }) => {
                 }
             } catch (err) {
                 console.error('Initial auth check failed', err);
-                // Only purge session if the server explicitly rejects the credentials (401/403)
-                // Prevents accidental logouts on transient errors, 502 gateways, or rate-limiting (429)!
+                // If it fails, we cannot trust localStorage for privileged roles.
+                setServerVerified(false);
                 if (err.response && (err.response.status === 401 || err.response.status === 403)) {
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
@@ -85,6 +87,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(res.data.user));
                 setUser(res.data.user);
+                setServerVerified(true);
                 return { success: true, user: res.data.user };
             }
         } catch (err) {
@@ -108,6 +111,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('user', JSON.stringify(res.data.user));
                 setError(null);
                 setUser(res.data.user);
+                setServerVerified(true);
                 playSound('login');
                 return { success: true, user: res.data.user };
             }
@@ -132,6 +136,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('user', JSON.stringify(res.data.user));
                 setUser(res.data.user);
+                setServerVerified(true);
                 playSound('login');
                 return { success: true, user: res.data.user };
             }
@@ -151,6 +156,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             setUser(null);
+            setServerVerified(false);
             playSound('logout');
         } catch (err) {
             console.error('Logout failed', err);
@@ -166,6 +172,7 @@ export const AuthProvider = ({ children }) => {
                 if (!userData.id) userData.id = userData._id;
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
+                setServerVerified(true);
                 return userData;
             }
         } catch (err) {
@@ -178,6 +185,7 @@ export const AuthProvider = ({ children }) => {
             value={{
                 user,
                 loading,
+                serverVerified,
                 error,
                 register,
                 login,

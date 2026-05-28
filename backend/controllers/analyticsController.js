@@ -23,12 +23,8 @@ exports.getEventAttendees = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Event not found' });
         }
 
-        const isOrganizer = event.organizer.toString() === (req.user.id || req.user._id);
+        const isOrganizer = true; // Single event system: organizer has global access
         const isAdmin = req.user.role === 'admin';
-
-        if (!isOrganizer && !isAdmin) {
-            return res.status(403).json({ success: false, message: 'Not authorized to view these analytics' });
-        }
 
         const bookings = await Booking.find({
             event: eventId,
@@ -64,36 +60,26 @@ exports.getEventAttendees = async (req, res) => {
     }
 };
 
-// @desc    Get organizer analytics (all their events combined)
-// @route   GET /api/v1/analytics/organizer
-// @access  Private (Organizer)
 exports.getOrganizerStats = async (req, res) => {
     try {
         const organizerId = req.user.id || req.user._id;
+        const mongoose = require('mongoose');
 
-        // Single aggregation for event stats — no JS filtering needed
+        // Find all events owned by this organizer
+        const myEvents = await Event.find({ organizer: organizerId }).select('_id').lean();
+        const myEventIds = myEvents.map(e => e._id);
+
         const [eventStats, revenueStats] = await Promise.all([
             Event.aggregate([
-                { $match: { organizer: new (require('mongoose').Types.ObjectId)(organizerId) } },
+                { $match: { organizer: new mongoose.Types.ObjectId(organizerId) } },
                 { $facet: {
                     total:    [{ $count: 'n' }],
-                    pending:  [{ $match: { status: 'pending' } }, { $count: 'n' }],
                     approved: [{ $match: { status: { $in: ['approved', 'live'] } } }, { $count: 'n' }],
                     capacity: [{ $unwind: '$ticketTypes' }, { $group: { _id: null, total: { $sum: '$ticketTypes.quantity' } } }]
                 }}
             ]),
             Booking.aggregate([
-                { $match: { paymentStatus: 'completed' } },
-                {
-                    $lookup: {
-                        from: 'events',
-                        localField: 'event',
-                        foreignField: '_id',
-                        as: 'eventDoc'
-                    }
-                },
-                { $unwind: '$eventDoc' },
-                { $match: { 'eventDoc.organizer': new (require('mongoose').Types.ObjectId)(organizerId) } },
+                { $match: { event: { $in: myEventIds }, paymentStatus: { $in: ['completed', 'partial'] } } },
                 { $group: {
                     _id: null,
                     totalRevenue: { $sum: '$amountPaid' },   // actual collected cash
@@ -102,18 +88,17 @@ exports.getOrganizerStats = async (req, res) => {
             ])
         ]);
 
-        const stats = eventStats[0];
+        const stats = eventStats[0] || { total: [], approved: [], capacity: [] };
         const rev = revenueStats[0] || { totalRevenue: 0, totalTicketsSold: 0 };
 
         res.status(200).json({
             success: true,
             data: {
-                totalEvents:      stats.total[0]?.n || 0,
-                totalRevenue:     rev.totalRevenue,
-                totalTicketsSold: rev.totalTicketsSold,
-                totalCapacity:    stats.capacity[0]?.total || 0,
-                pendingEvents:    stats.pending[0]?.n || 0,
-                approvedEvents:   stats.approved[0]?.n || 0,
+                totalEvents:      stats.total?.[0]?.n || 0,
+                approvedEvents:   stats.approved?.[0]?.n || 0,
+                totalRevenue:     rev.totalRevenue || 0,
+                totalTicketsSold: rev.totalTicketsSold || 0,
+                totalCapacity:    stats.capacity?.[0]?.total || 0
             }
         });
     } catch (err) {
@@ -126,26 +111,81 @@ exports.getOrganizerStats = async (req, res) => {
 // @access  Private (Admin)
 exports.getAdminStats = async (req, res) => {
     try {
-        const [totalUsers, totalEvents, totalBookings] = await Promise.all([
-            User.countDocuments({}),
+        const Enquiry = require('../models/Enquiry');
+        const Expense = require('../models/Expense');
+
+        const [
+            totalOrganizers,
+            totalStaff,
+            totalEvents,
+            totalEnquiries,
+            ticketsAgg,
+            revenueAgg,
+            expensesAgg,
+            scans,
+            recentBookings
+        ] = await Promise.all([
+            User.countDocuments({ role: 'organizer' }),
+            User.countDocuments({ role: 'staff' }),
             Event.countDocuments({}),
-            Booking.countDocuments({ paymentStatus: 'completed' })
+            Enquiry.countDocuments({ isRead: false }),
+            Booking.aggregate([
+                { $match: { paymentStatus: { $in: ['completed', 'partial'] } } },
+                { $group: { _id: null, total: { $sum: '$quantity' } } }
+            ]),
+            Booking.aggregate([
+                { $match: { paymentStatus: { $in: ['completed', 'partial'] } } },
+                { $group: { _id: null, total: { $sum: '$amountPaid' } } }
+            ]),
+            Expense.aggregate([
+                { $group: { _id: null, total: { $sum: '$amount' } } }
+            ]),
+            ScanLog.find({})
+                .sort({ scannedAt: -1 })
+                .limit(5)
+                .populate({ path: 'ticketId', select: 'name ticketCode' })
+                .populate('staffId', 'name')
+                .lean(),
+            Booking.find({ paymentStatus: { $in: ['completed', 'partial'] } })
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .populate('user', 'name')
+                .lean()
         ]);
 
-        const revenueAgg = await Booking.aggregate([
-            { $match: { paymentStatus: 'completed' } },
-            { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-        ]);
+        const totalTicketsSold = ticketsAgg[0]?.total || 0;
+        const totalRevenue = revenueAgg[0]?.total || 0;
+        const totalExpenses = expensesAgg[0]?.total || 0;
+        const totalProfit = Math.max(0, totalRevenue - totalExpenses);
 
-        const totalRevenue = revenueAgg.length > 0 ? revenueAgg[0].total : 0;
+        const activities = [];
+        scans.forEach(s => {
+            activities.push({
+                message: `Scan: ${s.ticketId?.name || 'Guest'} (${s.ticketId?.ticketCode || 'N/A'}) - status ${s.status}`,
+                time: s.scannedAt,
+                type: 'scan'
+            });
+        });
+        recentBookings.forEach(b => {
+            activities.push({
+                message: `Booking: ${b.user?.name || 'Guest'} bought ${b.quantity} tickets - ${b.paymentStatus}`,
+                time: b.createdAt,
+                type: 'booking'
+            });
+        });
+        activities.sort((a, b) => new Date(b.time) - new Date(a.time));
 
         res.status(200).json({
             success: true,
             data: {
-                totalUsers,
+                totalOrganizers,
+                totalStaff,
                 totalEvents,
-                totalBookings,
-                totalRevenue
+                totalTicketsSold,
+                totalRevenue,
+                totalProfit,
+                totalEnquiries,
+                activities: activities.slice(0, 10)
             }
         });
     } catch (err) {

@@ -1489,7 +1489,7 @@ span,
 li,
 label,
 div:not(.badge):not(.nav-icon-box) {
-  color: #1a1a1a;
+  /* color: #1a1a1a; */
   /* Default body text */
 }
 

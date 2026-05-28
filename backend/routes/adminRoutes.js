@@ -1,27 +1,15 @@
 const express = require('express');
-const { getEvents, updateEventStatus } = require('../controllers/eventController');
+const { getEvents } = require('../controllers/eventController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const Event = require('../models/Event');
-const {
-    getPendingOrganizers,
-    getApprovedOrganizers,
-    getRejectedOrganizers,
-    approveOrganizer,
-    rejectOrganizer,
-    getAllUsers
-} = require('../controllers/organizerController');
+const { getAllUsers } = require('../controllers/organizerController');
 const {
     getStaff,
     createStaff,
-    assignStaffToEvents,
     deleteStaff
 } = require('../controllers/staffController');
 const { 
-    getAdminStats,
-    getTotalRevenue,
-    getNetProfit,
-    getActiveEvents,
-    getPendingRequests
+    getAdminStats
 } = require('../controllers/adminDashboardController');
 
 const { 
@@ -39,22 +27,9 @@ router.use(authorize('admin'));
 router.get('/bookings/organizers', getOrganizersWithStats);
 router.get('/bookings/:organizerId', getOrganizerBookings);
 
-// ── Dashboard Stats ───────────────────────────────────────
+// â”€â”€ Dashboard Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 router.get('/stats', getAdminStats);
-router.get('/total-revenue', getTotalRevenue);
-router.get('/net-profit', getNetProfit);
-router.get('/active-events', getActiveEvents);
-router.get('/total-users', require('../controllers/adminDashboardController').getTotalUsers);
-router.get('/total-events', require('../controllers/adminDashboardController').getTotalEvents);
-router.get('/tickets-sold', require('../controllers/adminDashboardController').getTicketsSold);
-router.get('/pending-requests', getPendingRequests);
 
-// ── Organizer Request Management ──────────────────────────
-router.get('/organizers/pending', getPendingOrganizers);
-router.get('/organizers/approved', getApprovedOrganizers);
-router.get('/organizers/rejected', getRejectedOrganizers);
-router.patch('/organizers/:id/approve', approveOrganizer);
-router.patch('/organizers/:id/reject', rejectOrganizer);
 
 // ── User Management ───────────────────────────────────────
 router.get('/users', getAllUsers);
@@ -66,42 +41,6 @@ router.route('/staff')
 
 router.route('/staff/:id')
     .delete(deleteStaff);
-
-router.put('/staff/:id/assign', assignStaffToEvents);
-
-// ── Event Moderation ──────────────────────────────────────
-router.get('/events/pending', async (req, res) => {
-    try {
-        const events = await Event.find({ status: 'pending' })
-            .populate('organizer', 'name email')
-            .select('title date venue category status organizer createdAt')
-            .sort({ createdAt: -1 })
-            .lean();
-        res.status(200).json({ success: true, data: events });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
-
-router.patch('/events/:id/approve', async (req, res, next) => {
-    try {
-        req.body = req.body || {};
-        req.body.status = 'approved';
-        await updateEventStatus(req, res, next);
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
-
-router.patch('/events/:id/reject', async (req, res, next) => {
-    try {
-        req.body = req.body || {};
-        req.body.status = 'rejected';
-        await updateEventStatus(req, res, next);
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
 
 module.exports = router;
 

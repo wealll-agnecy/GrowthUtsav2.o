@@ -64,7 +64,17 @@ const VerifyTicket = () => {
     }
 
     const { data: ticket, message, isDuplicate } = result;
-    const isSuccess = !isDuplicate;
+    
+    const amountPaid = ticket.amountPaid || 0;
+    const totalAmount = ticket.totalAmount || 0;
+    const remainingAmount = ticket.remainingAmount || 0;
+    const paymentStatus = (ticket.paymentStatus || 'PENDING').toUpperCase();
+
+    const isFullyPaid = amountPaid >= totalAmount || paymentStatus === 'COMPLETED' || paymentStatus === 'PAID';
+    const isBlocked = result.status === 'DENIED' || !isFullyPaid;
+    const isSuccess = !isDuplicate && !isBlocked;
+
+    const headerBgClass = isBlocked ? 'bg-danger' : isDuplicate ? 'bg-warning' : 'bg-success';
 
     return (
         <div className="vh-100 vw-100 bg-light-rose overflow-hidden d-flex align-items-center justify-content-center p-3 p-md-0">
@@ -78,17 +88,19 @@ const VerifyTicket = () => {
                 >
                     <div className="glass-card border-dark/5 rounded-5 overflow-hidden shadow-2xl bg-white">
                         {/* Native App Style Header */}
-                        <div className={`p-4 p-md-5 text-center position-relative ${isSuccess ? 'bg-success' : 'bg-warning'}`}>
+                        <div className={`p-4 p-md-5 text-center position-relative ${headerBgClass}`}>
                             <div className="position-relative z-index-1">
                                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                                    {isSuccess ? (
-                                        <FaCheckCircle size={80} className="text-white mb-3 shadow-glow" />
-                                    ) : (
+                                    {isBlocked ? (
+                                        <FaTimesCircle size={80} className="text-white mb-3 shadow-glow" />
+                                    ) : isDuplicate ? (
                                         <FaExclamationTriangle size={80} className="text-white mb-3 shadow-glow" />
+                                    ) : (
+                                        <FaCheckCircle size={80} className="text-white mb-3 shadow-glow" />
                                     )}
                                 </motion.div>
                                 <h1 className="text-white fw-black display-5 tracking-tighter mb-1 uppercase">
-                                    {isSuccess ? 'VALID PASS' : 'ALREADY USED ❌'}
+                                    {isBlocked ? 'ACCESS DENIED ❌' : isDuplicate ? 'ALREADY USED ❌' : 'VALID PASS'}
                                 </h1>
                                 <p className="text-white fw-black uppercase tracking-widest opacity-80 small m-0 font-bold">
                                     {message}
@@ -133,6 +145,46 @@ const VerifyTicket = () => {
                                         </div>
                                     </div>
                                 </Col>
+
+                                <Col xs={12}>
+                                    <div className="p-4 bg-light rounded-4 border border-dark/5 shadow-inner d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span className="text-secondary small fw-black uppercase tracking-widest mb-2 d-block opacity-50">Payment Status</span>
+                                            <div className="text-dark fw-bold d-flex flex-column gap-1">
+                                                <div className="fs-5">
+                                                    Paid: ₹{amountPaid} / ₹{totalAmount}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Badge bg={isFullyPaid ? 'success' : paymentStatus === 'PARTIAL' ? 'warning' : 'danger'} className="rounded-pill px-4 py-2 fw-black tracking-widest uppercase">
+                                            {isFullyPaid ? 'Paid' : paymentStatus === 'PARTIAL' ? 'Partial' : 'Pending'}
+                                        </Badge>
+                                    </div>
+                                </Col>
+
+                                {!isFullyPaid && (
+                                    <Col xs={12}>
+                                        <div className="p-4 bg-danger bg-opacity-10 rounded-4 border border-danger border-opacity-20 shadow-inner">
+                                            <span className="text-danger small fw-black uppercase tracking-widest mb-2 d-block opacity-70">⚠️ Outstanding Balance</span>
+                                            <div className="text-danger fw-black h5 m-0">
+                                                ₹{remainingAmount} payment remaining. Entry is blocked.
+                                            </div>
+                                        </div>
+                                    </Col>
+                                )}
+
+                                {/* GROUP TICKET LOGIC: Display persons allowed */}
+                                {ticket.personsAllowed && ticket.personsAllowed > 1 && (
+                                    <Col xs={12}>
+                                        <div className="p-4 bg-success bg-opacity-10 rounded-4 border border-success border-opacity-20 shadow-inner">
+                                            <span className="text-success small fw-black uppercase tracking-widest mb-2 d-block opacity-70">👥 Group Booking</span>
+                                            <div className="text-success fw-black h5 m-0">
+                                                {ticket.personsAllowed} Person{ticket.personsAllowed > 1 ? 's' : ''} Allowed Entry
+                                            </div>
+                                        </div>
+                                    </Col>
+                                )}
+
                                 <Col xs={12}>
                                     <div className="p-4 bg-light rounded-4 border border-dark/5 shadow-inner">
                                         <span className="text-secondary small fw-black uppercase tracking-widest mb-2 d-block opacity-50">Booking Synchronization</span>

@@ -65,11 +65,62 @@ exports.checkout = async (req, res) => {
         }
         totalAmount += foodCost;
 
+        // ADDON PRICE RESOLUTION
+        let addonsCost = 0;
+        if (req.body.selectedAddons && Array.isArray(req.body.selectedAddons)) {
+            req.body.selectedAddons.forEach(item => {
+                const option = event.addonsSettings?.options?.find(opt => opt.itemName === item.itemName);
+                if (option) {
+                    addonsCost += (option.price || 0) * (item.quantity || quantity);
+                }
+            });
+        }
+        totalAmount += addonsCost;
+
         const paymentAmount = partialAmount ? parseFloat(partialAmount) : totalAmount;
         const order = generateDemoOrder(paymentAmount);
 
+        let userId;
+        const emailToUse = contactEmail || (attendeeDetails && attendeeDetails.length > 0 ? attendeeDetails[0].email : null);
+        if (req.user) {
+            userId = req.user.id;
+        } else {
+            if (!emailToUse) {
+                return res.status(400).json({ success: false, message: "Email is required for checkout" });
+            }
+            let user = await User.findOne({ email: emailToUse });
+            if (!user) {
+                user = await User.create({
+                    name: (attendeeDetails && attendeeDetails.length > 0) ? attendeeDetails[0].name : 'Guest Attendee',
+                    email: emailToUse,
+                    role: 'attendee',
+                    password: crypto.randomBytes(10).toString('hex'),
+                    phone: (attendeeDetails && attendeeDetails.length > 0) ? attendeeDetails[0].phone : undefined,
+                    address: req.body.address,
+                    city: req.body.city,
+                    state: req.body.state,
+                    companyName: req.body.companyName,
+                    designation: req.body.designation,
+                    heardAboutUs: req.body.heardAboutUs,
+                    reference: req.body.reference,
+                    selectedIndustries: req.body.selectedIndustries
+                });
+            } else if (req.body.address || req.body.companyName) {
+                user.address = req.body.address || user.address;
+                user.city = req.body.city || user.city;
+                user.state = req.body.state || user.state;
+                user.companyName = req.body.companyName || user.companyName;
+                user.designation = req.body.designation || user.designation;
+                user.heardAboutUs = req.body.heardAboutUs || user.heardAboutUs;
+                user.reference = req.body.reference || user.reference;
+                if (req.body.selectedIndustries) user.selectedIndustries = req.body.selectedIndustries;
+                await user.save();
+            }
+            userId = user._id;
+        }
+
         const bookingData = {
-            user: req.user.id,
+            user: userId,
             event: eventId,
             ticketType,
             selectedPlans: req.body.selectedPlans,
@@ -79,9 +130,10 @@ exports.checkout = async (req, res) => {
             totalAmount,
             orderId: order.id,
             paymentStatus: 'pending',
-            contactEmail: contactEmail || req.user.email,
-            attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }],
-            selectedFood: req.body.selectedFood || []
+            contactEmail: emailToUse,
+            attendeeDetails: attendeeDetails || [{ name: 'Guest', email: emailToUse }],
+            selectedFood: req.body.selectedFood || [],
+            selectedAddons: req.body.selectedAddons || []
         };
 
         const booking = await Booking.create(bookingData);
@@ -96,7 +148,7 @@ exports.checkout = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId, amount } = req.body;
-        const booking = await Booking.findById(bookingId).populate('event', 'title date venue bannerImage foodSettings isMultiDay multiDayPlan ticketTypes');
+        const booking = await Booking.findById(bookingId).populate('event', 'title date venue bannerImage foodSettings addonsSettings isMultiDay multiDayPlan ticketTypes');
         if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
 
         // If amount is not passed, we fallback to totalAmount (assume full payment)
@@ -188,39 +240,30 @@ exports.verifyPayment = async (req, res) => {
             if (!updateRes) throw new Error("This ticket tier is now sold out.");
         }
 
-        console.log(`[PDF] [PDF] Generating ticket for booking ${booking._id}...`);
-        const ticket = await createTicketAfterPayment(booking._id, booking.event._id, req.user.id);
-        console.log(`✅ [PDF] Ticket generated successfully: ${ticket._id}`);
+        // Save booking status to DB first so ticket generator sees correct amountPaid/paymentStatus
+        await booking.save();
+
+        console.log(`[PDF] [PDF] Generating tickets for booking ${booking._id}...`);
+        const ticket = await createTicketAfterPayment(booking._id, booking.event._id, booking.user);
+        console.log(`✅ [PDF] Primary ticket generated successfully: ${ticket._id}`);
 
         // Save ticket link
         booking.ticketId = ticket._id;
-        await booking.save();        // AUTO EMAIL with PDF (Decoupled & Asynchronously processed in background to keep checkout under 10ms)
-        if (booking.paymentStatus === 'completed') {
-            setImmediate(async () => {
-                try {
-                    console.log(`[EMAIL] [EMAIL] [ASYNC] Preparing background dispatch for: ${booking.contactEmail || req.user.email}`);
-                    const pdfBuffer = await generateTicketPDF(ticket._id);
-                    await sendBookingConfirmation(
-                        { name: req.user.name, email: booking.contactEmail || req.user.email },
-                        booking.event,
-                        pdfBuffer,
-                        { 
-                            ticketType: booking.ticketType, 
-                            quantity: booking.quantity, 
-                            totalAmount: booking.totalAmount, 
-                            ticketId: ticket._id 
-                        }
-                    );
-                    console.log(`✅ [EMAIL] Background dispatch complete for booking ${booking._id}`);
-                } catch (emailErr) {
-                    console.error("❌ [EMAIL ERROR] Background dispatch failed:", emailErr.message);
-                }
-            });
+        await booking.save();
+
+        // Retrieve all tickets created for this booking
+        const Ticket = require('../models/Ticket');
+        const tickets = await Ticket.find({ booking: booking._id });
+
+        // Queue all tickets for background PDF generation & dispatch
+        const { ticketQueue } = require('../queue/ticketQueue');
+        for (const t of tickets) {
+            await ticketQueue.add('generateAndSendTicket', { ticketId: t._id });
         }
 
         // Queue Event Reminders
         const { scheduleReminders } = require('../queue/notificationQueue');
-        await scheduleReminders(req.user.id, booking.event._id, booking.event.date);
+        await scheduleReminders(booking.user, booking.event._id, booking.event.date);
 
         res.status(200).json({ success: true, message: "Booking successful", ticketId: ticket._id });
     } catch (err) {
@@ -281,10 +324,61 @@ exports.demoBooking = async (req, res) => {
         }
         totalAmount += foodCost;
 
+        // ADDON PRICE RESOLUTION
+        let addonsCost = 0;
+        if (req.body.selectedAddons && Array.isArray(req.body.selectedAddons)) {
+            req.body.selectedAddons.forEach(item => {
+                const option = event.addonsSettings?.options?.find(opt => opt.itemName === item.itemName);
+                if (option) {
+                    addonsCost += (option.price || 0) * (item.quantity || quantity);
+                }
+            });
+        }
+        totalAmount += addonsCost;
+
         const paid = (partialAmount && !isNaN(parseFloat(partialAmount))) ? parseFloat(partialAmount) : totalAmount;
 
+        let userId;
+        const emailToUse = contactEmail || (attendeeDetails && attendeeDetails.length > 0 ? attendeeDetails[0].email : null);
+        if (req.user) {
+            userId = req.user.id;
+        } else {
+            if (!emailToUse) {
+                return res.status(400).json({ success: false, message: "Email is required for checkout" });
+            }
+            let user = await User.findOne({ email: emailToUse });
+            if (!user) {
+                user = await User.create({
+                    name: (attendeeDetails && attendeeDetails.length > 0) ? attendeeDetails[0].name : 'Guest Attendee',
+                    email: emailToUse,
+                    role: 'attendee',
+                    password: crypto.randomBytes(10).toString('hex'),
+                    phone: (attendeeDetails && attendeeDetails.length > 0) ? attendeeDetails[0].phone : undefined,
+                    address: req.body.address,
+                    city: req.body.city,
+                    state: req.body.state,
+                    companyName: req.body.companyName,
+                    designation: req.body.designation,
+                    heardAboutUs: req.body.heardAboutUs,
+                    reference: req.body.reference,
+                    selectedIndustries: req.body.selectedIndustries
+                });
+            } else if (req.body.address || req.body.companyName) {
+                user.address = req.body.address || user.address;
+                user.city = req.body.city || user.city;
+                user.state = req.body.state || user.state;
+                user.companyName = req.body.companyName || user.companyName;
+                user.designation = req.body.designation || user.designation;
+                user.heardAboutUs = req.body.heardAboutUs || user.heardAboutUs;
+                user.reference = req.body.reference || user.reference;
+                if (req.body.selectedIndustries) user.selectedIndustries = req.body.selectedIndustries;
+                await user.save();
+            }
+            userId = user._id;
+        }
+
         const booking = await Booking.create({
-            user: req.user.id,
+            user: userId,
             event: eventId,
             ticketType,
             selectedPlans: req.body.selectedPlans,
@@ -296,9 +390,10 @@ exports.demoBooking = async (req, res) => {
             orderId: "DEMO_ORDER_" + Date.now(),
             paymentId: "DEMO_PAY_" + Date.now(),
             paymentStatus: paid >= totalAmount ? 'completed' : 'partial',
-            contactEmail: contactEmail || req.user.email,
-            attendeeDetails: attendeeDetails || [{ name: req.user.name, email: req.user.email, phone: req.user.phone }],
-            selectedFood: req.body.selectedFood || []
+            contactEmail: emailToUse,
+            attendeeDetails: attendeeDetails || [{ name: 'Guest', email: emailToUse }],
+            selectedFood: req.body.selectedFood || [],
+            selectedAddons: req.body.selectedAddons || []
         });
 
         // ATOMIC INVENTORY UPDATE (Same logic as verifyPayment)
@@ -354,35 +449,25 @@ exports.demoBooking = async (req, res) => {
             if (!updateRes) throw new Error("This ticket tier is now sold out.");
         }
 
-        const ticket = await createTicketAfterPayment(booking._id, eventId, req.user.id);
+        const ticket = await createTicketAfterPayment(booking._id, eventId, booking.user);
 
         // Save ticket link
         booking.ticketId = ticket._id;
         await booking.save();
 
-        // AUTO EMAIL with PDF
-        if (booking.paymentStatus === 'completed') {
-            try {
-                const pdfBuffer = await generateTicketPDF(ticket._id);
-                await sendBookingConfirmation(
-                    { name: req.user.name, email: booking.contactEmail || req.user.email },
-                    event,
-                    pdfBuffer,
-                    { 
-                        ticketType: booking.ticketType, 
-                        quantity: booking.quantity, 
-                        totalAmount: booking.totalAmount, 
-                        ticketId: ticket._id 
-                    }
-                );
-            } catch (emailErr) {
-                console.error("Email/PDF background error:", emailErr.message);
-            }
+        // Retrieve all tickets created for this booking
+        const Ticket = require('../models/Ticket');
+        const tickets = await Ticket.find({ booking: booking._id });
+
+        // Queue all tickets for background PDF generation & dispatch
+        const { ticketQueue } = require('../queue/ticketQueue');
+        for (const t of tickets) {
+            await ticketQueue.add('generateAndSendTicket', { ticketId: t._id });
         }
 
         // Queue Event Reminders
         const { scheduleReminders } = require('../queue/notificationQueue');
-        await scheduleReminders(req.user.id, eventId, event.date);
+        await scheduleReminders(userId, eventId, event.date);
 
         res.status(200).json({ 
             success: true, 
@@ -448,33 +533,20 @@ exports.verifyInstallment = async (req, res) => {
         console.log(`✅ [PAYMENT] Installment Verified! Amount: ${amount}, Booking: ${bookingId}`);
         await booking.save();
 
-        // Sync Ticket Financials
-        if (booking.ticketId) {
-            console.log(`[PDF] [PDF] Regenerating ticket for booking ${booking._id} (Installment update)...`);
-            const Ticket = require('../models/Ticket');
-            const ticket = await Ticket.findByIdAndUpdate(booking.ticketId, {
-                amountPaid: booking.amountPaid,
-                paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL'
-            }, { new: true });
+        // Sync Ticket Financials for ALL tickets
+        const Ticket = require('../models/Ticket');
+        const tickets = await Ticket.find({ booking: booking._id });
+        for (const t of tickets) {
+            t.amountPaid = booking.amountPaid;
+            t.paymentStatus = booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL';
+            await t.save();
+        }
 
-            // Send email if payment is now complete
-            if (booking.paymentStatus === 'completed') {
-                try {
-                    const pdfBuffer = await generateTicketPDF(booking.ticketId);
-                    await sendBookingConfirmation(
-                        { name: req.user.name, email: booking.contactEmail || req.user.email },
-                        booking.event,
-                        pdfBuffer,
-                        { 
-                            ticketType: booking.ticketType, 
-                            quantity: booking.quantity, 
-                            totalAmount: booking.totalAmount, 
-                            ticketId: booking.ticketId 
-                        }
-                    );
-                } catch (emailErr) {
-                    console.error("Installment Completion Email Error:", emailErr.message);
-                }
+        // Queue all tickets for delivery if the payment is complete
+        if (booking.paymentStatus === 'completed') {
+            const { ticketQueue } = require('../queue/ticketQueue');
+            for (const t of tickets) {
+                await ticketQueue.add('generateAndSendTicket', { ticketId: t._id });
             }
         }
 
@@ -512,25 +584,18 @@ exports.resendTicketEmail = async (req, res) => {
             return res.status(400).json({ success: false, message: "Payment not completed yet" });
         }
 
-        if (!booking.ticketId) {
+        const Ticket = require('../models/Ticket');
+        const tickets = await Ticket.find({ booking: booking._id });
+        if (tickets.length === 0) {
             return res.status(400).json({ success: false, message: "No ticket record found for this booking." });
         }
 
-        console.log(`[PDF] [RESEND] Regenerating PDF for Ticket: ${booking.ticketId}`);
-        const pdfBuffer = await generateTicketPDF(booking.ticketId);
-        await sendBookingConfirmation(
-            { name: req.user.name, email: booking.contactEmail || req.user.email },
-            booking.event,
-            pdfBuffer,
-            { 
-                ticketType: booking.ticketType, 
-                quantity: booking.quantity, 
-                totalAmount: booking.totalAmount, 
-                ticketId: booking.ticketId 
-            }
-        );
+        const { ticketQueue } = require('../queue/ticketQueue');
+        for (const t of tickets) {
+            await ticketQueue.add('generateAndSendTicket', { ticketId: t._id });
+        }
 
-        res.status(200).json({ success: true, message: "Ticket resent successfully to " + (booking.contactEmail || req.user.email) });
+        res.status(200).json({ success: true, message: "Tickets queued for delivery successfully to " + (booking.contactEmail || req.user.email) });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }

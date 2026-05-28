@@ -27,8 +27,6 @@ const eventRoutes = require('./routes/eventRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const automationRoutes = require('./routes/automationRoutes');
-const servicePlanRoutes = require('./routes/servicePlanRoutes');
-const logisticsRoutes = require('./routes/logisticsRoutes');
 const { protect, authorize } = require('./middleware/authMiddleware');
 const adminRoutes = require('./routes/adminRoutes');
 const organizerRoutes = require('./routes/organizerRoutes');
@@ -36,7 +34,6 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
 const enquiryRoutes = require('./routes/enquiryRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
-const eventInquiryRoutes = require('./routes/eventInquiryRoutes');
 
 const initScheduler = require('./utils/scheduler');
 
@@ -149,11 +146,7 @@ app.use('/api', (req, res, next) => {
     next();
 });
 
-const { updateLiveStatus, updateEventStatus } = require('./controllers/eventController');
 
-// Note: Emergency routes removed from here. They are now correctly handled within the router with proper authorization.
-app.put('/api/v1/events/set-live/:id', protect, authorize('organizer', 'admin'), updateLiveStatus);
-app.put('/api/v1/events/:id/status', protect, authorize('organizer', 'admin'), updateEventStatus);
 
 console.log("🚀 Mounting routers...");
 app.use('/api/v1/enquiries', enquiryRoutes);
@@ -162,17 +155,15 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/tickets', ticketRoutes);
 app.use('/api/v1/automation', automationRoutes);
-app.use('/api/v1/plans', servicePlanRoutes);
-app.use('/api/v1/logistics', logisticsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/organizer', organizerRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/expenses', expenseRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
-app.use('/api/v1/inquiries', eventInquiryRoutes);
 
-const { downloadTicket, verifyTicketForScanner } = require('./controllers/ticketController');
+const { downloadTicket, verifyTicketForScanner, downloadTicketPublic } = require('./controllers/ticketController');
 app.get('/api/ticket/download/:id', protect, downloadTicket);
+app.get('/api/ticket/download-pdf/:uuid', downloadTicketPublic);
 app.get('/api/ticket/verify/:id', verifyTicketForScanner);
 
 // --- SMTP TEST ROUTE (Admin Only) ---

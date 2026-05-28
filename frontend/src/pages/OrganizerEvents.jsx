@@ -19,21 +19,6 @@ const OrganizerEvents = () => {
     const [loading, setLoading] = useState(true);
 
     const { user } = useAuth();
-    const [showCeleb, setShowCeleb] = useState(false);
-
-    useEffect(() => {
-        if (user?.role === 'organizer' && user?.status === 'verified') {
-            const hasCelebrated = localStorage.getItem(`celebrated_${user.id}`);
-            if (!hasCelebrated) {
-                setShowCeleb(true);
-            }
-        }
-    }, [user]);
-
-    const closeCeleb = () => {
-        localStorage.setItem(`celebrated_${user.id}`, 'true');
-        setShowCeleb(false);
-    };
 
     const fetchEvents = async () => {
         try {
@@ -66,35 +51,6 @@ const OrganizerEvents = () => {
     return (
         <div className="organizer-events-page">
             <div className="dashboard-page">
-                <AnimatePresence>
-                    {showCeleb && (
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                            style={{ zIndex: 9999, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}
-                        >
-                            <motion.div
-                                initial={{ scale: 0.8, y: 50 }}
-                                animate={{ scale: 1, y: 0 }}
-                                className="dashboard-card p-5 text-center shadow-2xl"
-                                style={{ maxWidth: '500px' }}
-                            >
-                                <div className="display-1 mb-4">🏆</div>
-                                <h2 className="dashboard-title-main mb-3 uppercase tracking-tighter">Verified!</h2>
-                                <p className="dashboard-subtext fs-5 mb-5 fw-medium">🎉 Congratulations! You are now a part of GrowthUtsav</p>
-                                <Button 
-                                    className="btn btn-pink w-100 fw-bold py-3 px-5 rounded-pill"
-                                    onClick={closeCeleb}
-                                >
-                                    Let's Go!
-                                </Button>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
                 <div className="dashboard-header d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-4">
                     <div>
                         <h1 className="dashboard-title-main">My Events</h1>
@@ -102,13 +58,6 @@ const OrganizerEvents = () => {
                             Monitoring {orgStats.totalEvents} active event nodes across the infrastructure.
                         </p>
                     </div>
-                    <Button
-                        as={Link}
-                        to="/organizer/create-event"
-                        className="btn btn-pink d-flex align-items-center gap-3 transition-all rounded-pill fw-bold px-4 py-3"
-                    >
-                        <FaPlus /> Create Event
-                    </Button>
                 </div>
 
                 {/* ─── Stats Grid ─── */}
@@ -135,7 +84,6 @@ const OrganizerEvents = () => {
                     <div className="dashboard-card text-center py-5 shadow-sm">
                         <div className="display-1 mb-4 opacity-10">🔭</div>
                         <h4 className="dashboard-title-main mb-4" style={{ fontSize: '1.5rem' }}>No Events Detected</h4>
-                        <Button as={Link} to="/organizer/create-event" className="btn btn-pink rounded-pill fw-bold px-4 py-2">INITIALIZE FIRST EVENT</Button>
                     </div>
                 ) : (
                     <Row className="g-4">

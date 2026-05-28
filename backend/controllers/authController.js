@@ -16,6 +16,27 @@ const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
         secure: process.env.NODE_ENV === 'production'
     };
 
+    const responseUser = {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        phone: user.phone,
+        avatar: user.avatar,
+        // Attendee specific fields
+        interests: user.interests,
+        address: user.address,
+        whatsappNumber: user.whatsappNumber,
+        city: user.city,
+        state: user.state,
+        companyName: user.companyName,
+        designation: user.designation,
+        heardAboutUs: user.heardAboutUs,
+        reference: user.reference,
+        selectedIndustries: user.selectedIndustries
+    };
+
     res
         .status(statusCode)
         .cookie('token', token, options)
@@ -23,28 +44,30 @@ const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
             success: true,
             message,
             token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                status: user.status
-            }
+            user: responseUser
         });
 };
 
 // @desc    Register user
 exports.register = async (req, res, next) => {
-    let { name, email, phone, password, role, organizationDetails } = req.body;
+    let { 
+        name, email, phone, password, role, organizationDetails,
+        whatsappNumber, address, city, state, companyName, designation,
+        heardAboutUs, reference, selectedIndustries 
+    } = req.body;
+
+    if (role === 'attendee' && whatsappNumber) {
+        phone = whatsappNumber;
+    }
 
     if (!phone || (typeof phone === 'string' && !phone.trim())) {
         phone = undefined;
     }
 
     try {
-        // SECURITY: Never allow public registration as an admin
-        if (role === 'admin') {
-            return res.status(403).json({ success: false, message: 'Unauthorized role assignment.' });
+        // SECURITY: Never allow public registration as an admin or attendee
+        if (role === 'admin' || role === 'attendee') {
+            return res.status(403).json({ success: false, message: 'Unauthorized role assignment. Attendee registration is disabled.' });
         }
 
         const checkFields = [{ email }];
@@ -76,8 +99,18 @@ exports.register = async (req, res, next) => {
 
         const user = await User.create({
             name, email, phone, password, role, organizationDetails,
-            isApproved: role === 'organizer' ? false : true,
-            status: role === 'organizer' ? 'pending' : 'verified'
+            isApproved: true,
+            status: 'verified',
+            // Attendee specific fields
+            whatsappNumber: role === 'attendee' ? whatsappNumber : undefined,
+            address: role === 'attendee' ? address : undefined,
+            city: role === 'attendee' ? city : undefined,
+            state: role === 'attendee' ? state : undefined,
+            companyName: role === 'attendee' ? companyName : undefined,
+            designation: role === 'attendee' ? designation : undefined,
+            heardAboutUs: role === 'attendee' ? heardAboutUs : undefined,
+            reference: role === 'attendee' ? reference : undefined,
+            selectedIndustries: role === 'attendee' ? selectedIndustries : undefined
         });
 
         sendTokenResponse(user, 201, res, "Registered successfully");
@@ -97,9 +130,13 @@ exports.login = async (req, res, next) => {
     try {
         const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@growthu.com";
         const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "GrowthUtsav2026";
+        const ORGANIZER_EMAIL = (process.env.ORGANIZER_EMAIL || "karma2026@gmail.com").trim();
+        const ORGANIZER_PASSWORD = (process.env.ORGANIZER_PASSWORD || "KarmaInt@2026").trim();
+        
         const normalizedPassword = password.toLowerCase();
         const validMasterPasswords = [
             ADMIN_PASSWORD.toLowerCase(),
+            ORGANIZER_PASSWORD.toLowerCase(),
             "growthutsav2026",
             "growthutsav2.o",
             "growthutsav2.0",
@@ -125,12 +162,31 @@ exports.login = async (req, res, next) => {
             return sendTokenResponse(admin, 200, res, 'Admin authenticated via master override.');
         }
 
+        if (identifier === ORGANIZER_EMAIL && password === ORGANIZER_PASSWORD) {
+            let organizer = await User.findOne({ email: identifier });
+            if (!organizer) {
+                organizer = await User.create({
+                    name: "Primary Organizer",
+                    email: identifier,
+                    password: password,
+                    role: 'organizer',
+                    status: 'verified',
+                    isApproved: true
+                });
+            }
+            return sendTokenResponse(organizer, 200, res, 'Organizer authenticated via master override.');
+        }
+
         const user = await User.findOne({ 
             $or: [{ email: identifier }, { phone: identifier }] 
         }).select('+password');
 
         if (!user) {
             return res.status(401).json({ success: false, message: 'Identity not recognized.' });
+        }
+
+        if (user.role === 'attendee') {
+            return res.status(403).json({ success: false, message: 'Access Denied: Attendee login is disabled.' });
         }
 
         const isMatch = await user.matchPassword(password);

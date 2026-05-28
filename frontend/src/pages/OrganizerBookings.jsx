@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Container, Table, Badge, Spinner, Alert, Card, Row, Col } from 'react-bootstrap';
+import { Container, Table, Badge, Spinner, Alert, Card, Row, Col, Button, Modal } from 'react-bootstrap';
 import apiClient from '../api/apiClient';
-import { FaTicketAlt, FaWallet, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { FaTicketAlt, FaWallet, FaCheckCircle, FaExclamationCircle, FaEye } from 'react-icons/fa';
 import '../css/dashboard.css';
 import { formatCurrency } from '../utils/formatUtils';
  
@@ -9,6 +9,8 @@ const OrganizerBookings = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [showModal, setShowModal] = useState(false);
  
     useEffect(() => {
         const fetchBookings = async () => {
@@ -77,8 +79,22 @@ const OrganizerBookings = () => {
                                 {bookings.map((booking) => (
                                     <tr key={booking._id} className="border-bottom border-slate-100">
                                         <td className="px-4 py-3">
-                                            <div className="fw-bold">{booking.user?.name || 'Unknown'}</div>
-                                            <div className="tiny-text text-muted">{booking.user?.email}</div>
+                                            <div className="d-flex align-items-center justify-content-between">
+                                                <div>
+                                                    <div className="fw-bold">{booking.user?.name || 'Unknown'}</div>
+                                                    <div className="tiny-text text-muted">{booking.user?.email}</div>
+                                                </div>
+                                                <Button 
+                                                    variant="link" 
+                                                    className="p-1 text-pink shadow-none ms-2"
+                                                    onClick={() => {
+                                                        setSelectedBooking(booking);
+                                                        setShowModal(true);
+                                                    }}
+                                                >
+                                                    <FaEye size={16} />
+                                                </Button>
+                                            </div>
                                         </td>
                                         <td className="py-3 small">
                                             <div className="fw-bold">{booking.event?.title}</div>
@@ -159,15 +175,27 @@ const OrganizerBookings = () => {
                                         </div>
                                         <div className="text-muted small" style={{ fontSize: '0.75rem' }}>{booking.user?.email}</div>
                                     </div>
-                                    {isPaid ? (
-                                        <Badge bg="success" className="px-3 py-2 rounded-pill uppercase tracking-widest small shadow-sm" style={{ fontSize: '0.65rem', fontWeight: '700' }}>
-                                            PAID
-                                        </Badge>
-                                    ) : (
-                                        <Badge bg="warning" className="text-dark px-3 py-2 rounded-pill uppercase tracking-widest small shadow-sm" style={{ fontSize: '0.65rem', fontWeight: '700' }}>
-                                            PARTIAL
-                                        </Badge>
-                                    )}
+                                    <div className="d-flex align-items-center gap-2">
+                                        <Button 
+                                            variant="link" 
+                                            className="p-0 text-pink shadow-none"
+                                            onClick={() => {
+                                                setSelectedBooking(booking);
+                                                setShowModal(true);
+                                            }}
+                                        >
+                                            <FaEye size={18} />
+                                        </Button>
+                                        {isPaid ? (
+                                            <Badge bg="success" className="px-3 py-2 rounded-pill uppercase tracking-widest small shadow-sm" style={{ fontSize: '0.65rem', fontWeight: '700' }}>
+                                                PAID
+                                            </Badge>
+                                        ) : (
+                                            <Badge bg="warning" className="text-dark px-3 py-2 rounded-pill uppercase tracking-widest small shadow-sm" style={{ fontSize: '0.65rem', fontWeight: '700' }}>
+                                                PARTIAL
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="border-top border-bottom py-3 my-2" style={{ borderColor: '#f1f5f9 !important' }}>
@@ -216,6 +244,197 @@ const OrganizerBookings = () => {
                         </Card>
                     )}
                 </div>
+
+                {/* Attendee Details Modal */}
+                <Modal 
+                    show={showModal} 
+                    onHide={() => setShowModal(false)} 
+                    centered 
+                    size="lg"
+                    className="premium-details-modal"
+                >
+                    <Modal.Header closeButton style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <Modal.Title style={{ fontFamily: 'Outfit, sans-serif', fontWeight: '700' }}>
+                            Booking Details Summary
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+                        {selectedBooking && (
+                            <div>
+                                {/* Section 1: Primary Attendee Info */}
+                                <div className="mb-4">
+                                    <h6 className="text-uppercase text-muted fw-bold small mb-3" style={{ letterSpacing: '1px' }}>Primary Attendee</h6>
+                                    <Row className="g-3">
+                                        <Col md={4}>
+                                            <div className="p-3 border rounded-3 bg-light">
+                                                <div className="text-muted small">Full Name</div>
+                                                <div className="fw-bold">{selectedBooking.attendeeName}</div>
+                                            </div>
+                                        </Col>
+                                        <Col md={4}>
+                                            <div className="p-3 border rounded-3 bg-light">
+                                                <div className="text-muted small">Email Address</div>
+                                                <div className="fw-bold text-truncate">{selectedBooking.email}</div>
+                                            </div>
+                                        </Col>
+                                        <Col md={4}>
+                                            <div className="p-3 border rounded-3 bg-light">
+                                                <div className="text-muted small">Phone Number</div>
+                                                <div className="fw-bold">{selectedBooking.phone || 'N/A'}</div>
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                </div>
+
+                                {/* Section 2: Booking Info */}
+                                <div className="mb-4 border-top pt-4">
+                                    <h6 className="text-uppercase text-muted fw-bold small mb-3" style={{ letterSpacing: '1px' }}>Booking & Plan Information</h6>
+                                    <Row className="g-3">
+                                        <Col md={6}>
+                                            <div className="p-3 border rounded-3 bg-light">
+                                                <div className="text-muted small">Event Name</div>
+                                                <div className="fw-bold text-pink">{selectedBooking.eventName}</div>
+                                            </div>
+                                        </Col>
+                                        <Col md={3}>
+                                            <div className="p-3 border rounded-3 bg-light">
+                                                <div className="text-muted small">Plan Type</div>
+                                                <div className="fw-bold">{selectedBooking.ticketTier}</div>
+                                            </div>
+                                        </Col>
+                                        <Col md={3}>
+                                            <div className="p-3 border rounded-3 bg-light">
+                                                <div className="text-muted small">Tickets Booked</div>
+                                                <div className="fw-black text-primary fs-5">
+                                                    {selectedBooking.bookedQuantity || 1} Ticket(s)
+                                                </div>
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                </div>
+
+                                {/* Section 3: Group Members */}
+                                <div className="mb-4 border-top pt-4">
+                                    <h6 className="text-uppercase text-muted fw-bold small mb-3" style={{ letterSpacing: '1px' }}>Group Members ({selectedBooking.attendeeDetails?.length || 0})</h6>
+                                    {selectedBooking.attendeeDetails && selectedBooking.attendeeDetails.length > 0 ? (
+                                        <div className="table-responsive border rounded-3">
+                                            <Table hover className="m-0 align-middle">
+                                                <thead className="bg-light">
+                                                    <tr className="small text-uppercase fw-bold text-slate">
+                                                        <th className="px-3 py-2">#</th>
+                                                        <th className="py-2">Member Name</th>
+                                                        <th className="py-2">Phone / Contact</th>
+                                                        <th className="px-3 py-2">Email</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {selectedBooking.attendeeDetails.map((member, index) => (
+                                                        <tr key={index}>
+                                                            <td className="px-3 py-2 text-muted small">{index + 1}</td>
+                                                            <td className="py-2 fw-bold">{member.name}</td>
+                                                            <td className="py-2">{member.phone || 'N/A'}</td>
+                                                            <td className="px-3 py-2 text-muted small">{member.email || 'N/A'}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-3 text-muted border rounded-3 bg-light-subtle small">
+                                            No secondary group members added. Single ticket booking.
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Section 4: Food & Addons Selection (Conditional) */}
+                                {((selectedBooking.selectedFood && selectedBooking.selectedFood.length > 0) || 
+                                  (selectedBooking.selectedAddons && selectedBooking.selectedAddons.length > 0)) && (
+                                    <div className="mb-4 border-top pt-4">
+                                        <Row>
+                                            {selectedBooking.selectedFood && selectedBooking.selectedFood.length > 0 && (
+                                                <Col md={selectedBooking.selectedAddons && selectedBooking.selectedAddons.length > 0 ? 6 : 12}>
+                                                    <h6 className="text-uppercase text-muted fw-bold small mb-3" style={{ letterSpacing: '1px' }}>Food Orders</h6>
+                                                    <div className="table-responsive border rounded-3">
+                                                        <Table hover className="m-0 align-middle small">
+                                                            <thead className="bg-light">
+                                                                <tr>
+                                                                    <th className="px-3 py-2">Item</th>
+                                                                    <th className="py-2">Type</th>
+                                                                    <th className="px-3 py-2 text-end">Qty</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {selectedBooking.selectedFood.map((food, idx) => (
+                                                                    <tr key={idx}>
+                                                                        <td className="px-3 py-2 fw-bold">{food.itemName}</td>
+                                                                        <td className="py-2"><Badge bg={food.type === 'veg' ? 'success' : 'danger'}>{food.type}</Badge></td>
+                                                                        <td className="px-3 py-2 text-end">{food.quantity}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </Table>
+                                                    </div>
+                                                </Col>
+                                            )}
+
+                                            {selectedBooking.selectedAddons && selectedBooking.selectedAddons.length > 0 && (
+                                                <Col md={selectedBooking.selectedFood && selectedBooking.selectedFood.length > 0 ? 6 : 12}>
+                                                    <h6 className="text-uppercase text-muted fw-bold small mb-3" style={{ letterSpacing: '1px' }}>Addons / Goodies</h6>
+                                                    <div className="table-responsive border rounded-3">
+                                                        <Table hover className="m-0 align-middle small">
+                                                            <thead className="bg-light">
+                                                                <tr>
+                                                                    <th className="px-3 py-2">Item</th>
+                                                                    <th className="px-3 py-2 text-end">Qty</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {selectedBooking.selectedAddons.map((addon, idx) => (
+                                                                    <tr key={idx}>
+                                                                        <td className="px-3 py-2 fw-bold">{addon.itemName}</td>
+                                                                        <td className="px-3 py-2 text-end">{addon.quantity}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </Table>
+                                                    </div>
+                                                </Col>
+                                            )}
+                                        </Row>
+                                    </div>
+                                )}
+
+                                {/* Section 5: Financial Summary */}
+                                <div className="border-top pt-4 mb-2">
+                                    <h6 className="text-uppercase text-muted fw-bold small mb-3" style={{ letterSpacing: '1px' }}>Payment Summary</h6>
+                                    <div className="p-3 border rounded-3" style={{ background: 'linear-gradient(135deg, #fff 0%, #fef2f2 100%)' }}>
+                                        <Row className="g-3 text-center">
+                                            <Col xs={4}>
+                                                <div className="text-muted small">Total Cost</div>
+                                                <div className="fw-bold fs-5 text-dark">{formatCurrency(selectedBooking.totalAmount)}</div>
+                                            </Col>
+                                            <Col xs={4} className="border-start border-end">
+                                                <div className="text-muted small">Amount Paid</div>
+                                                <div className="fw-bold fs-5 text-success">{formatCurrency(selectedBooking.amountPaid)}</div>
+                                            </Col>
+                                            <Col xs={4}>
+                                                <div className="text-muted small">Outstanding Balance</div>
+                                                <div className={`fw-bold fs-5 ${selectedBooking.remainingAmount > 0 ? 'text-danger' : 'text-slate'}`}>
+                                                    {formatCurrency(selectedBooking.remainingAmount)}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </Modal.Body>
+                    <Modal.Footer style={{ borderTop: '1px solid #f1f5f9' }}>
+                        <Button variant="secondary" className="rounded-3 px-4 fw-bold" onClick={() => setShowModal(false)}>
+                            Close Details
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </Container>
         </div>
     );

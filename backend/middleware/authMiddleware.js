@@ -32,7 +32,11 @@ exports.protect = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // ALWAYS fetch real User from MongoDB using precise projection to keep auth super fast and secure
-        req.user = await User.findById(decoded.id).select('_id role status name email').lean();
+        req.user = await User.findById(decoded.id)
+            .select(
+                '_id role status name email assignedEvents staffRole staffCheckRole customAddonItemNames'
+            )
+            .lean();
 
         if (!req.user) {
             return res.status(401).json({
@@ -46,7 +50,7 @@ exports.protect = async (req, res, next) => {
 
         next();
     } catch (err) {
-        console.error("Auth Protocol Breach:", err.message);
+        console.error('Auth Protocol Breach:', err.message);
         return res.status(401).json({
             success: false,
             message: 'Access Denied: Identifier invalid'
@@ -75,7 +79,12 @@ exports.optionalProtect = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.id).select('_id role status name email').lean();
+        req.user = await User.findById(decoded.id)
+            .select(
+                '_id role status name email assignedEvents staffRole staffCheckRole customAddonItemNames'
+            )
+            .lean();
+
         // Normalize .id for virtual parity with non-lean queries
         if (req.user) req.user.id = req.user._id.toString();
         next();
@@ -97,24 +106,5 @@ exports.authorize = (...roles) => {
     };
 };
 
-// Check for Gold Plan subscription
-exports.checkGoldPlan = async (req, res, next) => {
-    try {
-        if (req.user.role === 'admin') {
-            return next();
-        }
 
-        const user = await User.findById(req.user.id).populate('servicePlan');
 
-        if (!user.servicePlan || user.servicePlan.name !== 'Gold') {
-            return res.status(403).json({
-                success: false,
-                message: 'Access Denied: This feature requires a Gold Plan subscription'
-            });
-        }
-
-        next();
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Authorization error' });
-    }
-};

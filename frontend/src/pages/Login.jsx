@@ -8,7 +8,7 @@ import './Login.css';
 
 const Login = () => {
     const [searchParams] = useSearchParams();
-    const roleParam = searchParams.get('role') || 'attendee';
+    const roleParam = searchParams.get('role') || 'organizer';
 
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
@@ -20,13 +20,16 @@ const Login = () => {
         if (user) {
             if (user.role === 'admin') navigate('/admin/dashboard');
             else if (user.role === 'organizer') {
-                if (user.status === 'pending') navigate('/pending-verification');
-                else navigate('/organizer/dashboard');
+                navigate('/organizer/dashboard');
             }
-            else if (user.role === 'attendee') navigate('/');
             else if (user.role === 'staff') navigate('/staff/dashboard');
-            else navigate('/');
-
+            else {
+                // Securely purge stale attendee identity
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/');
+                window.location.reload();
+            }
         }
         return () => setError(null);
     }, [user, navigate, setError]);
@@ -77,12 +80,13 @@ const Login = () => {
 
                     <Form onSubmit={handleSubmit}>
                         <div className="premium-input-group">
-                            <label>Email</label>
+                            <label>Email or Phone Number</label>
                             <Form.Control
                                 type="text"
                                 className="premium-auth-input"
                                 value={identifier}
                                 onChange={handleIdentifierChange}
+                                placeholder="Enter your email or WhatsApp number"
                                 required
                             />
                         </div>
@@ -124,8 +128,8 @@ const Login = () => {
                         </div>
                     </Form>
 
-                    <div className="auth-footer mt-3">
-                        <p>New to GrowthUtsav? <Link to={`/register?role=${roleParam}`}>Register</Link></p>
+                    <div className="auth-footer mt-3 text-center">
+                        <p className="small mb-0">Are you a Host / Organizer? <Link to="/register?role=organizer" className="text-pink fw-bold">Register here</Link></p>
                     </div>
 
                     <div className="text-center mt-3">

@@ -226,6 +226,18 @@ class FirebaseRealtimeService {
         return this;
     }
 
+    listenToTicket(eventId, ticketId, callback) {
+        const clients = this.getFirebaseClients();
+        if (!clients || !eventId || !ticketId) return null;
+
+        const ticketRef = doc(clients.db, 'events', eventId.toString(), 'tickets', ticketId.toString());
+        return onSnapshot(ticketRef, (snapshot) => {
+            if (snapshot.exists()) {
+                callback(snapshot.data());
+            }
+        });
+    }
+
     closeSubscriptions() {
         if (this.userUnsubscribe) {
             this.userUnsubscribe();

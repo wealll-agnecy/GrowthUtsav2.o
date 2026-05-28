@@ -14,7 +14,7 @@ exports.getStaff = async (req, res, next) => {
             query.createdBy = req.user.id;
         }
 
-        const staff = await User.find(query).populate('assignedEvents', 'title date');
+        const staff = await User.find(query);
         res.status(200).json({ success: true, data: staff });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
@@ -26,19 +26,33 @@ exports.getStaff = async (req, res, next) => {
 // @access  Private (Admin / Organizer)
 exports.createStaff = async (req, res, next) => {
     try {
-        const { name, email, password, staffRole } = req.body;
+        const { name, email, password, staffRole, phone, staffCheckRole, customAddonItemNames } = req.body;
+
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ success: false, message: 'Email already exists' });
         }
 
+        if (phone) {
+            const existingPhone = await User.findOne({ phone });
+            if (existingPhone) {
+                return res.status(400).json({ success: false, message: 'Phone number already registered' });
+            }
+        }
+
         const staff = await User.create({
             name,
             email,
             password,
+            phone: phone || undefined,
             role: 'staff',
             staffRole: staffRole || 'gate staff',
+
+            // Role-based scanner category
+            staffCheckRole: staffCheckRole || 'ENTRY',
+            customAddonItemNames: Array.isArray(customAddonItemNames) ? customAddonItemNames : (customAddonItemNames ? [customAddonItemNames] : []),
+
             createdBy: req.user._id
         });
 
@@ -48,42 +62,7 @@ exports.createStaff = async (req, res, next) => {
     }
 };
 
-// @desc    Assign events to staff
-// @route   PUT /api/v1/admin/staff/:id/assign OR PUT /api/v1/organizer/staff/:id/assign
-// @access  Private (Admin / Organizer)
-exports.assignStaffToEvents = async (req, res, next) => {
-    try {
-        const { assignedEvents } = req.body; // Array of event IDs
 
-        let staff = await User.findById(req.params.id);
-        if (!staff || staff.role !== 'staff') {
-            return res.status(404).json({ success: false, message: 'Staff member not found' });
-        }
-
-        // If organizer, ensure they created this staff member
-        if (req.user.role === 'organizer' && staff.createdBy.toString() !== req.user.id) {
-            return res.status(401).json({ success: false, message: 'Not authorized to manage this staff member' });
-        }
-
-        // If organizer, ensure all assigned events belong to them
-        if (req.user.role === 'organizer') {
-            const events = await Event.find({ _id: { $in: assignedEvents }, organizer: req.user.id });
-            if (events.length !== assignedEvents.length) {
-                return res.status(400).json({ success: false, message: 'Some events do not belong to you' });
-            }
-        }
-
-        staff.assignedEvents = assignedEvents;
-        await staff.save();
-
-        // Populate so frontend can display
-        staff = await User.findById(req.params.id).populate('assignedEvents', 'title date');
-
-        res.status(200).json({ success: true, data: staff });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-};
 
 // @desc    Delete a staff member
 // @route   DELETE /api/v1/admin/staff/:id

@@ -7,11 +7,17 @@ const sendWhatsApp = async (options) => {
             process.env.TWILIO_AUTH_TOKEN || 'Token_placeholder'
         );
 
-        const message = await client.messages.create({
+        const messageOptions = {
             body: options.message,
             from: `whatsapp:${process.env.TWILIO_WHATSAPP_FROM || '+14155238886'}`,
             to: `whatsapp:${options.phone}`
-        });
+        };
+
+        if (options.mediaUrl) {
+            messageOptions.mediaUrl = Array.isArray(options.mediaUrl) ? options.mediaUrl : [options.mediaUrl];
+        }
+
+        const message = await client.messages.create(messageOptions);
 
         console.log('WhatsApp sent: %s', message.sid);
         return message;

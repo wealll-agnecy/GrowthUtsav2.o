@@ -14,26 +14,22 @@ import '../css/admin-pages.css';
 
 const AdminStaffManagement = () => {
     const [staffList, setStaffList] = useState([]);
-    const [events, setEvents] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showAssignModal, setShowAssignModal] = useState(false);
+
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [search, setSearch] = useState('');
 
     // Form states
-    const [formData, setFormData] = useState({ name: '', email: '', password: '', staffRole: 'gate staff' });
-    const [selectedEvents, setSelectedEvents] = useState([]);
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', password: '', staffRole: 'gate staff' });
+
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [staffRes, eventsRes] = await Promise.all([
-                adminApi.getStaff(),
-                eventApi.getEvents()
-            ]);
+            const staffRes = await adminApi.getStaff();
             setStaffList(staffRes.data.data);
-            setEvents(eventsRes.data.data.filter(e => e.status === 'approved' || e.status === 'live'));
         } catch (err) {
             console.error('Failed to fetch data', err);
         } finally {
@@ -50,7 +46,7 @@ const AdminStaffManagement = () => {
         try {
             await adminApi.createStaff(formData);
             setShowCreateModal(false);
-            setFormData({ name: '', email: '', password: '', staffRole: 'gate staff' });
+            setFormData({ name: '', email: '', phone: '', password: '', staffRole: 'gate staff' });
             playSound('success');
             toast.success('Personnel record created');
             fetchData();
@@ -72,29 +68,7 @@ const AdminStaffManagement = () => {
         }
     };
 
-    const openAssignModal = (staff) => {
-        setSelectedStaff(staff);
-        setSelectedEvents(staff.assignedEvents.map(e => e._id));
-        setShowAssignModal(true);
-    };
 
-    const toggleEventSelection = (eventId) => {
-        setSelectedEvents(prev =>
-            prev.includes(eventId) ? prev.filter(id => id !== eventId) : [...prev, eventId]
-        );
-    };
-
-    const handleAssignEvents = async () => {
-        try {
-            await adminApi.assignStaffToEvents(selectedStaff._id, selectedEvents);
-            setShowAssignModal(false);
-            playSound('success');
-            toast.success('Node assignment synchronized');
-            fetchData();
-        } catch (err) {
-            toast.error('Assignment synchronization failure');
-        }
-    };
 
     const filteredStaff = staffList.filter(s => 
         s.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -148,7 +122,6 @@ const AdminStaffManagement = () => {
                                     <tr>
                                         <th>Identity Name</th>
                                         <th>Operational Role</th>
-                                        <th>Active Assignments</th>
                                         <th className="text-end">Actions</th>
                                     </tr>
                                 </thead>
@@ -167,23 +140,7 @@ const AdminStaffManagement = () => {
                                                 </span>
                                             </td>
                                             <td>
-                                                {staff.assignedEvents.length > 0 ? (
-                                                    <div className="d-flex flex-wrap gap-2">
-                                                        {staff.assignedEvents.map(e => (
-                                                            <span key={e._id} className="small bg-light px-2 py-1 rounded border" style={{ fontSize: '11px' }}>
-                                                                {e.title}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <span className="small text-muted italic">No active nodes</span>
-                                                )}
-                                            </td>
-                                            <td>
                                                 <div className="action-btn-group justify-content-end">
-                                                    <button className="btn btn-outline-pink" title="Assign Nodes" onClick={() => openAssignModal(staff)}>
-                                                        <FaLink />
-                                                    </button>
                                                     <button className="btn btn-pink" title="Terminate" onClick={() => handleDelete(staff._id)}>
                                                         <FaTrash size={12} />
                                                     </button>
@@ -228,9 +185,13 @@ const AdminStaffManagement = () => {
                                     <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Full Identity Name</Form.Label>
                                     <Form.Control required type="text" className="rounded-12 border-light py-2" placeholder="e.g. John Matrix" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                                 </Form.Group>
-                                <Form.Group className="mb-0">
+                                <Form.Group className="mb-3">
                                     <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Operational Email Link</Form.Label>
                                     <Form.Control required type="email" className="rounded-12 border-light py-2" placeholder="staff@growthutsav.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                                </Form.Group>
+                                <Form.Group className="mb-0">
+                                    <Form.Label className="small uppercase fw-bold text-muted tracking-widest" style={{ fontSize: '10px' }}>Mobile Number <span className="text-muted fw-normal">(optional — for mobile login)</span></Form.Label>
+                                    <Form.Control type="tel" className="rounded-12 border-light py-2" placeholder="e.g. 9876543210" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                                 </Form.Group>
                             </div>
 
@@ -255,68 +216,7 @@ const AdminStaffManagement = () => {
                 </div>
             </Modal>
 
-            {/* Premium Assign Events Modal */}
-            <Modal 
-                show={showAssignModal} 
-                onHide={() => setShowAssignModal(false)} 
-                centered 
-                size="md"
-                className="premium-popup"
-            >
-                <div className="popup-body">
-                    <button className="close-btn" onClick={() => setShowAssignModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10 }}>
-                        <FaTimes size={16} />
-                    </button>
-                    
-                    <div className="popup-content">
-                        <div className="d-flex align-items-center gap-3 mb-4">
-                            <div className="modal-icon-header">
-                                <FaLink />
-                            </div>
-                            <div>
-                                <h4 className="fw-black m-0">Synchronize Nodes</h4>
-                                <p className="m-0 tiny-text uppercase tracking-widest text-pink fw-bold">Map Personnel to Active Events</p>
-                            </div>
-                        </div>
 
-                        <div className="d-flex flex-column gap-2" style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: '10px' }}>
-                            {events.map(event => (
-                                <div
-                                    key={event._id}
-                                    className={`event-selection-card ${selectedEvents.includes(event._id) ? 'active' : ''}`}
-                                    onClick={() => toggleEventSelection(event._id)}
-                                >
-                                    <div className="d-flex align-items-center gap-3">
-                                        <div className={`selection-check ${selectedEvents.includes(event._id) ? 'checked' : ''}`}>
-                                            <FaCheck size={10} />
-                                        </div>
-                                        <div className="flex-grow-1">
-                                            <div className="event-title-mini">{event.title}</div>
-                                            <div className="event-meta-mini">
-                                                <span>{new Date(event.date).toLocaleDateString()}</span>
-                                                <span className="dot-sep mx-1">•</span>
-                                                <span>{event.venue}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="d-flex justify-content-end gap-3 mt-4">
-                            <Button variant="light" className="rounded-pill px-4 fw-bold" onClick={() => setShowAssignModal(false)}>
-                                Discard
-                            </Button>
-                            <Button 
-                                className="btn-pink rounded-pill px-4 fw-black shadow-glow" 
-                                onClick={handleAssignEvents}
-                            >
-                                SYNC ASSIGNMENTS
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </Modal>
 
         </div>
     );

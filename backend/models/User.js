@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true,
-        match: [/^\+?[1-9]\d{1,14}$/, 'Please add a valid phone number']
+        match: [/^\+?\d{7,15}$/, 'Please add a valid phone number']
     },
     role: {
         type: String,
@@ -70,9 +70,9 @@ UserSchema.index({ role: 1, createdAt: -1 });        // getAllUsers sorted
 UserSchema.index({ resetPasswordToken: 1 }, { sparse: true }); // forgot password lookup
 
 // --- AUTH LOGIC ---
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function () {
     if (!this.isModified('password')) {
-        next();
+        return;
     }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -112,9 +112,7 @@ const Organizer = User.discriminator('organizer', new mongoose.Schema({
         logo: String,
         address: String,
         selectedEventTypes: [String]
-    },
-    servicePlan: { type: mongoose.Schema.ObjectId, ref: 'ServicePlan' },
-    planExpiry: Date
+    }
 }));
 
 // 2. Staff Schema
@@ -125,6 +123,21 @@ const Staff = User.discriminator('staff', new mongoose.Schema({
         required: true
     },
     assignedEvents: [{ type: mongoose.Schema.ObjectId, ref: 'Event' }],
+
+    // Role-based scanner assignment (required for QR access control)
+    staffCheckRole: {
+        type: String,
+        enum: ['ENTRY', 'FOOD', 'PARKING', 'CUSTOM_ADDON'],
+        required: true,
+        default: 'ENTRY'
+    },
+
+    // For CUSTOM_ADDON staff: can claim multiple item names
+    customAddonItemNames: {
+        type: [String],
+        default: []
+    },
+
     createdBy: { type: mongoose.Schema.ObjectId, ref: 'User' }
 }));
 
@@ -136,7 +149,15 @@ const Admin = User.discriminator('admin', new mongoose.Schema({
 // 4. Attendee Schema
 const Attendee = User.discriminator('attendee', new mongoose.Schema({
     interests: [String],
-    address: String
+    address: String,
+    whatsappNumber: String,
+    city: String,
+    state: String,
+    companyName: String,
+    designation: String,
+    heardAboutUs: String,
+    reference: String,
+    selectedIndustries: [String]
 }));
 
 module.exports = User;

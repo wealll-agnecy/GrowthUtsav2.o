@@ -2,76 +2,74 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import apiClient from '../api/apiClient';
 import { playSound } from '../utils/soundManager';
-import { Container, Button, Badge, Row, Col, Form } from 'react-bootstrap';
+import { Container, Button, Badge, Form } from 'react-bootstrap';
 import { FaCheckCircle, FaTimesCircle, FaBackward, FaQrcode } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './StaffScanner.css';
-import { formatCurrency } from '../utils/formatUtils';
+import { useAuth } from '../context/AuthContext';
+import firebaseRealtimeService from '../utils/socketService';
 
 const StaffScanner = () => {
+    const { user } = useAuth();
     const [scanResult, setScanResult] = useState(null);
     const [isScanning, setIsScanning] = useState(true);
     const [loading, setLoading] = useState(false);
     const [scannerError, setScannerError] = useState(null);
     const isProcessingRef = useRef(false);
-    const [updatingFood, setUpdatingFood] = useState(false);
-    const [updatingParking, setUpdatingParking] = useState(false);
+    
+    const [updating, setUpdating] = useState(false);
+    const ticketUnsubscribeRef = useRef(null);
 
-    const handleFoodToggleUpdate = async (e) => {
-        if (!scanResult || !scanResult.ticket || scanResult.ticket.foodTaken) return;
-        setUpdatingFood(true);
+    const role = user?.staffCheckRole || 'ENTRY';
+    const customAddons = user?.customAddonItemNames || [];
+
+    useEffect(() => {
+        return () => {
+            if (ticketUnsubscribeRef.current) {
+                ticketUnsubscribeRef.current();
+            }
+        };
+    }, []);
+
+    const toggleAction = async (endpoint, payload, successMessage) => {
+        if (!scanResult || !scanResult.ticket) return;
+        setUpdating(true);
         try {
-            const ticketId = scanResult.ticket._id;
-            const res = await apiClient.post('/api/v1/tickets/update-food', { ticketId });
+            const res = await apiClient.post(endpoint, payload);
             if (res.data.success) {
-                toast.success('Food access marked as taken!');
-                setScanResult(prev => ({
-                    ...prev,
-                    ticket: {
-                        ...prev.ticket,
-                        foodTaken: true
-                    }
-                }));
+                toast.success(successMessage);
+                // The Firebase listener will automatically update the UI state
             }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to update food access.');
+            toast.error(err.response?.data?.message || 'Update failed.');
         } finally {
-            setUpdatingFood(false);
+            setUpdating(false);
         }
     };
 
-    const handleParkingToggleUpdate = async (e) => {
-        if (!scanResult || !scanResult.ticket || scanResult.ticket.parkingUsed) return;
-        setUpdatingParking(true);
-        try {
-            const ticketId = scanResult.ticket._id;
-            const res = await apiClient.post('/api/v1/tickets/update-parking', { ticketId });
-            if (res.data.success) {
-                toast.success('Parking access marked as used!');
-                setScanResult(prev => ({
-                    ...prev,
-                    ticket: {
-                        ...prev.ticket,
-                        parkingUsed: true
-                    }
-                }));
-            }
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to update parking access.');
-        } finally {
-            setUpdatingParking(false);
-        }
+    const handleEntryToggleUpdate = () => {
+        toggleAction('/api/v1/tickets/update-entry', { ticketId: scanResult.ticket._id }, 'Entry marked successfully!');
+    };
+
+    const handleFoodToggleUpdate = () => {
+        toggleAction('/api/v1/tickets/update-food', { ticketId: scanResult.ticket._id }, 'Food access marked as taken!');
+    };
+
+    const handleParkingToggleUpdate = () => {
+        toggleAction('/api/v1/tickets/update-parking', { ticketId: scanResult.ticket._id }, 'Parking access marked as used!');
+    };
+
+    const handleAddonToggleUpdate = (itemName) => {
+        toggleAction('/api/v1/tickets/update-addons', { ticketId: scanResult.ticket._id, itemName }, `${itemName} marked as claimed!`);
     };
 
     const onScanSuccess = useCallback(async (result) => {
         if (isProcessingRef.current) return;
         isProcessingRef.current = true;
-        
-        console.log("Captured Sequence:", result);
         handleVerification(result);
-    }, []); // Removed handleVerification as dependency to keep it stable
+    }, []);
 
     const onScanError = useCallback((err) => {
         // Continuous scanning
@@ -91,101 +89,38 @@ const StaffScanner = () => {
                 playSound('scanSuccess');
                 try {
                     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                } catch (vErr) {
-                    console.debug("Vibration blocked or unavailable");
+                } catch (vErr) {}
+
+                // Setup Firebase listener for this specific ticket
+                if (ticketUnsubscribeRef.current) {
+                    ticketUnsubscribeRef.current();
+                }
+                const eventId = data.ticket?.eventId;
+                if (eventId && data.ticket?._id) {
+                    ticketUnsubscribeRef.current = firebaseRealtimeService.listenToTicket(eventId, data.ticket._id, (updatedTicket) => {
+                        console.log("Firebase Ticket Update:", updatedTicket);
+                        setScanResult(prev => {
+                            if (!prev || !prev.ticket) return prev;
+                            // Merge the updated boolean flags from Firebase
+                            return {
+                                ...prev,
+                                ticket: {
+                                    ...prev.ticket,
+                                    ...updatedTicket // Overwrites isScanned, foodTaken, parkingUsed, addonStatuses etc.
+                                }
+                            };
+                        });
+                        setUpdating(false); // Enable UI again if it was blocked by updating
+                    });
                 }
             } else {
                 playSound('scanDenied');
                 try {
                     if (navigator.vibrate) navigator.vibrate(300);
-                } catch (vErr) {
-                    console.debug("Vibration blocked or unavailable");
-                }
+                } catch (vErr) {}
             }
 
-            // Log entry for Recent Entries table (Persistent across pages)
-            try {
-                const ticket = data.ticket || {};
-                
-                // BACKEND MAPPING FIX: Use correct field names from details object
-                const totalAmount = ticket.ticketPrice || ticket.totalAmount || ticket.amount || 0;
-                const paidAmount = ticket.paidAmount || ticket.amountPaid || 0;
-                const dueAmount = totalAmount - paidAmount;
-                const planName = ticket.ticketTier || ticket.selectedPlan || ticket.planName || 'N/A';
-                const actualTicketId = ticket.ticketId || ticket._id || 'N/A';
-
-                let paymentStatus = "";
-                if (paidAmount <= 0) {
-                    paymentStatus = "UNPAID";
-                } else if (dueAmount <= 0) {
-                    paymentStatus = "FULLY PAID";
-                } else {
-                    paymentStatus = "PARTIAL";
-                }
-
-                // STRICT VALIDATION BLOCK
-                const msg = (data.message || "").toLowerCase();
-                
-                const alreadyScanned = msg.includes("already") || msg.includes("used");
-                const isValidTicket = data.status !== "ACCESS DENIED — Invalid ticket" && data.message !== "This identifier does not match any registered ticket.";
-                const isExpired = ticket.event?.date && new Date(ticket.event.date) < new Date().setHours(0,0,0,0);
-                const paymentDue = ticket.remainingAmount || 0;
-
-                let finalStatus = "";
-                let finalReason = "";
-
-                if (alreadyScanned === true) {
-                    finalStatus = "DENIED";
-                    finalReason = "Already Scanned";
-                }
-                else if (isValidTicket === false) {
-                    finalStatus = "DENIED";
-                    finalReason = "False Ticket";
-                }
-                else if (isExpired === true) {
-                    finalStatus = "DENIED";
-                    finalReason = "Expired Ticket";
-                }
-                else if (paymentDue > 0) {
-                    finalStatus = "DENIED";
-                    finalReason = "Payment Due";
-                }
-                else {
-                    finalStatus = "GRANTED";
-                    finalReason = "Valid Ticket";
-                }
-
-                const newEntry = {
-                    name: ticket.name || (ticket.user?.name) || 'Unknown',
-                    event: ticket.eventName || (ticket.event?.title) || 'N/A',
-                    total: totalAmount,
-                    paid: paidAmount,
-                    due: Math.max(dueAmount, 0),
-                    status: finalStatus,
-                    paymentStatus: paymentStatus,
-                    selectedPlan: planName,
-                    reason: finalReason,
-                    time: new Date().toLocaleTimeString()
-                };
-                const existing = JSON.parse(localStorage.getItem('recent_scans') || '[]');
-                localStorage.setItem('recent_scans', JSON.stringify([newEntry, ...existing].slice(0, 50)));
-                
-                // Final Assignment to scanResult data
-                data.status = finalStatus;
-                data.reason = finalReason;
-                data.ticket = {
-                    ...ticket,
-                    _id: actualTicketId,
-                    totalAmount,
-                    paidAmount,
-                    selectedPlan: planName,
-                    dueAmount: Math.max(dueAmount, 0)
-                };
-
-                setScanResult(data);
-            } catch (e) {
-                console.error("Local Storage Log Error:", e);
-            }
+            setScanResult(data);
         } catch (err) {
             console.error("Verification Error:", err);
             playSound('error');
@@ -201,8 +136,135 @@ const StaffScanner = () => {
 
     const resetScanner = () => {
         isProcessingRef.current = false;
+        if (ticketUnsubscribeRef.current) {
+            ticketUnsubscribeRef.current();
+            ticketUnsubscribeRef.current = null;
+        }
         setScanResult(null);
         setIsScanning(true);
+    };
+
+    // Render Role UI Dynamically
+    const renderRoleSpecificUI = () => {
+        if (!scanResult || !scanResult.ticket || scanResult.status !== 'GRANTED') return null;
+        const ticket = scanResult.ticket;
+
+        if (role === 'ENTRY') {
+            return (
+                <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border mt-4">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className={`d-flex justify-content-center align-items-center rounded-circle ${ticket.isScanned ? 'bg-secondary text-white' : 'bg-primary text-white'}`} style={{ width: '36px', height: '36px' }}>
+                            <span style={{ fontSize: '16px' }}>🎟️</span>
+                        </div>
+                        <div className="d-flex flex-column text-start">
+                            <span className="fw-bold small text-dark">Entry Check</span>
+                            <span className={`x-small fw-bold ${ticket.isScanned ? 'text-danger' : 'text-success'}`}>
+                                {ticket.isScanned ? 'Entry already marked' : 'Clear for Entry'}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <Form.Check 
+                            type="switch"
+                            id="entry-access-toggle"
+                            checked={ticket.isScanned}
+                            disabled={ticket.isScanned || updating}
+                            onChange={handleEntryToggleUpdate}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        if (role === 'FOOD') {
+            return (
+                <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border mt-4">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className={`d-flex justify-content-center align-items-center rounded-circle ${ticket.foodTaken ? 'bg-secondary text-white' : 'bg-pink text-white'}`} style={{ width: '36px', height: '36px' }}>
+                            <span style={{ fontSize: '16px' }}>🍔</span>
+                        </div>
+                        <div className="d-flex flex-column text-start">
+                            <span className="fw-bold small text-dark">Food</span>
+                            <span className={`x-small fw-bold ${ticket.foodTaken ? 'text-secondary' : 'text-success'}`}>
+                                {ticket.foodTaken ? 'Food is already taken' : 'Food Available'}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <Form.Check 
+                            type="switch"
+                            id="food-access-toggle"
+                            checked={ticket.foodTaken}
+                            disabled={ticket.foodTaken || updating}
+                            onChange={handleFoodToggleUpdate}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        if (role === 'PARKING') {
+            return (
+                <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border mt-4">
+                    <div className="d-flex align-items-center gap-3">
+                        <div className={`d-flex justify-content-center align-items-center rounded-circle ${ticket.parkingUsed ? 'bg-secondary text-white' : 'bg-info text-white'}`} style={{ width: '36px', height: '36px' }}>
+                            <span style={{ fontSize: '16px' }}>🚗</span>
+                        </div>
+                        <div className="d-flex flex-column text-start">
+                            <span className="fw-bold small text-dark">Parking</span>
+                            <span className={`x-small fw-bold ${ticket.parkingUsed ? 'text-secondary' : 'text-success'}`}>
+                                {ticket.parkingUsed ? 'Parking already used' : 'Parking Available'}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <Form.Check 
+                            type="switch"
+                            id="parking-access-toggle"
+                            checked={ticket.parkingUsed}
+                            disabled={ticket.parkingUsed || updating}
+                            onChange={handleParkingToggleUpdate}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        if (role === 'CUSTOM_ADDON') {
+            return (
+                <div className="mt-4 d-flex flex-column gap-3">
+                    {customAddons.map((item, idx) => {
+                        const isClaimed = ticket.addonStatuses && ticket.addonStatuses[item];
+                        return (
+                            <div key={idx} className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className={`d-flex justify-content-center align-items-center rounded-circle ${isClaimed ? 'bg-secondary text-white' : 'bg-warning text-dark'}`} style={{ width: '36px', height: '36px' }}>
+                                        <span style={{ fontSize: '16px' }}>🎁</span>
+                                    </div>
+                                    <div className="d-flex flex-column text-start">
+                                        <span className="fw-bold small text-dark">{item}</span>
+                                        <span className={`x-small fw-bold ${isClaimed ? 'text-secondary' : 'text-success'}`}>
+                                            {isClaimed ? 'Already claimed' : 'Available'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <Form.Check 
+                                        type="switch"
+                                        id={`addon-toggle-${idx}`}
+                                        checked={isClaimed || false}
+                                        disabled={isClaimed || updating}
+                                        onChange={() => handleAddonToggleUpdate(item)}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        return <div className="mt-4 text-center text-muted">No specific module assigned.</div>;
     };
 
     return (
@@ -213,7 +275,7 @@ const StaffScanner = () => {
                         <FaBackward className="me-2" /> EXIT
                     </Link>
                     <Badge bg={isScanning ? "success" : "secondary"} className="rounded-pill px-3 py-2">
-                        {isScanning ? "SENSOR ACTIVE" : "PAUSED"}
+                        {isScanning ? `${role} SENSOR ACTIVE` : "PAUSED"}
                     </Badge>
                 </div>
 
@@ -246,9 +308,9 @@ const StaffScanner = () => {
                             <div className="scan-status">
                                 <h2 className={scanResult.status === 'GRANTED' ? 'green' : 'red'}>
                                     {scanResult.status === 'GRANTED' ? (
-                                        <><FaCheckCircle /> Access Granted</>
+                                        <><FaCheckCircle /> Verification Passed</>
                                     ) : (
-                                        <><FaTimesCircle /> Access Denied</>
+                                        <><FaTimesCircle /> Verification Failed</>
                                     )}
                                 </h2>
                             </div>
@@ -256,103 +318,74 @@ const StaffScanner = () => {
                             <div className="attendee-card">
                                 <div className="d-flex justify-content-between align-items-start mb-3">
                                     <div>
-                                        <h3>{scanResult.ticket?.user?.name || scanResult.ticket?.name || 'Unknown Attendee'}</h3>
-                                        <p className="m-0">{scanResult.ticket?.user?.email || scanResult.ticket?.email || 'No email provided'}</p>
+                                        <h3>{scanResult.ticket?.name || 'Unknown Attendee'}</h3>
                                     </div>
                                     <div className={`scan-reason ${scanResult.reason?.toLowerCase().replace(' ', '-')}`}>
-                                        {scanResult.reason}
+                                        {scanResult.message}
                                     </div>
                                 </div>
 
                                 <div className="info-row">
                                     <span>Event</span>
-                                    <b>{scanResult.ticket?.event?.title || scanResult.ticket?.eventName || 'N/A'}</b>
+                                    <b>{scanResult.ticket?.eventName || 'N/A'}</b>
                                 </div>
-
-                                <div className="info-row">
-                                    <span>Selected Plan</span>
-                                    <b className="text-pink">{scanResult.ticket?.selectedPlan || scanResult.ticket?.planName || 'N/A'}</b>
-                                </div>
-
-                                <div className="info-row">
-                                    <span>Amount Paid</span>
-                                    <b>{formatCurrency(scanResult.ticket?.amountPaid || 0)}</b>
-                                </div>
-
-                                <div className="info-row">
-                                    <span>Ticket ID</span>
-                                    <b style={{ fontSize: '10px' }}>{scanResult.ticket?._id || 'N/A'}</b>
-                                </div>
-
-                                <div className="info-row">
-                                    <span>Status</span>
-                                    <b className={scanResult.ticket?.isScanned ? "red" : "green"}>
-                                        {scanResult.ticket?.isScanned ? "Already Scanned" : "Valid"}
-                                    </b>
-                                </div>
-
-                                {/* --- New Food & Parking Access Tracking --- */}
-                                {scanResult.ticket && (
-                                    <div className="mt-4 pt-3 border-top border-pink border-opacity-10 d-flex flex-column gap-3">
-                                        {/* Food Row */}
-                                        <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div 
-                                                    className={`d-flex justify-content-center align-items-center rounded-circle ${
-                                                        scanResult.ticket.foodTaken ? 'bg-secondary text-white' : 'bg-pink text-white'
-                                                    }`} 
-                                                    style={{ width: '36px', height: '36px' }}
-                                                >
-                                                    <span style={{ fontSize: '16px' }}>🍔</span>
-                                                </div>
-                                                <div className="d-flex flex-column text-start">
-                                                    <span className="fw-bold small text-dark">Food</span>
-                                                    <span className={`x-small fw-bold ${scanResult.ticket.foodTaken ? 'text-secondary' : 'text-success'}`}>
-                                                        {scanResult.ticket.foodTaken ? 'Food is already taken' : 'Food Available'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <Form.Check 
-                                                    type="switch"
-                                                    id="food-access-toggle"
-                                                    checked={scanResult.ticket.foodTaken}
-                                                    disabled={scanResult.ticket.foodTaken || updatingFood}
-                                                    onChange={handleFoodToggleUpdate}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Parking Row */}
-                                        <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
-                                            <div className="d-flex align-items-center gap-3">
-                                                <div 
-                                                    className={`d-flex justify-content-center align-items-center rounded-circle ${
-                                                        scanResult.ticket.parkingUsed ? 'bg-secondary text-white' : 'bg-pink text-white'
-                                                    }`} 
-                                                    style={{ width: '36px', height: '36px' }}
-                                                >
-                                                    <span style={{ fontSize: '16px' }}>🚗</span>
-                                                </div>
-                                                <div className="d-flex flex-column text-start">
-                                                    <span className="fw-bold small text-dark">Parking</span>
-                                                    <span className={`x-small fw-bold ${scanResult.ticket.parkingUsed ? 'text-secondary' : 'text-success'}`}>
-                                                        {scanResult.ticket.parkingUsed ? 'Parking is already done' : 'Parking Available'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <Form.Check 
-                                                    type="switch"
-                                                    id="parking-access-toggle"
-                                                    checked={scanResult.ticket.parkingUsed}
-                                                    disabled={scanResult.ticket.parkingUsed || updatingParking}
-                                                    onChange={handleParkingToggleUpdate}
-                                                />
-                                            </div>
-                                        </div>
+                                
+                                {role === 'ENTRY' && scanResult.ticket?.ticketTier && (
+                                    <div className="info-row">
+                                        <span>Plan</span>
+                                        <b className="text-pink">{scanResult.ticket.ticketTier}</b>
                                     </div>
                                 )}
+
+                                {scanResult.ticket && (() => {
+                                    const t = scanResult.ticket;
+                                    const amountPaid = t.amountPaid || 0;
+                                    const totalAmount = t.totalAmount || 0;
+                                    const remainingAmount = t.remainingAmount || 0;
+                                    const paymentStatus = (t.paymentStatus || 'PENDING').toUpperCase();
+                                    const isFullyPaid = amountPaid >= totalAmount || paymentStatus === 'COMPLETED' || paymentStatus === 'PAID';
+
+                                    return (
+                                        <>
+                                            <div className="info-row mt-2">
+                                                <span>Payment Status</span>
+                                                <Badge bg={isFullyPaid ? 'success' : paymentStatus === 'PARTIAL' ? 'warning' : 'danger'} className="text-uppercase fw-bold px-2 py-1">
+                                                    {isFullyPaid ? 'Paid' : paymentStatus === 'PARTIAL' ? 'Partial' : 'Pending'}
+                                                </Badge>
+                                            </div>
+                                            {!isFullyPaid && (
+                                                <div className="info-row mt-2 fw-bold" style={{ color: '#dc3545' }}>
+                                                    <span>Remaining Balance</span>
+                                                    <span>₹{remainingAmount}</span>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+
+                                {/* Render Specific UI Controls */}
+                                {scanResult.ticket && renderRoleSpecificUI()}
+
+                                {scanResult.ticket && (() => {
+                                    const t = scanResult.ticket;
+                                    const amountPaid = t.amountPaid || 0;
+                                    const totalAmount = t.totalAmount || 0;
+                                    const remainingAmount = t.remainingAmount || 0;
+                                    const paymentStatus = (t.paymentStatus || 'PENDING').toUpperCase();
+                                    const isFullyPaid = amountPaid >= totalAmount || paymentStatus === 'COMPLETED' || paymentStatus === 'PAID';
+
+                                    if (!isFullyPaid) {
+                                        return (
+                                            <div className="payment-warning-strip mt-3 p-3 rounded text-danger border d-flex align-items-center gap-2" style={{ backgroundColor: '#fff5f5', borderColor: '#ffc1c1' }}>
+                                                <FaTimesCircle className="flex-shrink-0" style={{ color: '#dc3545' }} />
+                                                <div className="text-start">
+                                                    <strong style={{ color: '#dc3545' }}>ENTRY BLOCKED:</strong> Remaining payment of ₹{remainingAmount} is required.
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
 
                                 {!scanResult.ticket && (
                                     <div className="mt-3 text-center">
@@ -360,7 +393,7 @@ const StaffScanner = () => {
                                     </div>
                                 )}
 
-                                <button className="next-btn" onClick={resetScanner}>
+                                <button className="next-btn mt-4" onClick={resetScanner}>
                                     Next Scan
                                 </button>
                             </div>
@@ -417,7 +450,6 @@ const ScannerView = ({ onScanSuccess, onScanError, scannerError, setScannerError
                 );
             } catch (err) {
                 console.error("Scanner start error:", err);
-                // Fallback to front camera
                 try {
                     await html5QrCode.start(
                         { facingMode: "user" },

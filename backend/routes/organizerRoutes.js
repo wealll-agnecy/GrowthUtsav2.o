@@ -22,18 +22,16 @@ router.get('/bookings', authorize('organizer', 'staff'), async (req, res) => {
     try {
         const Ticket = require('../models/Ticket');
         
-        let eventIds = [];
-        
-        if (req.user.role === 'staff') {
-            eventIds = req.user.assignedEvents || [];
-        } else {
-            const myEvents = await Event.find({ organizer: req.user.id }).select('_id').lean();
-            eventIds = myEvents.map(e => e._id);
-        }
+        const allEvents = await Event.find().select('_id').lean();
+        const eventIds = allEvents.map(e => e._id);
         
         const tickets = await Ticket.find({ eventId: { $in: eventIds } })
             .populate('user', 'name email phone')
             .populate('event', 'title venue date isMultiDay multiDayPlan')
+            .populate({
+                path: 'booking',
+                select: 'attendeeDetails selectedFood selectedAddons quantity totalAmount amountPaid'
+            })
             .sort({ scannedAt: -1, createdAt: -1 })
             .lean();
 
@@ -41,7 +39,7 @@ router.get('/bookings', authorize('organizer', 'staff'), async (req, res) => {
             const total = t.totalAmount || t.ticketPrice || 0;
             const paid = t.amountPaid || 0;
             const remaining = Math.max(0, total - paid);
-            const duration = (t.event && t.event.isMultiDay) ? (t.event.multiDayPlan?.length || 1) : 1;
+            const duration = (t.event && t.event.isMultiDay) ? (t.event.isMultiDay && t.event.multiDayPlan?.length || 1) : 1;
 
             return {
                 ...t,
@@ -60,7 +58,11 @@ router.get('/bookings', authorize('organizer', 'staff'), async (req, res) => {
                 validityText: `${duration} Day${duration > 1 ? 's' : ''}`,
                 lastScanDate: t.lastScanDate || t.scannedAt,
                 isUsed: t.status === 'used' || t.isScanned,
-                ticketStatus: t.status
+                ticketStatus: t.status,
+                attendeeDetails: t.booking?.attendeeDetails || [],
+                selectedFood: t.booking?.selectedFood || [],
+                selectedAddons: t.booking?.selectedAddons || [],
+                bookedQuantity: t.booking?.quantity || 1
             };
         });
             
@@ -70,6 +72,8 @@ router.get('/bookings', authorize('organizer', 'staff'), async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 });
+
+// --- STAFF-ONLY ROUTES (Accessible to Staff Members) ---
 
 // --- ROUTES ACCESSIBLE ONLY BY ORGANIZER ---
 router.use(authorize('organizer'));
@@ -82,7 +86,8 @@ router.route('/staff')
 router.route('/staff/:id')
     .delete(deleteStaff);
 
-router.put('/staff/:id/assign', assignStaffToEvents);
+
+
 router.get("/event/:id/details", async (req, res) => {
   try {
     const eventId = req.params.id;
@@ -140,18 +145,21 @@ router.get('/revenue', async (req, res) => {
     try {
         const Booking = require('../models/Booking');
         const now = new Date();
+        const organizerId = req.user.id || req.user._id;
+
+        // Find all events owned by this organizer
+        const myEvents = await Event.find({ organizer: organizerId }).select('_id').lean();
+        const myEventIds = myEvents.map(e => e._id);
 
         // Find completed events owned by this organizer
         const completedEvents = await Event.find({
-            organizer: req.user.id,
+            organizer: organizerId,
             endDate: { $lt: now }
         }).select('_id').lean();
 
-        const eventIds = completedEvents.map(e => e._id);
-
-        // Aggregate amountPaid (actual collected cash, not face value)
+        // Aggregate amountPaid for all of this organizer's events
         const revenueAgg = await Booking.aggregate([
-            { $match: { event: { $in: eventIds }, paymentStatus: { $in: ['partial', 'completed'] } } },
+            { $match: { event: { $in: myEventIds }, paymentStatus: { $in: ['partial', 'completed'] } } },
             { $group: { _id: null, totalRevenue: { $sum: '$amountPaid' } } }
         ]);
 

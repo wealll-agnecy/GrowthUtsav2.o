@@ -3,7 +3,7 @@ import apiClient from './apiClient';
 const API_URL = '/api/v1/bookings';
 
 export const checkout = async (bookingData) => {
-    return await apiClient.post(`${API_URL}/demo-book`, bookingData);
+    return await apiClient.post(`${API_URL}/checkout`, bookingData);
 };
 
 export const demoBook = async (bookingData) => {

@@ -27,11 +27,7 @@ const OrganizerEventCard = ({ event }) => {
                         className="h-100 w-100 object-fit-cover"
                         alt={event.title}
                     />
-                    <div className="position-absolute top-0 end-0 m-3">
-                        <span className={`status-badge ${event.status === 'approved' || event.status === 'live' ? 'badge-pink' : 'bg-secondary text-white'}`}>
-                            {event.status?.toUpperCase() || 'UNSET'}
-                        </span>
-                    </div>
+
 
                     {/* Food Banners on Image */}
                     {(event?.foodSettings?.foodType === 'compulsory' || event?.foodSettings?.type === 'compulsory') && (

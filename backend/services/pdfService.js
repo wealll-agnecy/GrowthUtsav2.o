@@ -3,6 +3,24 @@ const QRCode = require('qrcode');
 const Ticket = require('../models/Ticket');
 const path = require('path');
 
+const getFormattedDateRange = (start, end) => {
+    if (!start) return '';
+    const s = new Date(start);
+    const e = end ? new Date(end) : s;
+    
+    const startDay = s.getDate();
+    const startMonth = s.toLocaleString('en-US', { month: 'short' });
+    
+    if (s.toDateString() === e.toDateString()) {
+        return `${startDay} ${startMonth}`;
+    }
+    
+    const endDay = e.getDate();
+    const endMonth = e.toLocaleString('en-US', { month: 'short' });
+    
+    return `${startDay} ${startMonth} – ${endDay} ${endMonth}`;
+};
+
 /**
  * Generate a professional PDF ticket buffer
  * @param {string} ticketId - MongoDB ID of the ticket
@@ -69,12 +87,10 @@ exports.generateTicketPDF = async (ticketId) => {
             doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('VENUE', 70, 190);
             doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(ticket.event.venue, 70, 205, { width: 400 });
             
-            // Date & Time
-            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('DATE', 70, 240);
-            const eventDate = new Date(ticket.selectedDate || ticket.event.date).toLocaleDateString('en-US', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-            });
-            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(eventDate, 70, 255);
+            // Date & Time (formatted range)
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('DATE RANGE', 70, 240);
+            const dateRangeText = getFormattedDateRange(ticket.event.date, ticket.event.endDate);
+            doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(dateRangeText, 70, 255);
 
             doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('TIME', 300, 240);
             doc.fillColor('#111827').font('Helvetica-Bold').fontSize(12).text(ticket.event.time || 'Check Schedule', 300, 255);
@@ -110,14 +126,18 @@ exports.generateTicketPDF = async (ticketId) => {
             doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('BOOKED DATES', 50, 510);
             doc.fillColor('#111827').font('Helvetica-Bold').fontSize(10).text(dateListText, 50, 525, { width: 300 });
 
+            // Payment Status
+            doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('PAYMENT STATUS', 220, 510);
+            doc.fillColor('#16a34a').font('Helvetica-Bold').fontSize(10).text('SUCCESS', 220, 525);
+
             // Badge Concept for Ticket Type
             const badgeWidth = 180;
             doc.roundedRect(50, 560, badgeWidth, 35, 17.5).fill('#AD1457');
             doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(11).text(`${ticket.ticketType.toUpperCase()} PASS`, 50, 572, { width: badgeWidth, align: 'center' });
 
             // Entry Rules & Duration
-            const entryQty = (ticket.booking && ticket.booking.quantity) ? ticket.booking.quantity : 1;
-            const entryLabel = `Allowed Entry: ${entryQty} Person${entryQty > 1 ? 's' : ''}`;
+            const entryQty = (ticket.quantity) ? ticket.quantity : ((ticket.booking && ticket.booking.quantity) ? ticket.booking.quantity : 1);
+            const entryLabel = `Valid for ${entryQty} Person${entryQty > 1 ? 's' : ''} Entry`;
             doc.fillColor('#4b5563').font('Helvetica').fontSize(10).text(entryLabel, 50, 610);
             doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(11).text(validityText.toUpperCase(), 50, 625);
 
@@ -134,6 +154,19 @@ exports.generateTicketPDF = async (ticketId) => {
                 doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(9).text(foodTextToShow, 50, 670, { width: 300, lineGap: 3 });
             }
 
+            // Custom Addons / Items Section
+            let addonsTextToShow = "";
+            if (ticket.booking && ticket.booking.selectedAddons && ticket.booking.selectedAddons.length > 0) {
+                addonsTextToShow = ticket.booking.selectedAddons.map(a => `• ${a.itemName} (${(a.type || 'Item').toUpperCase()}) x${a.quantity || entryQty}`).join('\n');
+            } else if (ticket.event && ticket.event.addonsSettings && (ticket.event.addonsSettings.addonType === 'compulsory') && ticket.event.addonsSettings.options?.length > 0) {
+                addonsTextToShow = ticket.event.addonsSettings.options.map(a => `• [INCLUDED] ${a.itemName} (${(a.type || 'Item').toUpperCase()})`).join('\n');
+            }
+
+            if (addonsTextToShow) {
+                const addonsY = foodTextToShow ? 710 : 655;
+                doc.fillColor('#4b5563').font('Helvetica').fontSize(11).text('CUSTOM INCLUSIONS', 50, addonsY);
+                doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(9).text(addonsTextToShow, 50, addonsY + 15, { width: 300, lineGap: 3 });
+            }
 
             // 7. QR Code Section (Right Side)
             doc.roundedRect(380, 380, 165, 165, 10).lineWidth(1.5).stroke('#d4af37');
@@ -159,7 +192,7 @@ exports.generateTicketPDF = async (ticketId) => {
             
             // Bottom Branding
             doc.rect(0, 785, 595.28, 56.89).fill('#f9fafb');
-            doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(10).text('GROWTH UTSAV • SECURE EVENT SERVICES', 0, 805, { align: 'center' });
+            doc.fillColor('#AD1457').font('Helvetica-Bold').fontSize(10).text('KARMA INTERNATIONAL • SECURE EVENT SERVICES', 0, 805, { align: 'center' });
             doc.fillColor('#9ca3af').font('Helvetica').fontSize(8).text('This is a computer-generated document. No signature required.', 0, 820, { align: 'center' });
 
             doc.end();

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as bookingApi from '../api/bookingApi';
-import { Container, Row, Col, Card, Badge, Alert, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge, Alert, Button, Modal, Form, ProgressBar, Spinner } from 'react-bootstrap';
 import { 
     FaCalendarAlt, FaMapMarkerAlt, FaTicketAlt, FaRocket, 
     FaClock, FaShieldAlt, FaWallet, FaSync, FaArrowRight, FaTimes, FaArrowLeft, FaCheckCircle 
@@ -9,7 +9,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { Modal, Form, ProgressBar, Spinner } from 'react-bootstrap';
 import '../css/mybookings.css';
 import { formatCurrency } from '../utils/formatUtils';
 
@@ -84,16 +83,105 @@ const MyBookings = () => {
         return (
             <div
                 className="d-flex flex-column align-items-center justify-content-center"
-                style={{ minHeight: '80vh', paddingTop: 'var(--navbar-height)' }}
+                style={{ minHeight: '80vh', paddingTop: 'var(--navbar-height)', backgroundColor: '#050505', fontFamily: 'Inter, sans-serif' }}
             >
-                <FaTicketAlt size={40} className="text-primary-light mb-3" />
-                <p className="text-soft fw-black">Loading your bookings...</p>
+                <FaTicketAlt size={40} style={{ color: '#C9A227', marginBottom: '16px' }} />
+                <p className="fw-black" style={{ color: '#9ca3af' }}>Loading your bookings...</p>
             </div>
         );
     }
 
     return (
         <div className="mybooking-wrapper">
+            <style>{`
+                .mybooking-wrapper {
+                    background: #050505 !important;
+                    min-height: 100vh;
+                    color: #F5F5F5 !important;
+                    font-family: 'Inter', sans-serif;
+                    padding-top: 80px !important;
+                }
+                .mybooking-header h1 {
+                    color: #F5F5F5 !important;
+                }
+                .booking-card {
+                    background: rgba(255, 255, 255, 0.03) !important;
+                    border: 1px solid rgba(201, 162, 39, 0.15) !important;
+                    box-shadow: 0 10px 30px rgba(201, 162, 39, 0.03) !important;
+                }
+                .booking-card:hover {
+                    border-color: rgba(201, 162, 39, 0.4) !important;
+                    box-shadow: 0 20px 40px rgba(201, 162, 39, 0.08) !important;
+                }
+                .event-name {
+                    color: #F5F5F5 !important;
+                }
+                .event-cat {
+                    color: #C9A227 !important;
+                }
+                .booking-summary-mini {
+                    background: rgba(255, 255, 255, 0.04) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                }
+                .ticket-line .type {
+                    color: #9ca3af !important;
+                }
+                .ticket-line .price {
+                    color: #F5F5F5 !important;
+                }
+                .bar-track {
+                    background: rgba(255,255,255,0.08) !important;
+                }
+                .view-ticket-btn {
+                    background: linear-gradient(90deg, #C9A227, #C9A227) !important;
+                    color: #050505 !important;
+                    border: 1px solid #C9A227 !important;
+                    font-weight: 800 !important;
+                }
+                .view-ticket-btn:hover {
+                    background: #E5A93B !important;
+                    border-color: #E5A93B !important;
+                }
+                .pay-due-btn {
+                    background: transparent !important;
+                    border: 1.5px solid rgba(201, 162, 39, 0.4) !important;
+                    color: #C9A227 !important;
+                }
+                .pay-due-btn:hover {
+                    background: rgba(201, 162, 39, 0.05) !important;
+                    border-color: rgba(201, 162, 39, 0.8) !important;
+                }
+                .text-soft {
+                    color: #9ca3af !important;
+                }
+                .no-booking-container {
+                    background: rgba(255, 255, 255, 0.02) !important;
+                    border: 2px dashed rgba(201, 162, 39, 0.2) !important;
+                }
+                .no-booking-title {
+                    color: #F5F5F5 !important;
+                }
+                .no-booking-text {
+                    color: #9ca3af !important;
+                }
+                .modal-content {
+                    background: #111111 !important;
+                    border: 1px solid rgba(201, 162, 39, 0.2) !important;
+                    color: #F5F5F5 !important;
+                }
+                .modal-header, .modal-footer {
+                    border-color: rgba(255,255,255,0.08) !important;
+                }
+                .form-control {
+                    background: rgba(255,255,255,0.04) !important;
+                    border: 1px solid rgba(255,255,255,0.1) !important;
+                    color: #F5F5F5 !important;
+                }
+                .form-control:focus {
+                    border-color: rgba(201, 162, 39, 0.5) !important;
+                    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.08) !important;
+                }
+            `}</style>
             <Container fluid className="px-md-5">
                 {/* ─── Header ─── */}
                 <motion.div
@@ -103,16 +191,16 @@ const MyBookings = () => {
                     className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-5 mt-4 mt-md-2"
                 >
                     <div className="flex-grow-1 mybooking-header">
-                        <Badge className="booking-status status-confirmed mb-3 shadow-sm">
+                        <Badge className="booking-status status-confirmed mb-3 shadow-sm" style={{ background: 'rgba(201,162,39,0.15)', color: '#C9A227' }}>
                             <FaTicketAlt className="me-2" /> Digital Asset Vault
                         </Badge>
                         <h1 className="fw-black m-0 tracking-tighter text-bright">
-                            My <span style={{ color: '#ee749fff' }}>Bookings</span>
+                            My <span style={{ color: '#C9A227' }}>Bookings</span>
                         </h1>
                     </div>
                     <div className="text-md-end d-flex align-items-center gap-3">
                         <span className="text-soft fw-black uppercase tracking-widest small">Active Clearances:</span>
-                        <span className="text-primary-light fw-black h2 m-0 gradient-text shadow-glow">{(bookings || []).length}</span>
+                        <span className="fw-black h2 m-0 shadow-glow" style={{ color: '#C9A227' }}>{(bookings || []).length}</span>
                     </div>
                 </motion.div>
 
@@ -140,7 +228,7 @@ const MyBookings = () => {
                             </p>
                             <Button
                                 as={Link}
-                                to="/events"
+                                to="/"
                                 className="btn btn-pink"
                             >
                                 <FaRocket className="me-2" /> Explore Events

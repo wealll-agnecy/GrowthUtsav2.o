@@ -1,0 +1,540 @@
+/* ── Karma Landing Page – Custom Premium CSS ── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+.karma-page {
+  background: #050505;
+  color: #F5F5F5;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── Hero Section ── */
+.karma-hero {
+  position: relative;
+  padding: 80px 50px 50px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #050505 0%, #151105 50%, #0a0515 100%);
+}
+
+.karma-hero-glow {
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(201, 162, 39, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.karma-hero-glow-left {
+  position: absolute;
+  bottom: -100px;
+  left: -100px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(201, 162, 39, 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.karma-hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Badge ── */
+.karma-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: 1px solid rgba(201, 162, 39, 0.25);
+  background: rgba(201, 162, 39, 0.08);
+  margin-bottom: 28px;
+}
+
+.karma-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #C9A227;
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.4);
+  }
+}
+
+.karma-badge span {
+  color: #C9A227;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Headline ── */
+.karma-headline {
+  font-size: 48px !important;
+  font-weight: 900;
+  line-height: 1.05;
+  margin-bottom: 24px;
+  color: #F5F5F5 !important;
+}
+
+.karma-headline-gold {
+  background: linear-gradient(90deg, #C9A227, #C9A227, #C9A227);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-left: 6px;
+}
+
+.karma-subtext {
+  font-size: 1.1rem;
+  color: #d1d5db;
+  line-height: 1.8;
+  max-width: 520px;
+  margin-bottom: 0;
+}
+
+/* ── CTA Buttons ── */
+.karma-btn-primary {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 40px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #050505 !important;
+  background: linear-gradient(90deg, #C9A227, #C9A227, #C9A227);
+  border: none;
+  box-shadow: 0 0 50px rgba(201, 162, 39, 0.35);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.karma-btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 80px rgba(201, 162, 39, 0.5);
+  color: #050505 !important;
+}
+
+.karma-btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.karma-btn-primary:hover::after {
+  opacity: 1;
+}
+
+.karma-btn-outline {
+  padding: 18px 40px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #C9A227;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  box-shadow: 0 0 25px rgba(201, 162, 39, 0.06);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.karma-btn-outline:hover {
+  background: #C9A227;
+  color: #050505;
+  border-color: #C9A227;
+  box-shadow: 0 0 50px rgba(201, 162, 39, 0.4);
+}
+
+/* ── Stats Cards ── */
+.karma-stat-card {
+  padding: 20px 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(201, 162, 39, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.karma-stat-card:hover {
+  border-color: rgba(201, 162, 39, 0.35);
+  transform: translateY(-4px);
+}
+
+.karma-stat-number {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #C9A227 !important;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.karma-stat-label {
+  font-size: 0.88rem;
+  color: #d1d5db;
+  margin: 0;
+}
+
+/* ── Celebrity Card ── */
+.karma-celebrity-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.karma-celebrity-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201, 162, 39, 0.2), rgba(201, 162, 39, 0.15));
+  filter: blur(80px);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.karma-celebrity-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 580px;
+  border-radius: 36px;
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  box-shadow: 0 0 80px rgba(201, 162, 39, 0.12);
+  animation: float-card 6s ease-in-out infinite;
+}
+
+@keyframes float-card {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.karma-celebrity-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C9A227, transparent);
+  z-index: 2;
+}
+
+.karma-celebrity-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  animation: slow-zoom 15s ease-in-out infinite;
+}
+
+@keyframes slow-zoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.karma-celebrity-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, #050505 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%);
+  z-index: 1;
+}
+
+.karma-celebrity-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 28px;
+  z-index: 2;
+}
+
+.karma-celebrity-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 50px;
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  margin-bottom: 16px;
+}
+
+.karma-celebrity-tag span {
+  color: #C9A227 !important;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.karma-celebrity-name {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #F5F5F5 !important;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.karma-celebrity-desc {
+  color: #d1d5db;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── Plans Section ── */
+.karma-plans-section {
+  padding: 80px 0;
+  position: relative;
+}
+
+.karma-section-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  color: #F5F5F5 !important;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.karma-section-sub {
+  color: #d1d5db;
+  text-align: center;
+  font-size: 1rem;
+  margin-bottom: 56px;
+}
+
+.karma-plan-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(201, 162, 39, 0.12);
+  border-radius: 24px;
+  padding: 36px 28px;
+  height: 100%;
+  transition: all 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.karma-plan-card:hover {
+  border-color: rgba(201, 162, 39, 0.45);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 60px rgba(201, 162, 39, 0.1);
+}
+
+.karma-plan-card.featured {
+  border-color: rgba(201, 162, 39, 0.5);
+  background: rgba(201, 162, 39, 0.05);
+  box-shadow: 0 0 60px rgba(201, 162, 39, 0.12);
+}
+
+.karma-plan-card.featured::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C9A227, transparent);
+}
+
+.karma-plan-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 50px;
+  background: linear-gradient(90deg, #C9A227, #C9A227);
+  color: #050505;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.karma-plan-name {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #F5F5F5;
+  margin-bottom: 8px;
+}
+
+.karma-plan-price {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #C9A227;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.karma-plan-price span {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #d1d5db;
+}
+
+.karma-plan-desc {
+  color: #d1d5db;
+  font-size: 0.88rem;
+  margin-bottom: 24px;
+}
+
+.karma-plan-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #d1d5db;
+  font-size: 0.88rem;
+  margin-bottom: 10px;
+}
+
+.karma-plan-feature-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #C9A227;
+  flex-shrink: 0;
+}
+
+/* ── Highlights Section ── */
+.karma-highlights {
+  padding: 80px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.karma-highlight-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(201, 162, 39, 0.1);
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.karma-highlight-card:hover {
+  border-color: rgba(201, 162, 39, 0.35);
+  transform: translateY(-4px);
+}
+
+.karma-highlight-icon {
+  font-size: 2.2rem;
+  margin-bottom: 16px;
+}
+
+.karma-highlight-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #F5F5F5;
+  margin-bottom: 8px;
+}
+
+.karma-highlight-text {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  margin: 0;
+}
+
+/* ── Details/About Section ── */
+.karma-details {
+  padding: 80px 0;
+  background: rgba(201, 162, 39, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.karma-details-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #C9A227;
+  margin-bottom: 12px;
+}
+
+.karma-details-text {
+  color: #d1d5db;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.karma-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.karma-detail-item:last-child {
+  border-bottom: none;
+}
+
+.karma-detail-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(201, 162, 39, 0.1);
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.karma-detail-label {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.karma-detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #F5F5F5;
+  margin: 0;
+}
+
+/* ── Footer Strip ── */
+.karma-footer-strip {
+  padding: 32px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.karma-footer-strip p {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ── Utility ── */
+.karma-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.3), transparent);
+  margin: 0;
+  border: none;
+}

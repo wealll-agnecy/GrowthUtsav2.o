@@ -85,11 +85,7 @@ const AdminOrganizerBookings = () => {
                                             alt={group.event.title}
                                             className="w-100 h-100 object-fit-cover transition-all"
                                         />
-                                        <div className="position-absolute top-0 end-0 p-3">
-                                            <Badge className={`rounded-pill px-3 py-2 fw-bold small ${group.event.status === 'live' ? 'bg-success' : 'bg-warning'}`}>
-                                                {group.event.status?.toUpperCase()}
-                                            </Badge>
-                                        </div>
+
                                     </div>
                                     <Card.Body className="p-4 d-flex flex-column">
                                         <div className="d-flex align-items-center gap-2 mb-2">

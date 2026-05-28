@@ -41,8 +41,18 @@ apiClient.interceptors.response.use(
             localStorage.removeItem('user');
             
             // Redirect to login if not already there and if user was supposed to be logged in
-            const publicPaths = ['/login', '/register', '/', '/forgot-password', '/reset-password'];
-            const isPublic = publicPaths.some(path => window.location.pathname === path || window.location.pathname.startsWith('/reset-password/'));
+            const publicPaths = ['/login', '/register', '/', '/forgot-password', '/reset-password', '/checkout', '/events', '/digital-pass', '/tickets', '/ticket', '/verify-ticket', '/reels'];
+            const isPublic = publicPaths.some(path => 
+                window.location.pathname === path || 
+                window.location.pathname.startsWith('/reset-password/') ||
+                window.location.pathname.startsWith('/events/') ||
+                window.location.pathname.startsWith('/checkout') ||
+                window.location.pathname.startsWith('/digital-pass/') ||
+                window.location.pathname.startsWith('/tickets/') ||
+                window.location.pathname.startsWith('/ticket/') ||
+                window.location.pathname.startsWith('/verify-ticket/') ||
+                window.location.pathname.startsWith('/reels')
+            );
             
             if (!isPublic && !window.location.pathname.includes('login')) {
                 window.location.href = '/login';

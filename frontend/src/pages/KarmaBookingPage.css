@@ -1,0 +1,334 @@
+/* ── Karma Booking Page – Custom CSS ── */
+
+.karma-booking-page {
+  background: #050505;
+  color: #F5F5F5;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  padding: 60px 0 80px;
+}
+
+/* ── Page Header ── */
+.kb-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #d1d5db;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 32px;
+  transition: color 0.2s;
+}
+.kb-back-btn:hover { color: #C9A227; }
+
+/* ── Card ── */
+.kb-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(201,162,39,0.15);
+  border-radius: 24px;
+  padding: 36px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.kb-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,162,39,0.4), transparent);
+}
+
+.kb-card-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #F5F5F5;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kb-card-title-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(201,162,39,0.12);
+  border: 1px solid rgba(201,162,39,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+/* ── Event Summary Strip ── */
+.kb-event-strip {
+  background: rgba(201,162,39,0.06);
+  border: 1px solid rgba(201,162,39,0.2);
+  border-radius: 18px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.kb-event-name {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #F5F5F5;
+  margin-bottom: 4px;
+}
+.kb-event-meta {
+  color: #d1d5db;
+  font-size: 0.85rem;
+  margin: 0;
+}
+.kb-plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 50px;
+  background: linear-gradient(90deg, rgba(201,162,39,0.15), rgba(201,162,39,0.1));
+  border: 1px solid rgba(201,162,39,0.3);
+  color: #C9A227;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* ── Form Inputs ── */
+.kb-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  display: block;
+}
+.kb-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: #F5F5F5;
+  font-size: 0.95rem;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.kb-input:focus {
+  border-color: rgba(201,162,39,0.5);
+  box-shadow: 0 0 0 3px rgba(201,162,39,0.08);
+  background: rgba(255,255,255,0.06);
+}
+.kb-input::placeholder { color: #4b5563; }
+.kb-input option { background: #111; color: #F5F5F5; }
+
+/* ── Member Cards ── */
+.kb-member-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(201,162,39,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.kb-member-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.kb-member-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #C9A227;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kb-member-remove {
+  background: none;
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  color: #ef4444;
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.kb-member-remove:hover {
+  background: rgba(239,68,68,0.1);
+}
+
+/* ── Add Member Button ── */
+.kb-add-member-btn {
+  width: 100%;
+  background: none;
+  border: 1px dashed rgba(201,162,39,0.35);
+  border-radius: 14px;
+  padding: 16px;
+  color: #C9A227;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.kb-add-member-btn:hover {
+  background: rgba(201,162,39,0.06);
+  border-color: rgba(201,162,39,0.6);
+}
+
+/* ── Empty State ── */
+.kb-empty {
+  text-align: center;
+  padding: 24px 0 8px;
+  color: #4b5563;
+  font-size: 0.88rem;
+}
+
+/* ── Pay Button ── */
+.kb-pay-btn {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  color: #050505;
+  background: linear-gradient(90deg, #C9A227, #C9A227, #C9A227);
+  border: none;
+  box-shadow: 0 0 60px rgba(201,162,39,0.35);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.kb-pay-btn:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 0 90px rgba(201,162,39,0.5);
+}
+.kb-pay-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.kb-pay-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.kb-pay-btn:hover:not(:disabled)::after { opacity: 1; }
+
+.kb-secure-note {
+  text-align: center;
+  color: #4b5563;
+  font-size: 0.8rem;
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+/* ── Order Summary Sidebar ── */
+.kb-summary-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(201,162,39,0.15);
+  border-radius: 20px;
+  padding: 28px;
+  position: sticky;
+  top: 24px;
+}
+.kb-summary-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #F5F5F5;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.kb-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: #d1d5db;
+  margin-bottom: 12px;
+}
+.kb-summary-row.total {
+  color: #F5F5F5;
+  font-weight: 800;
+  font-size: 1rem;
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.kb-summary-row.total span:last-child { color: #C9A227; }
+
+/* ── Progress Steps ── */
+.kb-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 48px;
+}
+.kb-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.kb-step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #9ca3af;
+  transition: all 0.3s;
+}
+.kb-step.active .kb-step-circle {
+  border-color: #C9A227;
+  background: rgba(201,162,39,0.15);
+  color: #C9A227;
+}
+.kb-step.done .kb-step-circle {
+  border-color: #10b981;
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+}
+.kb-step-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+}
+.kb-step.active .kb-step-label { color: #C9A227; }
+.kb-step-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  min-width: 40px;
+  margin-bottom: 22px;
+}

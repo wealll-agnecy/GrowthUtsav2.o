@@ -144,7 +144,7 @@ const Navbar = () => {
                         </div>
                     )}
                     
-                    {user ? (
+                    {user && (
                         <div className="position-relative" ref={profileRef}>
                             <div 
                                 className="icon-wrapper cursor-pointer" 
@@ -186,10 +186,6 @@ const Navbar = () => {
                                 )}
                             </AnimatePresence>
                         </div>
-                    ) : (
-                        <Link to="/login" className="icon-wrapper text-dark" aria-label="Sign In">
-                            <FaUserCircle size={24} />
-                        </Link>
                     )}
                 </div>
 
@@ -197,17 +193,9 @@ const Navbar = () => {
                     {/* Navigation Links */}
                     <Nav className="mx-auto d-flex align-items-center gap-lg-2">
                         {user?.role !== 'staff' && (
-                            <>
-                                <Nav.Link as={Link} to="/" className={`nav-link-premium ${isActive('/') ? 'active' : ''}`}>
-                                    <FaHome className="nav-icon-mini" /> Home
-                                </Nav.Link>
-                                <Nav.Link as={Link} to="/events" className={`nav-link-premium ${isActive('/events') ? 'active' : ''}`}>
-                                    <FaCalendarAlt className="nav-icon-mini" /> Events
-                                </Nav.Link>
-                                <Nav.Link as={Link} to="/contact-us" className={`nav-link-premium ${isActive('/contact-us') ? 'active' : ''}`}>
-                                    <FaEnvelope className="nav-icon-mini" /> Contact Us
-                                </Nav.Link>
-                            </>
+                            <Nav.Link as={Link} to="/" className={`nav-link-premium ${isActive('/') ? 'active' : ''}`}>
+                                <FaHome className="nav-icon-mini" /> Home
+                            </Nav.Link>
                         )}
                         {user?.role === 'admin' && (
                             <Nav.Link as={Link} to="/admin/dashboard" className={`nav-link-premium ${isActive('/admin/dashboard') ? 'active' : ''}`}>
@@ -224,11 +212,6 @@ const Navbar = () => {
                     {/* Right Side Actions */}
                     <div className="d-flex align-items-center gap-3">
                         
-                        {/* District Search Toggle */}
-                        <div className="icon-wrapper cursor-pointer" role="button" aria-label="Search Events" onClick={() => setIsSearchOpen(true)} title="Search">
-                            <BiSearch size={20} />
-                        </div>
-
                         {/* Notification Bell */}
                         <div className="position-relative d-flex align-items-center" style={{ height: '40px' }} ref={notifRef}>
                             <div className="icon-wrapper cursor-pointer" role="button" aria-label="View Notifications" onClick={toggleNotifs} title="Notifications">
@@ -237,8 +220,7 @@ const Navbar = () => {
                             </div>
                         </div>
 
-
-                        {user ? (
+                        {user && user.role !== 'attendee' && (
                             <NavDropdown
                                 title={
                                     <div className="icon-wrapper cursor-pointer" role="button" aria-label="Profile Menu">
@@ -252,9 +234,6 @@ const Navbar = () => {
                                     <div className="fw-bold small">{user.name}</div>
                                     <div className="text-muted tiny-text uppercase">{user.role}</div>
                                 </div>
-                                {user.role !== 'staff' && (
-                                    <NavDropdown.Item as={Link} to="/profile">My Account</NavDropdown.Item>
-                                )}
                                 {user.role === 'admin' ? (
                                     <NavDropdown.Item as={Link} to="/admin/dashboard">Admin Panel</NavDropdown.Item>
                                 ) : user.role === 'organizer' ? (
@@ -264,17 +243,10 @@ const Navbar = () => {
                                         <NavDropdown.Item as={Link} to="/staff/scanner">Scanner</NavDropdown.Item>
                                         <NavDropdown.Item as={Link} to="/staff/dashboard">Dashboard</NavDropdown.Item>
                                     </>
-                                ) : (
-                                    <NavDropdown.Item as={Link} to="/my-bookings">My Tickets</NavDropdown.Item>
-                                )}
+                                ) : null}
                                 <NavDropdown.Divider />
                                 <NavDropdown.Item onClick={handleLogout} className="text-danger fw-bold">Sign Out</NavDropdown.Item>
                             </NavDropdown>
-                        ) : (
-                            <div className="d-flex align-items-center gap-2">
-                                <Link to="/login" className="btn btn-outline-pink">Sign In</Link>
-                                <Link to="/register" className="btn btn-pink">Get Started</Link>
-                            </div>
                         )}
                     </div>
                 </BsNavbar.Collapse>
@@ -325,81 +297,11 @@ const Navbar = () => {
                             )}
                         </div>
                         
-                        <div className="notif-footer-premium">
-                            <Link to="/notifications" className="btn-view-all btn d-flex align-items-center justify-content-center" onClick={() => setIsNotifOpen(false)}>
-                                View All Logs
-                            </Link>
-                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
             <ContactModal show={showContact} onClose={() => setShowContact(false)} />
-
-            {/* District Search Overlay */}
-            <div className={`district-search-overlay ${isSearchOpen ? 'active' : ''}`}>
-                <div className="district-search-overlay-bg" onClick={() => setIsSearchOpen(false)}></div>
-                <div className="district-search-modal">
-                    <input
-                        type="text"
-                        placeholder="Search for events, artists, categories..."
-                        autoFocus={isSearchOpen}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                navigate(`/events?search=${searchQuery}`);
-                                setIsSearchOpen(false);
-                                setSearchQuery('');
-                            }
-                            if (e.key === 'Escape') setIsSearchOpen(false);
-                        }}
-                    />
-
-                    <div className="district-search-categories">
-                        <button className="active" onClick={() => { navigate('/events'); setIsSearchOpen(false); }}>All</button>
-                        <button onClick={() => { navigate('/events?category=Seminar'); setIsSearchOpen(false); }}>Seminar</button>
-                        <button onClick={() => { navigate('/events?category=Makeup Event'); setIsSearchOpen(false); }}>Masterclass</button>
-                        <button onClick={() => { navigate('/events?category=Beauty Expo'); setIsSearchOpen(false); }}>Expo</button>
-                        <button onClick={() => { navigate('/events?category=Bridal'); setIsSearchOpen(false); }}>Bridal</button>
-                        <button onClick={() => { navigate('/events?category=Workshop'); setIsSearchOpen(false); }}>Workshop</button>
-                    </div>
-
-                    <div className="district-search-content">
-                        <h3>Explore</h3>
-                        <div className="district-search-grid">
-                            <div className="district-search-item" onClick={() => { navigate('/events'); setIsSearchOpen(false); }}>
-                                <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=400&q=80" alt="Events" />
-                                <div className="district-search-item-text">
-                                    <h4>All Events</h4>
-                                    <p>Browse everything</p>
-                                </div>
-                            </div>
-                            <div className="district-search-item" onClick={() => { navigate('/events?category=Makeup Event'); setIsSearchOpen(false); }}>
-                                <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80" alt="Masterclass" />
-                                <div className="district-search-item-text">
-                                    <h4>Masterclasses</h4>
-                                    <p>Learn from the best</p>
-                                </div>
-                            </div>
-                            <div className="district-search-item" onClick={() => { navigate('/events?category=Bridal'); setIsSearchOpen(false); }}>
-                                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80" alt="Bridal" />
-                                <div className="district-search-item-text">
-                                    <h4>Bridal Sessions</h4>
-                                    <p>Your big day</p>
-                                </div>
-                            </div>
-                            <div className="district-search-item" onClick={() => { navigate('/events?category=Beauty Expo'); setIsSearchOpen(false); }}>
-                                <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&q=80" alt="Expo" />
-                                <div className="district-search-item-text">
-                                    <h4>Beauty Expos</h4>
-                                    <p>Discover trends</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </BsNavbar>
     );
 };

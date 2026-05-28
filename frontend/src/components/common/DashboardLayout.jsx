@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaThLarge, FaPlusCircle, FaUsers, FaChartLine, FaCog,
     FaChevronLeft, FaChevronRight, FaShieldAlt, FaTicketAlt,
-    FaUserTie, FaSignOutAlt, FaLifeRing, FaCalendarAlt, FaQrcode, FaBars, FaEnvelope, FaUserPlus
+    FaUserTie, FaSignOutAlt, FaLifeRing, FaCalendarAlt, FaQrcode, FaBars, FaEnvelope, FaUserPlus, FaWallet
 } from 'react-icons/fa';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -15,7 +15,7 @@ import './DashboardLayout.css';
 const DashboardLayout = ({ children, role }) => {
     const [collapsed, setCollapsed] = useState(false);
     const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-    const [pendingOrgCount, setPendingOrgCount] = useState(0);
+
     const [enquiryCount, setEnquiryCount] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
@@ -26,7 +26,6 @@ const DashboardLayout = ({ children, role }) => {
             try {
                 const res = await axios.get('/api/v1/notifications/count');
                 console.log('[NOTIF] Notification Counts:', res.data);
-                setPendingOrgCount(res.data.requests || 0);
                 setEnquiryCount(res.data.enquiries || 0);
             } catch (err) {
                 console.error('Failed to fetch notification counts', err);
@@ -55,27 +54,21 @@ const DashboardLayout = ({ children, role }) => {
     const adminLinks = [
         { name: 'Console', path: '/admin/dashboard', icon: <FaChartLine /> },
         { name: 'Organizers', path: '/admin/bookings', icon: <FaUserTie /> },
-        { name: 'Host Requests', path: '/admin/organizer-requests', icon: <FaUserPlus />, badge: pendingOrgCount },
         { name: 'Enquiries', path: '/admin/enquiries', icon: <FaEnvelope />, badge: enquiryCount },
-        { name: 'Approvals', path: '/admin/event-approvals', icon: <FaShieldAlt /> },
         { name: 'Staff Hub', path: '/admin/staff', icon: <FaUsers /> },
-        { name: 'Settings', path: '/admin/settings', icon: <FaCog /> },
+        { name: 'Finance', path: '/admin/finance', icon: <FaWallet /> },
     ];
 
     const organizerLinks = [
         { name: 'Dashboard', path: '/organizer/dashboard', icon: <FaThLarge /> },
         { name: 'My Events', path: '/organizer/events', icon: <FaCalendarAlt /> },
-        { name: 'Enquiries', path: '/organizer/inquiries', icon: <FaEnvelope /> },
-        { name: 'Create Event', path: '/organizer/create-event', icon: <FaPlusCircle /> },
         { name: 'Bookings', path: '/organizer/bookings', icon: <FaTicketAlt /> },
         { name: 'Staff Hub', path: '/organizer/staff', icon: <FaUsers /> },
-        { name: 'Earnings', path: '/organizer/earnings', icon: <FaChartLine /> },
-        { name: 'Settings', path: '/organizer/settings', icon: <FaCog /> },
     ];
 
     const attendeeLinks = [
         { name: 'My Tickets', path: '/my-bookings', icon: <FaTicketAlt /> },
-        { name: 'Explore', path: '/events', icon: <FaCalendarAlt /> },
+        { name: 'Home', path: '/', icon: <FaCalendarAlt /> },
         { name: 'Profile', path: '/profile', icon: <FaCog /> },
     ];
 

@@ -35,10 +35,9 @@ const AdminDashboard = () => {
     });
     const [profitSummary, setProfitSummary] = useState({ totalRevenue: 0, totalExpenses: 0, netProfit: 0, margin: 0 });
     const [expenses, setExpenses] = useState([]);
-    const [pendingRequests, setPendingRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [expenseLoading, setExpenseLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState({});
+    const [expenseLoading, setExpenseLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     // New Expense Form State
     const [newExpense, setNewExpense] = useState({ title: '', amount: '', category: 'Other' });
@@ -49,7 +48,6 @@ const AdminDashboard = () => {
             // Fetch core intelligence data consolidated
             const [adminStatsRes, orgRequestsRes, summaryRes, expensesRes] = await Promise.all([
                 adminApi.getAdminStats(),
-                adminApi.getPendingOrganizers().catch(() => ({ data: { data: [] } })),
                 expenseApi.getProfitSummary().catch(() => ({ data: { data: {} } })),
                 expenseApi.getExpenses().catch(() => ({ data: { data: [] } }))
             ]);
@@ -70,7 +68,7 @@ const AdminDashboard = () => {
             });
             setProfitSummary(summary);
             setExpenses(expensesRes.data.data);
-            setPendingRequests(Array.isArray(orgRequestsRes.data.data) ? orgRequestsRes.data.data.slice(0, 5) : []);
+
         } catch (err) {
             console.error('Critical Console Sync Failure:', err);
         } finally {
@@ -110,23 +108,6 @@ const AdminDashboard = () => {
 
 
 
-    const handleOrgAction = async (id, status) => {
-        setActionLoading(prev => ({ ...prev, [id]: true }));
-        try {
-            if (status === 'approve') {
-                await adminApi.approveOrganizer(id);
-                toast.success('Identity verified & Host approved');
-            } else {
-                await adminApi.rejectOrganizer(id, 'Moderation refusal');
-                toast.error('Identity rejected');
-            }
-            setPendingRequests(prev => prev.filter(r => r._id !== id));
-        } catch (err) {
-            toast.error('Protocol action failure');
-        } finally {
-            setActionLoading(prev => ({ ...prev, [id]: false }));
-        }
-    };
 
     if (loading) {
         return <DashboardSkeleton />;
@@ -263,50 +244,8 @@ const AdminDashboard = () => {
                     </Col>
                 </Row>
 
-                {/* ─── Secondary Data Grid ─── */}
                 <Row className="g-4 mb-4">
-                    <Col lg={4}>
-                        <div className="dashboard-card">
-                            <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem', marginBottom: '20px' }}>Identity Moderation</h5>
-                            <div className="data-list audit-feed-scroll overflow-auto" style={{ maxHeight: '350px', paddingRight: '5px' }}>
-                                {pendingRequests.length === 0 ? (
-                                    <div className="text-center py-5">
-                                        <FaCheckCircle className="text-success opacity-20 mb-3" size={40} />
-                                        <p className="text-slate opacity-50 small m-0">No pending requests</p>
-                                    </div>
-                                ) : (
-                                    pendingRequests.map((req) => (
-                                        <div key={req._id} className="data-item p-3">
-                                            <div className="data-left">
-                                                <h6>{req.name || 'User'}</h6>
-                                                <p className="truncate m-0">{req.email}</p>
-                                            </div>
-                                            <div className="d-flex gap-2">
-                                                <Button className="btn btn-outline-pink border" as={Link} to="/admin/organizer-requests">
-                                                    <FaEye className="text-slate" />
-                                                </Button>
-                                                <Button className="btn btn-pink p-2" onClick={() => handleOrgAction(req._id, 'approve')} disabled={actionLoading[req._id]}>
-                                                    {actionLoading[req._id] ? <Spinner size="sm" /> : <FaCheck />}
-                                                </Button>
-                                                <Button className="btn btn-outline-pink p-2" onClick={() => handleOrgAction(req._id, 'reject')} disabled={actionLoading[req._id]}>
-                                                    <FaTimes />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                            {pendingRequests.length > 0 && (
-                                <div className="mt-4 text-center">
-                                    <Link to="/admin/organizer-requests" className="btn btn-outline-pink w-100 text-decoration-none d-block text-center">
-                                        View All Requests
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                    </Col>
-
-                    <Col lg={8}>
+                    <Col lg={12}>
                         <div className="dashboard-card">
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h5 className="dashboard-title-main" style={{ fontSize: '1.25rem' }}>Revenue Intelligence</h5>

@@ -44,6 +44,12 @@ const BookingSchema = new mongoose.Schema({
         price: { type: Number },
         quantity: { type: Number }
     }],
+    selectedAddons: [{
+        itemName: { type: String },
+        type: { type: String },
+        price: { type: Number },
+        quantity: { type: Number }
+    }],
     paymentStatus: {
         type: String,
         enum: ['pending', 'partial', 'completed', 'failed'],

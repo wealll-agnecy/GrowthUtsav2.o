@@ -36,30 +36,3 @@ export const updateEvent = async (id, eventData) => {
 export const deleteEvent = async (id) => {
     return await apiClient.delete(`${API_URL}/${id}`);
 };
-
-export const updateEventStatus = async (id, status) => {
-    return await apiClient.put(`${API_URL}/${id}/status`, { status });
-};
-
-// Admin Routes
-export const getAdminPendingEvents = async () => {
-    return await apiClient.get('/api/v1/admin/events/pending');
-};
-
-export const adminApproveEvent = async (id) => {
-    return await apiClient.patch(`/api/v1/admin/events/${id}/approve`);
-};
-
-export const adminRejectEvent = async (id) => {
-    return await apiClient.patch(`/api/v1/admin/events/${id}/reject`);
-};
-
-export const toggleLive = async (id) => {
-    return await apiClient.put(`${API_URL}/toggle-live/${id}`);
-};
-
-export const updateLiveStatus = async (id, isLive) => {
-    console.log(`ðŸŒ [API CALL]: PUT ${API_URL}/set-live/${id}`, { isLive });
-    return await apiClient.put(`${API_URL}/set-live/${id}`, { isLive });
-};
-

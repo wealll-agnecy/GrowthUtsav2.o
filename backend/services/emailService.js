@@ -24,6 +24,15 @@ exports.sendBookingConfirmation = async (user, event, pdfBuffer, bookingDetails)
                     <p style="font-size: 16px; margin-bottom: 24px;">Hi <strong>${user.name}</strong>,</p>
                     <p style="font-size: 15px; line-height: 1.6; color: #4b5563;">Great news! Your registration for <strong>${event.title}</strong> is complete. We've attached your digital entry pass to this email.</p>
                     
+                    <!-- GROUP TICKET NOTIFICATION -->
+                    ${bookingDetails.quantity > 1 ? `
+                    <div style="background-color: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 16px; margin: 24px 0;">
+                        <p style="margin: 0; font-size: 14px; color: #166534; font-weight: 600;">
+                            <strong>👥 Group Booking:</strong> This ticket is valid for <strong>${bookingDetails.quantity} persons</strong> entry
+                        </p>
+                    </div>
+                    ` : ''}
+                    
                     <!-- Event Card -->
                     <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin: 32px 0;">
                         <h3 style="margin-top: 0; color: #AD1457; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Event Details</h3>

@@ -21,8 +21,9 @@ const Footer = () => {
                     <Col lg={5} md={12} className="d-flex flex-wrap justify-content-center gap-md-4 gap-3">
                         <Link to="/terms" className="footer-link-district">Terms & Conditions</Link>
                         <Link to="/privacy" className="footer-link-district">Privacy Policy</Link>
-                        <Link to="/contact-us" className="footer-link-district">Contact Us</Link>
-                        <Link to="/organizer/events" className="footer-link-district">List your events</Link>
+                        <Link to="/admin-login" className="footer-link-district">Admin Login</Link>
+                        <Link to="/organizer-login" className="footer-link-district">Organizer Login</Link>
+                        <Link to="/staff-login" className="footer-link-district">Staff Login</Link>
                     </Col>
 
                     {/* QR Code Column */}

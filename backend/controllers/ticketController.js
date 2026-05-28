@@ -6,6 +6,23 @@ const ScanLog = require('../models/ScanLog');
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 const { generateTicketPDF } = require('../services/pdfService');
+const admin = require('firebase-admin');
+
+// Helper for real-time Firebase sync
+const syncTicketToFirebase = async (eventId, ticketId, data) => {
+    try {
+        if (admin.apps.length > 0) {
+            await admin.firestore()
+                .collection('events')
+                .doc(eventId.toString())
+                .collection('tickets')
+                .doc(ticketId.toString())
+                .set({ ...data, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        }
+    } catch (err) {
+        console.error('Firebase Sync Error:', err.message);
+    }
+};
 
 // @desc    Get Ticket Details (including QR URL for frontend display)
 // @route   GET /api/v1/tickets/:id
@@ -13,16 +30,20 @@ const { generateTicketPDF } = require('../services/pdfService');
 exports.getTicket = async (req, res, next) => {
     try {
         const ticket = await Ticket.findById(req.params.id)
-            .populate('event', 'title date time venue bannerImage foodSettings')
-            .populate('booking', 'ticketType quantity totalAmount selectedDate selectedDays amountPaid paymentStatus selectedFood');
+            .populate('event', 'title date time venue bannerImage foodSettings addonsSettings')
+            .populate('booking', 'ticketType quantity totalAmount selectedDate selectedDays amountPaid paymentStatus selectedFood selectedAddons');
 
         if (!ticket) {
             return res.status(404).json({ success: false, message: 'Ticket not found' });
         }
 
-        // Only owner or admin can view
-        if (ticket.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({ success: false, message: 'Not authorized' });
+        // Only owner, admin, organizer, or staff can view (if user is logged in)
+        if (req.user) {
+            const isOwner = ticket.user && ticket.user.toString() === req.user.id;
+            const isStaffOrAdmin = ['admin', 'organizer', 'staff'].includes(req.user.role);
+            if (!isOwner && !isStaffOrAdmin) {
+                return res.status(401).json({ success: false, message: 'Not authorized' });
+            }
         }
 
         const QRCode = require('qrcode');
@@ -88,8 +109,12 @@ exports.downloadTicket = async (req, res, next) => {
         const ticket = await Ticket.findById(ticketId);
         if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
         
-        if (ticket.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        if (req.user) {
+            const isOwner = ticket.user && ticket.user.toString() === req.user.id;
+            const isStaffOrAdmin = ['admin', 'organizer', 'staff'].includes(req.user.role);
+            if (!isOwner && !isStaffOrAdmin) {
+                return res.status(401).json({ success: false, message: 'Unauthorized' });
+            }
         }
 
         const buffer = await generateTicketPDF(ticketId);
@@ -99,6 +124,29 @@ exports.downloadTicket = async (req, res, next) => {
         res.send(buffer);
     } catch (err) {
         console.error("PDF Download Error:", err.message);
+        res.status(500).json({ success: false, message: "Could not generate PDF" });
+    }
+};
+
+// @desc    Download Ticket PDF (Public, secured by UUID)
+// @route   GET /api/ticket/download-pdf/:uuid
+// @access  Public
+exports.downloadTicketPublic = async (req, res, next) => {
+    try {
+        const uuid = req.params.uuid;
+        
+        // Fetch ticket
+        const ticket = await Ticket.findOne({ uuid });
+        if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+        
+        const { generateTicketPDF } = require('../services/pdfService');
+        const buffer = await generateTicketPDF(ticket._id);
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Ticket-${ticket.ticketCode}.pdf`);
+        res.send(buffer);
+    } catch (err) {
+        console.error("Public PDF Download Error:", err.message);
         res.status(500).json({ success: false, message: "Could not generate PDF" });
     }
 };
@@ -159,6 +207,8 @@ exports.verifyTicketForScanner = async (req, res) => {
 
         const details = {
             ticketId: ticket._id,
+            _id: ticket._id,
+            ticket: ticket._id,
             ticketCode: ticket.ticketCode,
             name: ticket.name,
             email: ticket.email,
@@ -167,16 +217,25 @@ exports.verifyTicketForScanner = async (req, res) => {
             status: ticket.status.toUpperCase(),
             paymentStatus: currentPaymentStatus,
             ticketTier: todayPlanInfo,
+            selectedPlan: todayPlanInfo,
+            planName: todayPlanInfo,
             ticketPrice: currentTotalAmount,
+            totalAmount: currentTotalAmount,
             amountPaid: currentAmountPaid,
+            paidAmount: currentAmountPaid,
             remainingAmount: currentRemaining,
+            dueAmount: currentRemaining,
             validity: validityText,
             selectedDate: ticket.selectedDate,
             selectedDays: ticket.selectedDays,
             bookedAt: ticket.bookedAt,
             seat: ticket.seatNumber || 'General',
             foodTaken: ticket.foodTaken || false,
-            parkingUsed: ticket.parkingUsed || false
+            parkingUsed: ticket.parkingUsed || false,
+            addonsTaken: ticket.addonsTaken || false,
+            // GROUP TICKET LOGIC: Include quantity information for group tickets
+            personsAllowed: ticket.quantity || 1,
+            quantityBooking: `${ticket.quantity || 1} Person${(ticket.quantity || 1) > 1 ? 's' : ''} Allowed`
         };
 
         // 1. Cancelled Ticket
@@ -209,11 +268,30 @@ exports.verifyTicketForScanner = async (req, res) => {
             });
         }
 
-        // 3. DAILY SCAN LIMIT
+        // 3. DAILY SCAN LIMIT (continuous multi-day should be day-scoped)
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
+        const now = new Date();
 
-        if (ticket.lastScanDate && ticket.lastScanDate >= startOfToday) {
+        const isContinuousMultiDay = Boolean(event?.continuousMultiDay);
+        const isScanOnIncludedDay = !isContinuousMultiDay; // default
+
+        if (isContinuousMultiDay && booking && booking.selectedPlans) {
+            try {
+                const nowStr = now.toISOString().split('T')[0];
+                const matchedDateKey = Object.keys(booking.selectedPlans).find(key => {
+                    const keyDate = new Date(key);
+                    return keyDate.toISOString().split('T')[0] === nowStr;
+                });
+                isScanOnIncludedDay = Boolean(matchedDateKey);
+            } catch (e) {
+                isScanOnIncludedDay = false;
+            }
+        }
+
+
+        // If ticket already scanned today, deny (unless continuous multi-day needs day-scoped access).
+        if (ticket.lastScanDate && ticket.lastScanDate >= startOfToday && !isContinuousMultiDay) {
             return res.status(200).json({
                 success: true,
                 status: 'DENIED',
@@ -224,28 +302,23 @@ exports.verifyTicketForScanner = async (req, res) => {
             });
         }
 
-        // 4. ATOMIC ENTRY MARKING
-        const updatedTicket = await Ticket.findOneAndUpdate(
-            { 
-                _id: ticket._id, 
-                $or: [
-                    { lastScanDate: { $exists: false } },
-                    { lastScanDate: { $lt: startOfToday } }
-                ],
-                status: { $ne: 'cancelled' }
-            },
-            { 
-                $set: { 
-                    status: 'used', 
-                    isScanned: true, 
-                    scannedAt: new Date(),
-                    lastScanDate: new Date()
-                } 
-            },
-            { new: true }
-        );
+        // For continuous multi-day: allow scan only if today matches one of the selectedPlans dates.
+        if (isContinuousMultiDay) {
+            if (!isScanOnIncludedDay) {
+                return res.status(200).json({
+                    success: true,
+                    status: 'DENIED',
+                    isDuplicate: false,
+                    message: 'This ticket is not valid for today',
+                    data: details,
+                    ticket: details
+                });
+            }
+        }
 
-        if (!updatedTicket) {
+
+        // REMOVED ATOMIC ENTRY MARKING: Public endpoints must never mutate state.
+        if (ticket.status === 'used' || ticket.isScanned) {
             return res.status(200).json({
                 success: true,
                 status: 'DENIED',
@@ -302,7 +375,10 @@ exports.verifyTicketForStaff = async (req, res) => {
             isScanned: ticket.isScanned,
             status: ticket.status,
             selectedDate: ticket.selectedDate || ticket.event?.date,
-            selectedDays: ticket.selectedDays
+            selectedDays: ticket.selectedDays,
+            // GROUP TICKET LOGIC: Include quantity for staff scanner display
+            personsAllowed: ticket.quantity || 1,
+            quantityLabel: `${ticket.quantity || 1} Person${(ticket.quantity || 1) > 1 ? 's' : ''} Allowed`
         };
 
         // ACCESS CONTROL LOGIC
@@ -361,39 +437,48 @@ exports.createTicketAfterPayment = async (bookingId, eventId, userId) => {
         }
 
         const { getNextSequenceValue } = require('../utils/sequenceGenerator');
-        const uniqueId = uuidv4();
-        const sequentialId = await getNextSequenceValue('ticket_id', 'GUTC');
-
         const ticketPrice = booking.quantity > 0 ? booking.totalAmount / booking.quantity : booking.totalAmount;
 
-        const primaryAttendee = booking.attendeeDetails && booking.attendeeDetails.length > 0 
-            ? booking.attendeeDetails[0] 
-            : { name: userDoc.name, email: userDoc.email };
+        const tickets = [];
+        const quantityToCreate = Math.max(booking.quantity || 1, booking.attendeeDetails?.length || 0);
 
-        const ticketData = {
-            uuid: uniqueId,
-            ticketCode: sequentialId, 
-            name: primaryAttendee.name || userDoc.name || "Attendee",
-            mobileNumber: primaryAttendee.phone || userDoc.phone || '0000000000',
-            email: booking.contactEmail || primaryAttendee.email || userDoc.email || 'guest@growthu.com',
-            eventName: event.title,
-            eventId: eventId,
-            ticketType: booking.ticketType || "General",
-            ticketPrice: ticketPrice,
-            bookedAt: booking.createdAt || new Date(),
-            status: 'unused',
-            booking: bookingId,
-            event: eventId,
-            user: userDoc._id,
-            selectedDate: booking.selectedDate,
-            selectedDays: booking.selectedDays,
-            amountPaid: booking.amountPaid || 0,
-            totalAmount: booking.totalAmount,
-            paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL'
-        };
+        for (let i = 0; i < quantityToCreate; i++) {
+            const attendee = booking.attendeeDetails && booking.attendeeDetails[i]
+                ? booking.attendeeDetails[i]
+                : (i === 0 ? { name: userDoc.name, email: userDoc.email, phone: userDoc.phone } : { name: `Guest ${i + 1}`, email: booking.contactEmail || userDoc.email });
 
-        const ticket = await Ticket.create(ticketData);
-        return ticket;
+            const uniqueId = uuidv4();
+            const sequentialId = await getNextSequenceValue('ticket_id', 'GUTC');
+
+            const ticketData = {
+                uuid: uniqueId,
+                ticketCode: sequentialId, 
+                name: attendee.name || userDoc.name || `Attendee ${i + 1}`,
+                mobileNumber: attendee.phone || userDoc.phone || booking.attendeeDetails?.[0]?.phone || '0000000000',
+                email: attendee.email || booking.contactEmail || userDoc.email || 'guest@growthu.com',
+                eventName: event.title,
+                eventId: eventId,
+                ticketType: booking.ticketType || "General",
+                ticketPrice: ticketPrice,
+                bookedAt: booking.createdAt || new Date(),
+                status: 'unused',
+                booking: bookingId,
+                event: eventId,
+                user: userDoc._id,
+                selectedDate: booking.selectedDate,
+                selectedDays: booking.selectedDays,
+                amountPaid: booking.amountPaid || 0,
+                totalAmount: booking.totalAmount,
+                paymentStatus: booking.paymentStatus === 'completed' ? 'PAID' : 'PARTIAL',
+                quantity: 1  // Each individual ticket allows exactly 1 person
+            };
+
+            const ticket = await Ticket.create(ticketData);
+            tickets.push(ticket);
+        }
+
+        // Return primary/first ticket so legacy code setting booking.ticketId still works
+        return tickets[0];
     } catch (err) {
         console.error("createTicketAfterPayment Error:", err);
         throw err;
@@ -579,24 +664,92 @@ exports.verifyTicketScan = async (req, res) => {
             }
         }
 
-        const details = {
+        // STAFF AUTHORIZATION: Verify event-specific role assignment
+        if (req.user.role === 'staff') {
+            if (!event) {
+                return res.json({
+                    success: true,
+                    status: "DENIED",
+                    message: "Event not found for this ticket",
+                    ticket: { _id: ticket._id, name: ticket.name },
+                    data: { _id: ticket._id, name: ticket.name }
+                });
+            }
+
+            const staffRole = req.user.staffCheckRole || 'ENTRY';
+            let isAssigned = false;
+
+            // Check if staff is assigned to the required role for this specific event
+            if (staffRole === 'ENTRY') {
+                isAssigned = event.staffAssignments?.entry?.toString() === req.user.id.toString();
+            } else if (staffRole === 'FOOD') {
+                isAssigned = event.staffAssignments?.food?.toString() === req.user.id.toString();
+            } else if (staffRole === 'PARKING') {
+                isAssigned = event.staffAssignments?.parking?.toString() === req.user.id.toString();
+            } else {
+                // Custom addon - check if staff is assigned to handle this specific addon
+                const customAddons = req.user.customAddonItemNames || [];
+                if (event.staffAssignments?.customAddons && customAddons.length > 0) {
+                    for (const [addonName, assignedStaffId] of event.staffAssignments.customAddons) {
+                        if (customAddons.includes(addonName) && assignedStaffId?.toString() === req.user.id.toString()) {
+                            isAssigned = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!isAssigned) {
+                return res.json({
+                    success: true,
+                    status: "DENIED",
+                    message: "You are not assigned to scan this ticket for this role in this event",
+                    ticket: { _id: ticket._id, name: ticket.name },
+                    data: { _id: ticket._id, name: ticket.name }
+                });
+            }
+        }
+
+        // ROLE-BASED SCOPING: Filter details based on staff assignment.
+        const role = req.user.staffCheckRole || 'ENTRY';
+        
+        let scopedDetails = {
             ticketId: ticket._id,
+            _id: ticket._id,
+            eventId: ticket.eventId || (event ? event._id : null),
             name: ticket.name,
-            email: ticket.email,
-            phone: ticket.mobileNumber,
             eventName: ticket.eventName || (event ? event.title : 'Event'),
-            ticketCode: ticket.ticketCode,
-            ticketTier: todayPlanInfo,
-            ticketPrice: currentTotalAmount,
-            paymentStatus: currentPaymentStatus,
-            paidAmount: currentAmountPaid,
-            remainingAmount: currentRemaining,
+            status: ticket.status,
             validityText: validityText,
-            accessStatus: isPaid ? 'GREEN' : 'RED',
-            seat: ticket.seatNumber || 'General',
-            foodTaken: ticket.foodTaken || false,
-            parkingUsed: ticket.parkingUsed || false
+            paymentStatus: currentPaymentStatus,
+            amountPaid: currentAmountPaid,
+            totalAmount: currentTotalAmount,
+            remainingAmount: currentRemaining
         };
+
+        if (role === 'ENTRY') {
+            scopedDetails.isScanned = Boolean(ticket.isScanned);
+            scopedDetails.ticketTier = todayPlanInfo;
+        } else if (role === 'FOOD') {
+            scopedDetails.foodTaken = ticket.foodTaken || false;
+            // Never expose entry status to food staff
+        } else if (role === 'PARKING') {
+            scopedDetails.parkingUsed = ticket.parkingUsed || false;
+        } else if (role === 'CUSTOM_ADDON') {
+            const allowedAddons = req.user.customAddonItemNames || [];
+            scopedDetails.addonStatuses = {};
+            if (ticket.addonStatuses) {
+                // Ensure ticket.addonStatuses is handled safely whether it's a Map or Object
+                const statuses = ticket.addonStatuses instanceof Map ? Object.fromEntries(ticket.addonStatuses) : ticket.addonStatuses;
+                for (const item of allowedAddons) {
+                    scopedDetails.addonStatuses[item] = statuses[item] || false;
+                }
+            } else {
+                for (const item of allowedAddons) {
+                    scopedDetails.addonStatuses[item] = false;
+                }
+            }
+        }
 
         // 1. Cancelled
         if (ticket.status === 'cancelled') {
@@ -604,8 +757,8 @@ exports.verifyTicketScan = async (req, res) => {
                 success: true,
                 status: "DENIED",
                 message: "Ticket Cancelled",
-                ticket: details,
-                data: details
+                ticket: scopedDetails,
+                data: scopedDetails
             });
         }
 
@@ -615,64 +768,22 @@ exports.verifyTicketScan = async (req, res) => {
             return res.json({
                 success: true,
                 status: "DENIED",
-                message: `Payment Incomplete: ₹${currentRemaining}`,
-                ticket: details,
-                data: details
+                message: currentAmountPaid > 0 ? `₹${currentRemaining} payment remaining` : `Payment Pending`,
+                ticket: scopedDetails,
+                data: scopedDetails
             });
         }
 
-        // 3. DAILY SCAN LIMIT
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
+        // We no longer atomically mark as used here. 
+        // The frontend will call /update-entry, /update-food, etc., based on user action.
 
-        if (ticket.lastScanDate && ticket.lastScanDate >= startOfToday) {
-            return res.json({
-                success: true,
-                status: "DENIED",
-                message: "Already Used Today",
-                ticket: details,
-                data: details
-            });
-        }
-
-        // 4. ATOMIC ENTRY MARKING
-        const updatedTicket = await Ticket.findOneAndUpdate(
-            { 
-                _id: ticket._id, 
-                $or: [
-                    { lastScanDate: { $exists: false } },
-                    { lastScanDate: { $lt: startOfToday } }
-                ],
-                status: { $ne: 'cancelled' }
-            },
-            { 
-                $set: { 
-                    status: 'used', 
-                    isScanned: true, 
-                    scannedAt: new Date(),
-                    lastScanDate: new Date()
-                } 
-            },
-            { new: true }
-        );
-
-        if (!updatedTicket) {
-            return res.json({
-                success: true,
-                status: "DENIED",
-                message: "Already Used",
-                ticket: details,
-                data: details
-            });
-        }
-
-        // Log Scan Success (Wrapped in try-catch to prevent scan failure on log error)
+        // Log Scan Success (Just the verification attempt)
         try {
             await ScanLog.create({ 
                 ticketId: ticket._id, 
                 staffId: req.user.id, 
                 eventId: ticket.eventId || (event ? event._id || event : null), 
-                status: 'success' 
+                status: 'verification_success' 
             });
         } catch (logErr) {
             console.error("Scan Log Creation Failed:", logErr.message);
@@ -681,14 +792,83 @@ exports.verifyTicketScan = async (req, res) => {
         return res.json({
             success: true,
             status: "GRANTED",
-            message: "Clear for Entry",
-            ticket: details,
-            data: details
+            message: "Clear for Scan",
+            ticket: scopedDetails,
+            data: scopedDetails
         });
 
     } catch (err) {
         console.error("Scan Verification Error:", err);
         res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+// @desc    Update Entry Access for Ticket
+// @route   POST /api/v1/tickets/update-entry
+// @access  Private (Staff/Admin)
+exports.updateEntryAccess = async (req, res) => {
+    try {
+        const { ticketId } = req.body;
+
+        let query = {};
+        if (mongoose.Types.ObjectId.isValid(ticketId)) {
+            query = { _id: ticketId };
+        } else {
+            query = { $or: [{ uuid: ticketId }, { ticketCode: ticketId }] };
+        }
+
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const ticket = await Ticket.findOne(query).populate('event');
+
+        if (!ticket) return res.status(404).json({ success: false, message: 'Ticket not found' });
+        if (ticket.status === 'cancelled') return res.status(400).json({ success: false, message: 'Ticket cancelled' });
+        
+        // AUTHORIZATION: Check event-specific staff assignment
+        if (req.user.role === 'staff') {
+            const event = ticket.event;
+            if (!event) {
+                return res.status(404).json({ success: false, message: 'Event not found for this ticket' });
+            }
+            
+            // Verify staff is assigned to ENTRY role for this event
+            if (!event.staffAssignments?.entry || event.staffAssignments.entry.toString() !== req.user.id) {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: 'You are not assigned to ENTRY scanning for this event' 
+                });
+            }
+        }
+        
+        const isContinuousMultiDay = Boolean(ticket.event?.continuousMultiDay);
+
+        if (ticket.lastScanDate && ticket.lastScanDate >= startOfToday && !isContinuousMultiDay) {
+            return res.status(400).json({ success: false, message: 'Already used today' });
+        }
+
+        ticket.isScanned = true;
+        ticket.status = 'used';
+        ticket.scannedAt = new Date();
+        ticket.lastScanDate = new Date();
+        ticket.entryScanned = true;
+        ticket.entryScannedAt = new Date();
+        
+        await ticket.save();
+
+        syncTicketToFirebase(ticket.eventId, ticket._id, {
+            isScanned: true,
+            entryScanned: true
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Entry marked successfully',
+            isScanned: true
+        });
+    } catch (err) {
+        console.error("Entry Access Update Error:", err);
+        res.status(500).json({ success: false, message: 'Server Error during entry update' });
     }
 };
 
@@ -706,7 +886,7 @@ exports.updateFoodAccess = async (req, res) => {
             query = { $or: [{ uuid: ticketId }, { ticketCode: ticketId }] };
         }
 
-        const ticket = await Ticket.findOne(query);
+        const ticket = await Ticket.findOne(query).populate('event');
 
         if (!ticket) {
             return res.status(404).json({ success: false, message: 'Ticket not found' });
@@ -716,12 +896,32 @@ exports.updateFoodAccess = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Ticket has been cancelled' });
         }
 
+        // AUTHORIZATION: Check event-specific staff assignment
+        if (req.user.role === 'staff') {
+            const event = ticket.event;
+            if (!event) {
+                return res.status(404).json({ success: false, message: 'Event not found for this ticket' });
+            }
+            
+            // Verify staff is assigned to FOOD role for this event
+            if (!event.staffAssignments?.food || event.staffAssignments.food.toString() !== req.user.id) {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: 'You are not assigned to FOOD scanning for this event' 
+                });
+            }
+        }
+
         if (ticket.foodTaken) {
             return res.status(400).json({ success: false, message: 'Food already claimed' });
         }
 
         ticket.foodTaken = true;
         await ticket.save();
+
+        syncTicketToFirebase(ticket.eventId, ticket._id, {
+            foodTaken: true
+        });
 
         res.status(200).json({
             success: true,
@@ -748,7 +948,7 @@ exports.updateParkingAccess = async (req, res) => {
             query = { $or: [{ uuid: ticketId }, { ticketCode: ticketId }] };
         }
 
-        const ticket = await Ticket.findOne(query);
+        const ticket = await Ticket.findOne(query).populate('event');
 
         if (!ticket) {
             return res.status(404).json({ success: false, message: 'Ticket not found' });
@@ -758,12 +958,32 @@ exports.updateParkingAccess = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Ticket has been cancelled' });
         }
 
+        // AUTHORIZATION: Check event-specific staff assignment
+        if (req.user.role === 'staff') {
+            const event = ticket.event;
+            if (!event) {
+                return res.status(404).json({ success: false, message: 'Event not found for this ticket' });
+            }
+            
+            // Verify staff is assigned to PARKING role for this event
+            if (!event.staffAssignments?.parking || event.staffAssignments.parking.toString() !== req.user.id) {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: 'You are not assigned to PARKING scanning for this event' 
+                });
+            }
+        }
+
         if (ticket.parkingUsed) {
             return res.status(400).json({ success: false, message: 'Parking already claimed' });
         }
 
         ticket.parkingUsed = true;
         await ticket.save();
+
+        syncTicketToFirebase(ticket.eventId, ticket._id, {
+            parkingUsed: true
+        });
 
         res.status(200).json({
             success: true,
@@ -773,5 +993,83 @@ exports.updateParkingAccess = async (req, res) => {
     } catch (err) {
         console.error("Parking Access Update Error:", err);
         res.status(500).json({ success: false, message: 'Server Error during parking status update' });
+    }
+};
+
+// @desc    Update Addon Access for Ticket
+// @route   POST /api/v1/tickets/update-addons
+// @access  Private (Staff/Admin)
+exports.updateAddonsAccess = async (req, res) => {
+    try {
+        const { ticketId, itemName } = req.body;
+
+        let query = {};
+        if (mongoose.Types.ObjectId.isValid(ticketId)) {
+            query = { _id: ticketId };
+        } else {
+            query = { $or: [{ uuid: ticketId }, { ticketCode: ticketId }] };
+        }
+
+        const ticket = await Ticket.findOne(query).populate('event');
+
+        if (!ticket) {
+            return res.status(404).json({ success: false, message: 'Ticket not found' });
+        }
+
+        if (ticket.status === 'cancelled') {
+            return res.status(400).json({ success: false, message: 'Ticket has been cancelled' });
+        }
+
+        // AUTHORIZATION: Check event-specific addon staff assignment
+        if (req.user.role === 'staff') {
+            const event = ticket.event;
+            if (!event) {
+                return res.status(404).json({ success: false, message: 'Event not found for this ticket' });
+            }
+
+            // Verify addon exists in event configuration
+            const addonExists = (event.addonsSettings?.options || []).some(opt => opt.itemName === itemName);
+            if (!addonExists) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Addon "${itemName}" is not configured for this event` 
+                });
+            }
+            
+            // Verify staff is assigned to this specific addon for this event
+            const assignedStaffId = event.staffAssignments?.customAddons?.get(itemName);
+            if (!assignedStaffId || assignedStaffId.toString() !== req.user.id) {
+                return res.status(403).json({ 
+                    success: false, 
+                    message: `You are not assigned to distribute "${itemName}" for this event` 
+                });
+            }
+        }
+
+        if (!ticket.addonStatuses) {
+            ticket.addonStatuses = new Map();
+        }
+        
+        if (ticket.addonStatuses.get(itemName)) {
+            return res.status(400).json({ success: false, message: `${itemName} already claimed` });
+        }
+
+        ticket.addonStatuses.set(itemName, true);
+        await ticket.save();
+
+        const statuses = Object.fromEntries(ticket.addonStatuses);
+
+        syncTicketToFirebase(ticket.eventId, ticket._id, {
+            addonStatuses: statuses
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `${itemName} marked as claimed successfully`,
+            addonStatuses: statuses
+        });
+    } catch (err) {
+        console.error("Addon Access Update Error:", err);
+        res.status(500).json({ success: false, message: 'Server Error during addon status update' });
     }
 };

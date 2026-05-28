@@ -5,7 +5,6 @@ import * as eventApi from '../api/eventApi';
 import * as analyticsApi from '../api/analyticsApi';
 import { RevenueChart, TicketDistributionChart } from '../components/analytics/DashboardCharts';
 import DashboardSkeleton from '../components/analytics/DashboardSkeleton';
-import { ProfitLossCalculator } from '../components/analytics/ProfitLossCalculator';
 
 import {
     FaCalendarAlt, FaTicketAlt, FaWallet, FaBolt, FaEye, FaEdit, FaTrash
@@ -20,9 +19,7 @@ const OrganizerDashboard = () => {
     const [revenueData, setRevenueData] = useState({ totalRevenue: 0, totalEvents: 0 });
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showOfflineModal, setShowOfflineModal] = useState(false);
-    const [selectedEventForOffline, setSelectedEventForOffline] = useState(null);
-    const [offlineCheckboxChecked, setOfflineCheckboxChecked] = useState(false);
+
 
     const fetchData = async () => {
         try {
@@ -57,41 +54,7 @@ const OrganizerDashboard = () => {
         }
     };
 
-    const executeLiveToggle = async (eventId, newStatus) => {
-        try {
-            console.log(`Attempting to set event ${eventId} isLive to: ${newStatus}`);
-            const toast = (await import('react-hot-toast')).default;
-            const res = await eventApi.updateLiveStatus(eventId, newStatus);
 
-            if (res.data.success) {
-                toast.success(`Event is now ${newStatus ? 'LIVE' : 'OFFLINE'}`);
-                setEvents(prev => prev.map(ev =>
-                    ev._id === eventId ? { ...ev, isLive: newStatus, status: newStatus ? 'live' : 'approved' } : ev
-                ));
-            }
-        } catch (err) {
-            console.error('Toggle failed:', err);
-            const toast = (await import('react-hot-toast')).default;
-            toast.error(err.response?.data?.message || 'Update failed');
-        }
-    };
-
-    const handleLiveToggle = async (eventId, newStatus) => {
-        if (newStatus === false) {
-            setSelectedEventForOffline(eventId);
-            setOfflineCheckboxChecked(false);
-            setShowOfflineModal(true);
-            return;
-        }
-        await executeLiveToggle(eventId, true);
-    };
-
-    const handleConfirmOffline = async () => {
-        if (!offlineCheckboxChecked || !selectedEventForOffline) return;
-        setShowOfflineModal(false);
-        await executeLiveToggle(selectedEventForOffline, false);
-        setSelectedEventForOffline(null);
-    };
 
     if (loading) {
         return <DashboardSkeleton />;
@@ -165,63 +128,9 @@ const OrganizerDashboard = () => {
                         </div>
                     </Col>
 
-                    {/* Right: Live Events Management Panel */}
-                    <Col lg={8}>
-                        <div className="dashboard-card h-100">
-                            <h4 className="mb-3 dashboard-title-main" style={{ fontSize: '1.25rem' }}>Live Events Control</h4>
-                            <div className="data-list audit-feed-scroll overflow-auto" style={{ maxHeight: '350px', paddingRight: '5px' }}>
-                                {events.length === 0 ? (
-                                    <div className="text-center py-5 text-slate opacity-50 small">No events detected.</div>
-                                ) : (
-                                    events.map((event) => (
-                                        <div className="live-event-row" key={event._id}>
-                                            <div className="live-event-info">
-                                                <h6>{event.title}</h6>
-                                                <p>📍 {event.venue}</p>
-                                                <p>⏳ {calculateDays(event.startDate, event.endDate)} Day(s) Running</p>
-                                            </div>
-
-                                            <div className="live-event-actions">
-                                                <span className={`status-badge ${event.isLive ? "live" : "offline"}`}>
-                                                    {event.isLive ? "LIVE" : "OFFLINE"}
-                                                </span>
-
-                                                <div className="d-flex gap-2 mt-2 mt-md-0">
-                                                    <Button
-                                                        variant="success"
-                                                        size="sm"
-                                                        className="px-3 rounded-pill fw-bold"
-                                                        onClick={() => handleLiveToggle(event._id, true)}
-                                                        disabled={event.isLive}
-                                                        style={{ fontSize: '11px' }}
-                                                    >
-                                                        Go Live
-                                                    </Button>
-
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        className="px-3 rounded-pill fw-bold"
-                                                        onClick={() => handleLiveToggle(event._id, false)}
-                                                        disabled={!event.isLive}
-                                                        style={{ fontSize: '11px' }}
-                                                    >
-                                                        Offline
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </Col>
                 </Row>
 
-                {/* ─── Profit & Loss Simulation Sector ─── */}
-                <div className="mb-5">
-                    <ProfitLossCalculator />
-                </div>
+
 
                 {/* ─── Bottom Section ─── */}
                 <Row className="g-4 mb-5">
@@ -237,7 +146,6 @@ const OrganizerDashboard = () => {
                                     <thead className="bg-light">
                                         <tr className="small text-uppercase fw-bold text-slate tracking-widest">
                                             <th className="px-4 py-3">Event Name</th>
-                                            <th className="py-3">Status</th>
                                             <th className="text-end px-4 py-3">Actions</th>
                                         </tr>
                                     </thead>
@@ -245,18 +153,11 @@ const OrganizerDashboard = () => {
                                         {events.map((ev) => (
                                             <tr key={ev._id} className="border-bottom border-slate-100">
                                                 <td className="px-4 py-3 fw-bold text-truncate" style={{ maxWidth: '200px' }}>{ev.title}</td>
-                                                <td className="py-3">
-                                                    <span className={`status-badge ${ev.status === 'live' ? 'badge-pink' : ''}`}>
-                                                        {ev.status.toUpperCase()}
-                                                    </span>
-                                                </td>
+
                                                 <td className="text-end px-4 py-3">
                                                     <div className="d-flex justify-content-end gap-2">
                                                         <Button as={Link} to={`/organizer/event/${ev._id}`} className="btn btn-outline-pink shadow-none p-2">
                                                             <FaEye className="text-slate" />
-                                                        </Button>
-                                                        <Button as={Link} to={`/organizer/edit-event/${ev._id}`} className="btn btn-outline-pink shadow-none p-2">
-                                                            <FaEdit />
                                                         </Button>
                                                     </div>
                                                 </td>
@@ -290,58 +191,6 @@ const OrganizerDashboard = () => {
                     </Col>
                 </Row>
 
-                {/* ─── Offline Confirmation Modal (Premium Glassmorphic style) ─── */}
-                <Modal
-                    show={showOfflineModal}
-                    onHide={() => setShowOfflineModal(false)}
-                    centered
-                    backdrop="static"
-                    className="premium-offline-modal"
-                    contentClassName="border-0 rounded-4 shadow-lg overflow-hidden"
-                    style={{ backdropFilter: 'blur(8px)' }}
-                >
-                    <Modal.Header closeButton className="border-0 pt-4 px-4 bg-light/30">
-                        <Modal.Title className="fw-black text-slate" style={{ fontSize: '1.25rem', letterSpacing: '-0.5px' }}>
-                            ⚠️ Confirm Action
-                        </Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body className="px-4 py-3">
-                        <p className="text-slate fw-semibold mb-3" style={{ fontSize: '0.95rem', lineHeight: '1.5' }}>
-                            Are you sure you want to take this event offline?
-                        </p>
-
-                        <div className="p-3 bg-danger/5 rounded-3 border border-danger/10 mb-3">
-                            <Form.Check
-                                type="checkbox"
-                                id="offline-confirm-checkbox"
-                                label="Yes, I understand that taking this event offline will immediately hide it from public ticket sales and catalogs."
-                                checked={offlineCheckboxChecked}
-                                onChange={(e) => setOfflineCheckboxChecked(e.target.checked)}
-                                className="small text-danger fw-bold cursor-pointer"
-                                style={{ userSelect: 'none', lineHeight: '1.4' }}
-                            />
-                        </div>
-                    </Modal.Body>
-                    <Modal.Footer className="border-0 pb-4 px-4 gap-2">
-                        <Button
-                            variant="light"
-                            className="px-4 py-2 rounded-pill fw-bold border"
-                            onClick={() => setShowOfflineModal(false)}
-                            style={{ fontSize: '12px' }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="danger"
-                            className="px-4 py-2 rounded-pill fw-bold"
-                            onClick={handleConfirmOffline}
-                            disabled={!offlineCheckboxChecked}
-                            style={{ fontSize: '12px' }}
-                        >
-                            Confirm Offline
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
             </Container>
         </div>
     );
